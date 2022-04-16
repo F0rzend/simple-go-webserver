@@ -34,6 +34,7 @@ func (s *Server) GetRouter() http.Handler {
 	r.Route("/users", func(r chi.Router) {
 		r.Post("/", s.CreateUser)
 		r.Get("/{id}", s.GetUser)
+		r.Put("/{id}", s.UpdateUser)
 	})
 
 	return r

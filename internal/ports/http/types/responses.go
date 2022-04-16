@@ -48,6 +48,14 @@ func errResponse(err HttpError) Response {
 	}
 }
 
+type ErrInvalidEmail struct {
+	Email string
+}
+
+func (e ErrInvalidEmail) Error() string {
+	return "invalid email: " + e.Email
+}
+
 type UserResponse struct {
 	ID            uint64    `json:"id"`
 	Name          string    `json:"name"`

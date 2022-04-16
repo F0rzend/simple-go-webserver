@@ -75,3 +75,50 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	rspd.Status(http.StatusOK)
 	rspd.Response(SuccessResponse(s.assembler.ResponseFromDomain(*user)))
 }
+
+func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	rspd := MustNewResponder(w, r)
+
+	request := new(types.UpdateUserRequest)
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		rspd.InternalError(err)
+		return
+	}
+
+	if err := render.Bind(r, request); err != nil {
+		var status int
+		var response render.Renderer
+
+		switch err.(type) {
+		case types.ErrInvalidEmail:
+			status = http.StatusBadRequest
+			errMsg := fmt.Sprintf("invalid email: %s", err.Error())
+			response = Error(http.StatusBadRequest, errMsg)
+		default:
+			status = http.StatusInternalServerError
+			response = types.InternalError
+		}
+		rspd.Status(status)
+		rspd.Response(response)
+		return
+	}
+
+	if err := s.app.Commands.UpdateUser.Handle(commands.UpdateUserCommand{
+		Id:    id,
+		Name:  request.Name,
+		Email: request.Email,
+	}); err != nil {
+		rspd.InternalError(err)
+		return
+	}
+
+	user, err := s.app.Queries.GetUser.Handle(id)
+	if err != nil {
+		rspd.InternalError(err)
+		return
+	}
+
+	rspd.Status(http.StatusOK)
+	rspd.Response(SuccessResponse(s.assembler.ResponseFromDomain(*user)))
+}

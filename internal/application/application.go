@@ -15,6 +15,7 @@ func NewApplication(userRepository domain.UserRepository) *Application {
 	return &Application{
 		Commands: commands.Commands{
 			CreateUser: commands.NewCreateUserCommand(userRepository),
+			UpdateUser: commands.NewUpdateUserCommand(userRepository),
 		},
 		Queries: queries.Queries{
 			GetUser: queries.NewGetUserQuery(userRepository),
