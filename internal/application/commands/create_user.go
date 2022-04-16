@@ -36,7 +36,7 @@ func userIDGenerator() func() uint64 {
 	}
 }
 
-func (h *CreateUserCommandHandler) Execute(cmd CreateUserCommand) (uint64, error) {
+func (h *CreateUserCommandHandler) Handle(cmd CreateUserCommand) (uint64, error) {
 	user, err := domain.NewUser(
 		h.getId(),
 		cmd.Name,

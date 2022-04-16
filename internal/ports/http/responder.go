@@ -50,18 +50,19 @@ func SuccessResponse(result any) render.Renderer {
 	}
 }
 
-func Error(code int, err error) render.Renderer {
+func Error(code int, err string) render.Renderer {
 	return types.Response{
 		Ok: false,
 		Error: &types.HttpError{
 			Code:        code,
 			Error:       http.StatusText(code),
-			Description: err.Error(),
+			Description: err,
 		},
 	}
 }
 
-func (r *Responder) InternalError() {
+func (r *Responder) InternalError(err error) {
+	log.Error().Err(err).Send()
 	r.Status(http.StatusInternalServerError)
 	r.Response(types.InternalError)
 }

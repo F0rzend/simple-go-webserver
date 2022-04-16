@@ -2,19 +2,22 @@ package application
 
 import (
 	"github.com/F0rzend/SimpleGoWebserver/internal/application/commands"
+	"github.com/F0rzend/SimpleGoWebserver/internal/application/queries"
 	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 )
 
 type Application struct {
-	userRepository domain.UserRepository
-	Commands       commands.Commands
+	Commands commands.Commands
+	Queries  queries.Queries
 }
 
 func NewApplication(userRepository domain.UserRepository) *Application {
 	return &Application{
-		userRepository: userRepository,
 		Commands: commands.Commands{
 			CreateUser: commands.NewCreateUserCommand(userRepository),
+		},
+		Queries: queries.Queries{
+			GetUser: queries.NewGetUserQuery(userRepository),
 		},
 	}
 }

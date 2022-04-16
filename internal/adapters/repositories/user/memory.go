@@ -1,16 +1,11 @@
 package userRepository
 
 import (
-	"errors"
-
 	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 )
 
 var (
 	_ domain.UserRepository = &MemoryUserRepository{}
-
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
 type MemoryUserRepository struct {
@@ -25,7 +20,7 @@ func NewMemoryUserRepository() *MemoryUserRepository {
 
 func (r *MemoryUserRepository) Create(user *domain.User) error {
 	if _, ok := r.users[user.ID]; ok {
-		return ErrUserAlreadyExists
+		return domain.ErrUserAlreadyExists(user.ID)
 	}
 	r.users[user.ID] = user
 	return nil
@@ -34,7 +29,7 @@ func (r *MemoryUserRepository) Create(user *domain.User) error {
 func (r *MemoryUserRepository) Get(id uint64) (*domain.User, error) {
 	user, ok := r.users[id]
 	if !ok {
-		return nil, ErrUserNotFound
+		return nil, domain.ErrUserNotFound(id)
 	}
 	return user, nil
 }
@@ -46,7 +41,7 @@ func (r *MemoryUserRepository) Update(
 	currentUser, ok := r.users[id]
 
 	if !ok {
-		return ErrUserNotFound
+		return domain.ErrUserNotFound(id)
 	}
 
 	updatedUser, err := updFunc(currentUser)
@@ -61,7 +56,7 @@ func (r *MemoryUserRepository) Update(
 func (r *MemoryUserRepository) Delete(id uint64) error {
 	_, ok := r.users[id]
 	if !ok {
-		return ErrUserNotFound
+		return domain.ErrUserNotFound(id)
 	}
 	delete(r.users, id)
 	return nil
