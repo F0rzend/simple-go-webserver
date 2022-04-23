@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: Simple GoLang web server
+  description: Simple GoLang web server
+  version: 0.1.0
+  license:
+    name: MIT
+  contact:
+    name: Konstantin (Forzend)
+    url: https://t.me/F0rzend
+
+servers:
+  - url: 'http://localhost:8080'
+
+paths:
+  /users:
+    get:
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: query
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    post:
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: F0rzend
+                username:
+                  type: string
+                  example: forzend
+                email:
+                  type: string
+                  format: email
+                  example: some@gmail.com
+      parameters:
+        - name: id
+          in: query
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  result:
+                    description: Location to get created user
+                    type: string
+                    example: /users/1
+
+components:
+  schemas:
+    UserResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        result:
+          $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint64
+          example: 1
+
+        name:
+          type: string
+          example: Forzend
+
+        username:
+          type: string
+          example: forzend
+
+        email:
+          type: string
+          format: email
+          example: some@gmail.com
+
+        bitcoin_amount:
+          type: number
+          example: 0.0
+
+        usd_balance:
+          type: number
+          example: 0.0
+
+        created_at:
+          type: string
+          format: date-time
+          example: 2020-01-01T00:00:00Z
+
+        updated_at:
+          type: string
+          format: date-time
+          example: 2020-01-01T00:00:00Z
