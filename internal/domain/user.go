@@ -32,7 +32,7 @@ func NewUser(
 
 	balance := NewBalance(
 		BTCFromFloat(bitcoinAmount),
-		USDFromFloat(usdBalance),
+		NewUSD(usdBalance),
 	)
 
 	return &User{

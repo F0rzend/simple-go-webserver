@@ -80,5 +80,5 @@ func (r *Responder) ContentType(contentType string) {
 }
 
 func (r *Responder) LocationHeader(location string) {
-	r.writer.Header().Set("Location", location)
+	r.Header("Location", location)
 }

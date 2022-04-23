@@ -8,7 +8,7 @@ func NewAssembler() *Assembler {
 	return &Assembler{}
 }
 
-func (a *Assembler) ResponseFromDomain(user domain.User) UserResponse {
+func (a *Assembler) UserToResponse(user domain.User) UserResponse {
 	return UserResponse{
 		ID:            user.ID,
 		Name:          user.Name,
@@ -18,5 +18,12 @@ func (a *Assembler) ResponseFromDomain(user domain.User) UserResponse {
 		UsdBalance:    user.Balance.USD.ToFloat(),
 		CreatedAt:     user.CreatedAt,
 		UpdatedAt:     user.UpdatedAt,
+	}
+}
+
+func (a *Assembler) BTCToResponse(btc domain.BTCPrice) BTCResponse {
+	return BTCResponse{
+		Price:     btc.Price.ToFloat(),
+		UpdatedAt: btc.UpdatedAt,
 	}
 }

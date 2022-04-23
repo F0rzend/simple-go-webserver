@@ -10,3 +10,8 @@ type UserRepository interface {
 	) error
 	Delete(id uint64) error
 }
+
+type BTCRepository interface {
+	Get() (BTCPrice, error)
+	SetPrice(price USD) error
+}

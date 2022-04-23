@@ -2,11 +2,14 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/render"
 )
+
+const MinimalBTCPrice float64 = 0
 
 var (
 	_ render.Renderer = Response{}
@@ -53,7 +56,7 @@ type ErrInvalidEmail struct {
 }
 
 func (e ErrInvalidEmail) Error() string {
-	return "invalid email: " + e.Email
+	return e.Email
 }
 
 type UserResponse struct {
@@ -65,4 +68,20 @@ type UserResponse struct {
 	UsdBalance    float64   `json:"usd_balance"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+type ErrInvalidPrice struct {
+	Price float64
+}
+
+func (e ErrInvalidPrice) Error() string {
+	if e.Price < MinimalBTCPrice {
+		return fmt.Sprintf("price cannot be less then %.2f, but received %.2f", MinimalBTCPrice, e.Price)
+	}
+	return fmt.Sprintf("invalid price %.2f", e.Price)
+}
+
+type BTCResponse struct {
+	Price     float64   `json:"price"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

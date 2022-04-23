@@ -37,3 +37,14 @@ func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	}
 	return nil
 }
+
+type SetBTCPriceRequest struct {
+	Price float64 `json:"price"`
+}
+
+func (r SetBTCPriceRequest) Bind(_ *http.Request) error {
+	if r.Price <= 0 {
+		return ErrInvalidPrice{Price: r.Price}
+	}
+	return nil
+}

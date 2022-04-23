@@ -11,14 +11,20 @@ type Application struct {
 	Queries  queries.Queries
 }
 
-func NewApplication(userRepository domain.UserRepository) *Application {
+func NewApplication(
+	userRepository domain.UserRepository,
+	btcRepository domain.BTCRepository,
+) *Application {
 	return &Application{
 		Commands: commands.Commands{
 			CreateUser: commands.NewCreateUserCommand(userRepository),
 			UpdateUser: commands.NewUpdateUserCommand(userRepository),
+
+			SetBTCPrice: commands.NewSetBTCPriceCommand(btcRepository),
 		},
 		Queries: queries.Queries{
 			GetUser: queries.NewGetUserQuery(userRepository),
+			GetBTC:  queries.NewGetBTCCommand(btcRepository),
 		},
 	}
 }

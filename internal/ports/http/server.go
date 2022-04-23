@@ -37,5 +37,10 @@ func (s *Server) GetRouter() http.Handler {
 		r.Put("/{id}", s.UpdateUser)
 	})
 
+	r.Route("/bitcoin", func(r chi.Router) {
+		r.Get("/", s.GetBTC)
+		r.Put("/", s.SetBTCPrice)
+	})
+
 	return r
 }

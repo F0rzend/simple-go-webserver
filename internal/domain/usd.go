@@ -13,7 +13,7 @@ func USDFromCent(cent uint64) USD {
 	return USD(cent)
 }
 
-func USDFromFloat(amount float64) USD {
+func NewUSD(amount float64) USD {
 	return USD(math.Round(amount * CentInUSDollar))
 }
 
