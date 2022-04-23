@@ -122,6 +122,33 @@ func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	rspd.Status(http.StatusOK)
 	rspd.Response(SuccessResponse(s.assembler.UserToResponse(*user)))
+
+}
+
+func (s *Server) GetUserBalance(w http.ResponseWriter, r *http.Request) {
+	rspd := MustNewResponder(w, r)
+
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		rspd.InternalError(err)
+		return
+	}
+
+	balance, err := s.app.Queries.GetUserBalance.Handle(id)
+	switch err.(type) {
+	case nil:
+	case domain.ErrUserNotFound:
+		rspd.Status(http.StatusNotFound)
+		rspd.Response(Error(http.StatusNotFound, fmt.Sprintf("user with id %d not found", id)))
+		return
+	default:
+		rspd.InternalError(err)
+		return
+	}
+
+	rspd.Status(http.StatusOK)
+	rspd.Response(SuccessResponse(balance.ToFloat()))
+
 }
 
 func (s *Server) GetBTC(w http.ResponseWriter, r *http.Request) {

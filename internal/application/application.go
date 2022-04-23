@@ -23,8 +23,10 @@ func NewApplication(
 			SetBTCPrice: commands.NewSetBTCPriceCommand(btcRepository),
 		},
 		Queries: queries.Queries{
-			GetUser: queries.NewGetUserQuery(userRepository),
-			GetBTC:  queries.NewGetBTCCommand(btcRepository),
+			GetUser:        queries.NewGetUserQuery(userRepository),
+			GetUserBalance: queries.NewGetUserBalanceQuery(userRepository, btcRepository),
+
+			GetBTC: queries.NewGetBTCCommand(btcRepository),
 		},
 	}
 }

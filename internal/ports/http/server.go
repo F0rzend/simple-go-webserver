@@ -35,6 +35,10 @@ func (s *Server) GetRouter() http.Handler {
 		r.Post("/", s.CreateUser)
 		r.Get("/{id}", s.GetUser)
 		r.Put("/{id}", s.UpdateUser)
+
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/balance", s.GetUserBalance)
+		})
 	})
 
 	r.Route("/bitcoin", func(r chi.Router) {
