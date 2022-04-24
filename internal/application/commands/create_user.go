@@ -17,15 +17,24 @@ type CreateUserCommandHandler struct {
 	userRepository domain.UserRepository
 }
 
-func NewCreateUserCommand(userRepository domain.UserRepository) *CreateUserCommandHandler {
+func NewCreateUserCommand(userRepository domain.UserRepository) (CreateUserCommandHandler, error) {
 	if userRepository == nil {
-		panic("userRepository is nil")
+		return CreateUserCommandHandler{}, ErrNilUserRepository
 	}
 
-	return &CreateUserCommandHandler{
+	return CreateUserCommandHandler{
 		getId:          userIDGenerator(),
 		userRepository: userRepository,
+	}, nil
+}
+
+func MustNewCreateUserCommand(userRepository domain.UserRepository) CreateUserCommandHandler {
+	handler, err := NewCreateUserCommand(userRepository)
+	if err != nil {
+		panic(err)
 	}
+
+	return handler
 }
 
 func userIDGenerator() func() uint64 {

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"net/mail"
 	"time"
 )
@@ -32,7 +33,7 @@ func NewUser(
 
 	balance := NewBalance(
 		BTCFromFloat(bitcoinAmount),
-		NewUSD(usdBalance),
+		USDFromFloat(usdBalance),
 	)
 
 	return &User{
@@ -45,4 +46,55 @@ func NewUser(
 		UpdatedAt: updatedAt,
 	}, nil
 
+}
+
+var (
+	ErrNegativeAmount    = errors.New("amount must be positive")
+	ErrInsufficientFunds = errors.New("insufficient funds")
+)
+
+func (u *User) ChangeUSDBalance(action USDAction, amount USD) error {
+	if amount.IsNegative() {
+		return ErrNegativeAmount
+	}
+
+	switch action {
+	case DepositUSDAction:
+		u.Balance.USD = u.Balance.USD.Add(amount)
+	case WithdrawUSDAction:
+		if u.Balance.USD < amount {
+			return ErrInsufficientFunds
+		}
+		u.Balance.USD = u.Balance.USD.Sub(amount)
+	default:
+		return ErrInvalidAction
+	}
+
+	return nil
+}
+
+func (u *User) ChangeBTCBalance(action BTCAction, amount BTC, price USD) error {
+	if amount.IsNegative() {
+		return ErrNegativeAmount
+	}
+
+	switch action {
+	case BuyBTCAction:
+		print(u.Balance.USD.String(), " ", amount.ToUSD(price).String(), " ", price.String())
+		if u.Balance.USD < amount.ToUSD(price) {
+			return ErrInsufficientFunds
+		}
+		u.Balance.USD = u.Balance.USD.Sub(amount.ToUSD(price))
+		u.Balance.BTC = u.Balance.BTC.Add(amount)
+	case SellBTCAction:
+		if u.Balance.BTC < amount {
+			return ErrInsufficientFunds
+		}
+		u.Balance.BTC = u.Balance.BTC.Sub(amount)
+		u.Balance.USD = u.Balance.USD.Add(amount.ToUSD(price))
+	default:
+		return ErrInvalidAction
+	}
+
+	return nil
 }

@@ -16,10 +16,23 @@ type UpdateUserCommandHandler struct {
 	userRepository domain.UserRepository
 }
 
-func NewUpdateUserCommand(userRepository domain.UserRepository) *UpdateUserCommandHandler {
-	return &UpdateUserCommandHandler{
-		userRepository: userRepository,
+func NewUpdateUserCommand(userRepository domain.UserRepository) (UpdateUserCommandHandler, error) {
+	if userRepository == nil {
+		return UpdateUserCommandHandler{}, ErrNilUserRepository
 	}
+
+	return UpdateUserCommandHandler{
+		userRepository: userRepository,
+	}, nil
+}
+
+func MustNewUpdateUserCommand(userRepository domain.UserRepository) UpdateUserCommandHandler {
+	handler, err := NewUpdateUserCommand(userRepository)
+	if err != nil {
+		panic(err)
+	}
+
+	return handler
 }
 
 func (h *UpdateUserCommandHandler) Handle(cmd UpdateUserCommand) error {

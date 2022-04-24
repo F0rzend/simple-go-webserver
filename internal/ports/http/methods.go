@@ -197,3 +197,109 @@ func (s *Server) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
 	rspd.LocationHeader("/bitcoin")
 	rspd.Response(SuccessResponse("/bitcoin"))
 }
+
+func (s *Server) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
+	rspd := MustNewResponder(w, r)
+
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		rspd.InternalError(err)
+		return
+	}
+
+	request := new(types.ChangeUSDBalanceRequest)
+	if err := render.Bind(r, request); err != nil {
+		var status int
+		var response render.Renderer
+
+		switch err {
+		case types.ErrInvalidAction:
+			status = http.StatusBadRequest
+			errMsg := "Invalid action. Action should be 'withdraw' or 'deposit'"
+			response = Error(http.StatusBadRequest, errMsg)
+		case types.ErrInvalidAmount:
+			status = http.StatusBadRequest
+			errMsg := "Invalid amount. Amount should be positive number"
+			response = Error(http.StatusBadRequest, errMsg)
+		default:
+			status = http.StatusInternalServerError
+			response = types.InternalError
+		}
+		rspd.Status(status)
+		rspd.Response(response)
+		return
+	}
+
+	err = s.app.Commands.ChangeUSDBalance.Handle(commands.ChangeUSDBalanceCommand{
+		UserId: id,
+		Action: request.Action,
+		Amount: request.Amount,
+	})
+	switch err.(type) {
+	case nil:
+	case domain.ErrUserNotFound:
+		rspd.Status(http.StatusNotFound)
+		rspd.Response(Error(http.StatusNotFound, fmt.Sprintf("user with id %d not found", id)))
+		return
+	default:
+		rspd.InternalError(err)
+		return
+	}
+
+	rspd.Status(http.StatusOK)
+	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
+	rspd.Response(SuccessResponse(fmt.Sprintf("/users/%d", id)))
+}
+
+func (s *Server) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
+	rspd := MustNewResponder(w, r)
+
+	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		rspd.InternalError(err)
+		return
+	}
+
+	request := new(types.ChangeBTCBalanceRequest)
+	if err := render.Bind(r, request); err != nil {
+		var status int
+		var response render.Renderer
+
+		switch err {
+		case types.ErrInvalidAction:
+			status = http.StatusBadRequest
+			errMsg := "Invalid action. Action should be 'buy' or 'sell'"
+			response = Error(http.StatusBadRequest, errMsg)
+		case types.ErrInvalidAmount:
+			status = http.StatusBadRequest
+			errMsg := "Invalid amount. Amount should be positive number"
+			response = Error(http.StatusBadRequest, errMsg)
+		default:
+			status = http.StatusInternalServerError
+			response = types.InternalError
+		}
+		rspd.Status(status)
+		rspd.Response(response)
+		return
+	}
+
+	err = s.app.Commands.ChangeBTCBalance.Handle(commands.ChangeBTCBalanceCommand{
+		UserId: id,
+		Action: request.Action,
+		Amount: request.Amount,
+	})
+	switch err.(type) {
+	case nil:
+	case domain.ErrUserNotFound:
+		rspd.Status(http.StatusNotFound)
+		rspd.Response(Error(http.StatusNotFound, fmt.Sprintf("user with id %d not found", id)))
+		return
+	default:
+		rspd.InternalError(err)
+		return
+	}
+
+	rspd.Status(http.StatusOK)
+	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
+	rspd.Response(SuccessResponse(fmt.Sprintf("/users/%d", id)))
+}

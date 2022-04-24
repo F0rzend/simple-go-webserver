@@ -38,6 +38,9 @@ func (s *Server) GetRouter() http.Handler {
 			r.Get("/", s.GetUser)
 			r.Put("/", s.UpdateUser)
 			r.Get("/balance", s.GetUserBalance)
+
+			r.Post("/bitcoin", s.ChangeBTCBalance)
+			r.Post("/usd", s.ChangeUSDBalance)
 		})
 	})
 

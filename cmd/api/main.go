@@ -20,7 +20,7 @@ func main() {
 		Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	userRepository := userRepositories.NewMemoryUserRepository()
-	btcRepository := btcRepositories.NewMemoryBTCRepository(domain.NewUSD(100))
+	btcRepository := btcRepositories.NewMemoryBTCRepository(domain.USDFromFloat(100))
 	app := application.NewApplication(userRepository, btcRepository)
 	httpServer := server.NewServer(app)
 

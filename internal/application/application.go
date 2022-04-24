@@ -17,16 +17,18 @@ func NewApplication(
 ) *Application {
 	return &Application{
 		Commands: commands.Commands{
-			CreateUser: commands.NewCreateUserCommand(userRepository),
-			UpdateUser: commands.NewUpdateUserCommand(userRepository),
+			CreateUser:       commands.MustNewCreateUserCommand(userRepository),
+			UpdateUser:       commands.MustNewUpdateUserCommand(userRepository),
+			ChangeUSDBalance: commands.MustNewChangeUSDBalanceCommand(userRepository),
+			ChangeBTCBalance: commands.MustNewChangeBTCBalanceCommand(userRepository, btcRepository),
 
-			SetBTCPrice: commands.NewSetBTCPriceCommand(btcRepository),
+			SetBTCPrice: commands.MustNewSetBTCPriceCommand(btcRepository),
 		},
 		Queries: queries.Queries{
-			GetUser:        queries.NewGetUserQuery(userRepository),
-			GetUserBalance: queries.NewGetUserBalanceQuery(userRepository, btcRepository),
+			GetUser:        queries.MustNewGetUserQuery(userRepository),
+			GetUserBalance: queries.MustNewGetUserBalanceQuery(userRepository, btcRepository),
 
-			GetBTC: queries.NewGetBTCCommand(btcRepository),
+			GetBTC: queries.MustNewGetBTCCommand(btcRepository),
 		},
 	}
 }

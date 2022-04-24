@@ -19,13 +19,25 @@ func (btc BTC) ToFloat() float64 {
 }
 
 func (btc BTC) ToUSD(bitcoinPrice USD) USD {
-	return USD(btc) * bitcoinPrice
+	return USD(btc) / bitcoinPrice
 }
 
 func (btc BTC) String() string {
 	precision := CountPrecision(SatoshiInBitcoin)
 	format := fmt.Sprintf("%%.%df BTC", precision)
 	return fmt.Sprintf(format, btc.ToFloat())
+}
+
+func (btc BTC) Add(other BTC) BTC {
+	return btc + other
+}
+
+func (btc BTC) Sub(other BTC) BTC {
+	return btc - other
+}
+
+func (btc BTC) IsNegative() bool {
+	return btc < 0
 }
 
 type BTCPrice struct {

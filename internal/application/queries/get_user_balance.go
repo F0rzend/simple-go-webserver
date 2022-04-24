@@ -10,11 +10,30 @@ type GetUserBalanceQueryHandler struct {
 func NewGetUserBalanceQuery(
 	userRepository domain.UserRepository,
 	btcRepository domain.BTCRepository,
-) *GetUserBalanceQueryHandler {
-	return &GetUserBalanceQueryHandler{
+) (GetUserBalanceQueryHandler, error) {
+	if userRepository == nil {
+		return GetUserBalanceQueryHandler{}, ErrNilUserRepository
+	}
+	if btcRepository == nil {
+		return GetUserBalanceQueryHandler{}, ErrNilBTCRepository
+	}
+
+	return GetUserBalanceQueryHandler{
 		userRepository: userRepository,
 		btcRepository:  btcRepository,
+	}, nil
+}
+
+func MustNewGetUserBalanceQuery(
+	userRepository domain.UserRepository,
+	btcRepository domain.BTCRepository,
+) GetUserBalanceQueryHandler {
+	handler, err := NewGetUserBalanceQuery(userRepository, btcRepository)
+	if err != nil {
+		panic(err)
 	}
+
+	return handler
 }
 
 func (h GetUserBalanceQueryHandler) Handle(userId uint64) (domain.USD, error) {
