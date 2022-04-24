@@ -251,7 +251,6 @@ paths:
   /users/{id}/usd:
     post:
       tags:
-        - Users
         - Finances
       summary: Deposit or withdraw US dollars
       description: A user cannot withdraw more usd than in possession
@@ -345,7 +344,6 @@ paths:
   /users/{id}/bitcoin:
     post:
       tags:
-        - Users
         - Finances
       summary: Buy or sell Bitcoins
       description: A user cannot withdraw bitcoins, only convert them to or from usd
@@ -439,7 +437,6 @@ paths:
   /users/{id}/balance:
     get:
       tags:
-        - Users
         - Finances
       summary: Get user balance
       description: user balance is amount in usd + amount of bitcoins converted to usd
