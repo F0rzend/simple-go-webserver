@@ -1,41 +1,38 @@
 openapi: 3.0.3
+
 info:
   title: Simple GoLang web server
-  description: Simple GoLang web server
-  version: 0.1.0
-  license:
-    name: MIT
+  description: It is a simple web server written in the Go programming language.
+    The project uses DDD and CQRS architecture.
   contact:
     name: Konstantin (Forzend)
     url: https://t.me/F0rzend
+  license:
+    name: MIT
+    url: https://mit-license.org/
+  version: 0.1.0
 
 servers:
   - url: 'http://localhost:8080'
+    description: Local debug server
+
+tags:
+  - name: Users
+    description: Users management
+
+  - name: Finances
+    description: Finances management
 
 paths:
   /users:
-    get:
-      tags:
-        - Users
-      parameters:
-        - name: id
-          in: query
-          description: User ID
-          required: true
-          schema:
-            type: integer
-            format: uint64
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
     post:
       tags:
         - Users
+      summary: User sign up
+      description: Create new user
+      operationId: createUser
       requestBody:
+        description: User registration data
         content:
           application/json:
             schema:
@@ -51,14 +48,8 @@ paths:
                   type: string
                   format: email
                   example: some@gmail.com
-      parameters:
-        - name: id
-          in: query
-          description: User ID
-          required: true
-          schema:
-            type: integer
-            format: uint64
+        required: true
+
       responses:
         201:
           description: Created
@@ -74,17 +65,507 @@ paths:
                     description: Location to get created user
                     type: string
                     example: /users/1
+        400:
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 400
+                      error:
+                        type: string
+                        example: Bad Request
+                      description:
+                        type: string
+                        example: Invalid request body
+        409:
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 409
+                      error:
+                        type: string
+                        example: Conflict
+                      description:
+                        type: string
+                        example: User with email some@gmail.com already exists
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user by id
+      description: Get registered user
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        200:
+          description: Current user object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  result:
+                    $ref: '#/components/schemas/User'
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 404
+                      error:
+                        type: string
+                        example: Not Found
+                      description:
+                        type: string
+                        example: User with id 1 not found
+
+    put:
+      tags:
+        - Users
+      summary: Change the name or the email of a user
+      description: Change the name or the email of a user
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: F0rzend
+                email:
+                  type: string
+                  format: email
+                  example: some@gmail.com
+        required: true
+
+      responses:
+        200:
+          description: Updated user location
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  result:
+                    description: Location to get updated user
+                    type: string
+                    example: /users/1
+        400:
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 400
+                      error:
+                        type: string
+                        example: Bad Request
+                      description:
+                        type: string
+                        example: Invalid request body
+        404:
+          description: User to update not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 404
+                      error:
+                        type: string
+                        example: Not Found
+                      description:
+                        type: string
+                        example: User with id 1 not found
+
+  /users/{id}/usd:
+    post:
+      tags:
+        - Users
+        - Finances
+      summary: Deposit or withdraw US dollars
+      description: A user cannot withdraw more usd than in possession
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      requestBody:
+        description: User USD deposit
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - deposit
+                    - withdraw
+                  example: deposit
+                amount:
+                  type: number
+                  format: float64
+                  example: 40.05
+        required: true
+
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  result:
+                    description: Location to get updated user
+                    type: string
+                    example: /users/1
+        400:
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 400
+                      error:
+                        type: string
+                        example: Bad Request
+                      description:
+                        type: string
+                        example: Invalid amount. Amount must be greater than 0
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 404
+                      error:
+                        type: string
+                        example: Not Found
+                      description:
+                        type: string
+                        example: User with id 1 not found
+
+  /users/{id}/bitcoin:
+    post:
+      tags:
+        - Users
+        - Finances
+      summary: Buy or sell Bitcoins
+      description: A user cannot withdraw bitcoins, only convert them to or from usd
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      requestBody:
+        description: Action and amount to buy or sell
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - buy
+                    - sell
+                  example: buy
+                amount:
+                  type: number
+                  format: float64
+                  example: 0.05
+        required: true
+
+      responses:
+        200:
+          description: Location to get updated user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  result:
+                    description: Location to get updated user
+                    type: string
+                    example: /users/1
+        400:
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 400
+                      error:
+                        type: string
+                        example: Bad Request
+                      description:
+                        type: string
+                        example: Invalid amount. Amount must be greater than 0
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 404
+                      error:
+                        type: string
+                        example: Not Found
+                      description:
+                        type: string
+                        example: User with id 1 not found
+
+  /users/{id}/balance:
+    get:
+      tags:
+        - Users
+        - Finances
+      summary: Get user balance
+      description: user balance is amount in usd + amount of bitcoins converted to usd
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        200:
+          description: Total user's balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  result:
+                    description: User balance
+                    type: number
+                    format: float64
+                    example: 120.05
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 404
+                      error:
+                        type: string
+                        example: Not Found
+                      description:
+                        type: string
+                        example: User with id 1 not found
+
+  /bitcoin:
+    get:
+      tags:
+        - Finances
+      summary: Get current bitcoin price
+      description: Get current bitcoin price in USD
+      responses:
+        200:
+          description: Current bitcoin price and last updating date
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  result:
+                    $ref: '#/components/schemas/Bitcoin'
+
+    put:
+      tags:
+        - Finances
+      summary: Change the bitcoin price
+      description: Set new bitcoin price in USD
+      requestBody:
+        description: New bitcoin price
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                price:
+                  type: number
+                  format: float64
+                  example: 100.00
+      responses:
+        200:
+          description: Location to get current bitcoin price
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  result:
+                    description: Location to get bitcoin price
+                    type: string
+                    example: /bitcoin
+        400:
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      error_code:
+                        type: integer
+                        example: 400
+                      error:
+                        type: string
+                        example: Bad Request
+                      description:
+                        type: string
+                        example: Invalid price. Price should be greater than 0
 
 components:
   schemas:
-    UserResponse:
-      type: object
-      properties:
-        ok:
-          type: boolean
-          example: true
-        result:
-          $ref: '#/components/schemas/User'
     User:
       type: object
       properties:
@@ -123,3 +604,19 @@ components:
           type: string
           format: date-time
           example: 2020-01-01T00:00:00Z
+
+    Bitcoin:
+      type: object
+      properties:
+        price:
+          type: number
+          format: float
+          example: 100.00
+        updated_at:
+          type: string
+          format: date-time
+          example: 2020-01-01T00:00:00Z
+
+externalDocs:
+  description: Github repository of the project
+  url: https://github.com/F0rzend/SimpleGoWebserver
