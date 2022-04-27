@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 	"net/http"
 	"os"
+
+	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -14,13 +15,18 @@ import (
 	server "github.com/F0rzend/SimpleGoWebserver/internal/ports/http"
 )
 
+var DefaultBitcoinPrice = domain.USDFromCent(100_000_000) // nolint: gomnd
+
 func main() {
 	log.Logger = log.
 		With().Caller().Logger().
 		Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	userRepository := userRepositories.NewMemoryUserRepository()
-	btcRepository := btcRepositories.NewMemoryBTCRepository(domain.USDFromFloat(100))
+	btcRepository, err := btcRepositories.NewMemoryBTCRepository(DefaultBitcoinPrice)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create btc repository")
+	}
 	app := application.NewApplication(userRepository, btcRepository)
 	httpServer := server.NewServer(app)
 

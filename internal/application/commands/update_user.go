@@ -1,13 +1,14 @@
 package commands
 
 import (
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 	"net/mail"
 	"time"
+
+	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 )
 
 type UpdateUserCommand struct {
-	Id    uint64
+	ID    uint64
 	Name  *string
 	Email *string
 }
@@ -37,7 +38,7 @@ func MustNewUpdateUserCommand(userRepository domain.UserRepository) UpdateUserCo
 
 func (h *UpdateUserCommandHandler) Handle(cmd UpdateUserCommand) error {
 	return h.userRepository.Update(
-		cmd.Id,
+		cmd.ID,
 		func(user *domain.User) (*domain.User, error) {
 			if cmd.Name != nil {
 				user.Name = *cmd.Name

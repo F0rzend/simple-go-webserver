@@ -4,9 +4,7 @@ import (
 	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 )
 
-var (
-	_ domain.UserRepository = &MemoryUserRepository{}
-)
+var _ domain.UserRepository = &MemoryUserRepository{}
 
 type MemoryUserRepository struct {
 	users map[uint64]*domain.User

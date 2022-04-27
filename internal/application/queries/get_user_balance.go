@@ -36,17 +36,16 @@ func MustNewGetUserBalanceQuery(
 	return handler
 }
 
-func (h GetUserBalanceQueryHandler) Handle(userId uint64) (domain.USD, error) {
-	user, err := h.userRepository.Get(userId)
-
+func (h GetUserBalanceQueryHandler) Handle(userID uint64) (domain.USD, error) {
+	user, err := h.userRepository.Get(userID)
 	if err != nil {
-		return 0, err
+		return domain.USD{}, err
 	}
 
-	btc, err := h.btcRepository.Get()
+	btcPrice, err := h.btcRepository.Get()
 	if err != nil {
-		return 0, err
+		return domain.USD{}, err
 	}
 
-	return user.Balance.Total(btc.Price), nil
+	return user.Balance.Total(btcPrice), nil
 }

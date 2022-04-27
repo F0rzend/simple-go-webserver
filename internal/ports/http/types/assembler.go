@@ -23,7 +23,7 @@ func (a *Assembler) UserToResponse(user domain.User) UserResponse {
 
 func (a *Assembler) BTCToResponse(btc domain.BTCPrice) BTCResponse {
 	return BTCResponse{
-		Price:     btc.Price.ToFloat(),
-		UpdatedAt: btc.UpdatedAt,
+		Price:     btc.GetPrice().ToFloat(),
+		UpdatedAt: btc.GetUpdatedAt(),
 	}
 }

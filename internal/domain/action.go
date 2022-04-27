@@ -11,13 +11,13 @@ var (
 )
 
 var (
-	usdActions = []USDAction{
-		DepositUSDAction,
-		WithdrawUSDAction,
+	usdActions = map[string]USDAction{
+		"deposit":  DepositUSDAction,
+		"withdraw": WithdrawUSDAction,
 	}
-	btcActions = []BTCAction{
-		BuyBTCAction,
-		SellBTCAction,
+	btcActions = map[string]BTCAction{
+		"buy":  BuyBTCAction,
+		"sell": SellBTCAction,
 	}
 )
 
@@ -27,25 +27,28 @@ type (
 )
 
 type action struct {
-	action string
+	a string
+}
+
+func (a action) String() string {
+	return a.a
 }
 
 var ErrInvalidAction = errors.New("invalid action")
 
 func NewUSDAction(action string) (USDAction, error) {
-	for _, a := range usdActions {
-		if a.action == action {
-			return a, nil
-		}
+	usdAction, ok := usdActions[action]
+	if !ok {
+		return USDAction{}, ErrInvalidAction
 	}
-	return USDAction{}, ErrInvalidAction
+
+	return usdAction, nil
 }
 
 func NewBTCAction(action string) (BTCAction, error) {
-	for _, a := range btcActions {
-		if a.action == action {
-			return a, nil
-		}
+	btcAction, ok := btcActions[action]
+	if !ok {
+		return BTCAction{}, ErrInvalidAction
 	}
-	return BTCAction{}, ErrInvalidAction
+	return btcAction, nil
 }

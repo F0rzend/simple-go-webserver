@@ -2,10 +2,11 @@ package http
 
 import (
 	"fmt"
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+
+	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
+	"github.com/go-chi/chi/v5"
 
 	"github.com/go-chi/render"
 
@@ -49,7 +50,6 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	rspd.Status(http.StatusCreated)
 	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
 	rspd.Response(SuccessResponse(fmt.Sprintf("/users/%d", id)))
-
 }
 
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +106,7 @@ func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.app.Commands.UpdateUser.Handle(commands.UpdateUserCommand{
-		Id:    id,
+		ID:    id,
 		Name:  request.Name,
 		Email: request.Email,
 	}); err != nil {
@@ -122,7 +122,6 @@ func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	rspd.Status(http.StatusOK)
 	rspd.Response(SuccessResponse(s.assembler.UserToResponse(*user)))
-
 }
 
 func (s *Server) GetUserBalance(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +147,6 @@ func (s *Server) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 
 	rspd.Status(http.StatusOK)
 	rspd.Response(SuccessResponse(balance.ToFloat()))
-
 }
 
 func (s *Server) GetBTC(w http.ResponseWriter, r *http.Request) {
@@ -231,7 +229,7 @@ func (s *Server) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.app.Commands.ChangeUSDBalance.Handle(commands.ChangeUSDBalanceCommand{
-		UserId: id,
+		UserID: id,
 		Action: request.Action,
 		Amount: request.Amount,
 	})
@@ -284,7 +282,7 @@ func (s *Server) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.app.Commands.ChangeBTCBalance.Handle(commands.ChangeBTCBalanceCommand{
-		UserId: id,
+		UserID: id,
 		Action: request.Action,
 		Amount: request.Amount,
 	})

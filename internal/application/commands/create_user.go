@@ -13,7 +13,7 @@ type CreateUserCommand struct {
 }
 
 type CreateUserCommandHandler struct {
-	getId          func() uint64
+	getID          func() uint64
 	userRepository domain.UserRepository
 }
 
@@ -23,7 +23,7 @@ func NewCreateUserCommand(userRepository domain.UserRepository) (CreateUserComma
 	}
 
 	return CreateUserCommandHandler{
-		getId:          userIDGenerator(),
+		getID:          userIDGenerator(),
 		userRepository: userRepository,
 	}, nil
 }
@@ -47,7 +47,7 @@ func userIDGenerator() func() uint64 {
 
 func (h *CreateUserCommandHandler) Handle(cmd CreateUserCommand) (uint64, error) {
 	user, err := domain.NewUser(
-		h.getId(),
+		h.getID(),
 		cmd.Name,
 		cmd.Username,
 		cmd.Email,
@@ -56,7 +56,6 @@ func (h *CreateUserCommandHandler) Handle(cmd CreateUserCommand) (uint64, error)
 		time.Now(),
 		time.Now(),
 	)
-
 	if err != nil {
 		return 0, err
 	}

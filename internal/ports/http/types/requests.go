@@ -2,16 +2,15 @@ package types
 
 import (
 	"errors"
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 	"net/http"
 	"net/mail"
+
+	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 
 	"github.com/go-chi/render"
 )
 
-var (
-	_ render.Binder = CreateUserRequest{}
-)
+var _ render.Binder = CreateUserRequest{}
 
 type CreateUserRequest struct {
 	Name     string

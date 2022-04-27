@@ -32,5 +32,10 @@ func MustNewSetBTCPriceCommand(btcRepository domain.BTCRepository) SetBTCPriceCo
 }
 
 func (h *SetBTCPriceCommandHandler) Handle(command SetBTCPriceCommand) error {
-	return h.btcRepository.SetPrice(domain.USDFromFloat(command.Price))
+	price, err := domain.USDFromFloat(command.Price)
+	if err != nil {
+		return err
+	}
+
+	return h.btcRepository.SetPrice(price)
 }

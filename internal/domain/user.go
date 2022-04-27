@@ -16,6 +16,11 @@ type User struct {
 	UpdatedAt time.Time
 }
 
+var (
+	ErrNameEmpty     = errors.New("name is empty")
+	ErrUsernameEmpty = errors.New("username is empty")
+)
+
 func NewUser(
 	id uint64,
 	name string,
@@ -26,15 +31,28 @@ func NewUser(
 	createdAt time.Time,
 	updatedAt time.Time,
 ) (*User, error) {
+	if name == "" {
+		return nil, ErrNameEmpty
+	}
+
+	if username == "" {
+		return nil, ErrUsernameEmpty
+	}
+
 	addr, err := mail.ParseAddress(email)
 	if err != nil {
 		return nil, err
 	}
 
-	balance := NewBalance(
-		BTCFromFloat(bitcoinAmount),
-		USDFromFloat(usdBalance),
-	)
+	btc, err := BTCFromFloat(bitcoinAmount)
+	if err != nil {
+		return nil, err
+	}
+	usd, err := USDFromFloat(usdBalance)
+	if err != nil {
+		return nil, err
+	}
+	balance := NewBalance(usd, btc)
 
 	return &User{
 		ID:        id,
@@ -45,53 +63,68 @@ func NewUser(
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
-
 }
 
-var (
-	ErrNegativeAmount    = errors.New("amount must be positive")
-	ErrInsufficientFunds = errors.New("insufficient funds")
-)
+var ErrInsufficientFunds = errors.New("insufficient funds")
 
 func (u *User) ChangeUSDBalance(action USDAction, amount USD) error {
-	if amount.IsNegative() {
-		return ErrNegativeAmount
-	}
-
 	switch action {
 	case DepositUSDAction:
-		u.Balance.USD = u.Balance.USD.Add(amount)
+		updatedUSD, err := u.Balance.USD.Add(amount)
+		if err != nil {
+			return err
+		}
+		u.Balance.USD = updatedUSD
 	case WithdrawUSDAction:
-		if u.Balance.USD < amount {
+		if u.Balance.USD.GetCent() < amount.GetCent() {
 			return ErrInsufficientFunds
 		}
-		u.Balance.USD = u.Balance.USD.Sub(amount)
-	default:
-		return ErrInvalidAction
+		updatedUSD, err := u.Balance.USD.Sub(amount)
+		if err != nil {
+			return err
+		}
+		u.Balance.USD = updatedUSD
 	}
 
 	return nil
 }
 
-func (u *User) ChangeBTCBalance(action BTCAction, amount BTC, price USD) error {
-	if amount.IsNegative() {
-		return ErrNegativeAmount
-	}
-
+func (u *User) ChangeBTCBalance(action BTCAction, amount BTC, price BTCPrice) error {
 	switch action {
 	case BuyBTCAction:
-		print(u.Balance.USD.String(), " ", amount.ToUSD(price).String(), " ", price.String())
-		if u.Balance.USD < amount.ToUSD(price) {
+		if u.Balance.USD.GetCent() < amount.ToUSD(price).GetCent() {
 			return ErrInsufficientFunds
 		}
-		u.Balance.USD = u.Balance.USD.Sub(amount.ToUSD(price))
-		u.Balance.BTC = u.Balance.BTC.Add(amount)
+
+		updatedUSD, err := u.Balance.USD.Sub(amount.ToUSD(price))
+		if err != nil {
+			return err
+		}
+
+		updatedBTC, err := u.Balance.BTC.Add(amount)
+		if err != nil {
+			return err
+		}
+
+		u.Balance.USD = updatedUSD
+		u.Balance.BTC = updatedBTC
 	case SellBTCAction:
-		if u.Balance.BTC < amount {
+		if u.Balance.BTC.GetSatoshi() < amount.GetSatoshi() {
 			return ErrInsufficientFunds
 		}
-		u.Balance.BTC = u.Balance.BTC.Sub(amount)
-		u.Balance.USD = u.Balance.USD.Add(amount.ToUSD(price))
+
+		updatedBTC, err := u.Balance.BTC.Sub(amount)
+		if err != nil {
+			return err
+		}
+
+		updatedUSD, err := u.Balance.USD.Add(amount.ToUSD(price))
+		if err != nil {
+			return err
+		}
+
+		u.Balance.BTC = updatedBTC
+		u.Balance.USD = updatedUSD
 	default:
 		return ErrInvalidAction
 	}

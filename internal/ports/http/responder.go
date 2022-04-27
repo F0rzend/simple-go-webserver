@@ -10,9 +10,7 @@ import (
 	"github.com/F0rzend/SimpleGoWebserver/internal/ports/http/types"
 )
 
-var (
-	errNilResponseWriter = errors.New("response writer is nil")
-)
+var errNilResponseWriter = errors.New("response writer is nil")
 
 type Responder struct {
 	writer  http.ResponseWriter

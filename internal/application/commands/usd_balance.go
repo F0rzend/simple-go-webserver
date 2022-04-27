@@ -5,7 +5,7 @@ import (
 )
 
 type ChangeUSDBalanceCommand struct {
-	UserId uint64
+	UserID uint64
 	Action string
 	Amount float64
 }
@@ -43,8 +43,13 @@ func (h ChangeUSDBalanceCommandHandler) Handle(cmd ChangeUSDBalanceCommand) erro
 		return err
 	}
 
-	return h.userRepository.Update(cmd.UserId, func(user *domain.User) (*domain.User, error) {
-		if err := user.ChangeUSDBalance(action, domain.USDFromFloat(cmd.Amount)); err != nil {
+	return h.userRepository.Update(cmd.UserID, func(user *domain.User) (*domain.User, error) {
+		usd, err := domain.USDFromFloat(cmd.Amount)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := user.ChangeUSDBalance(action, usd); err != nil {
 			return nil, err
 		}
 		return user, nil

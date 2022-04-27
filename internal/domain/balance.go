@@ -1,17 +1,17 @@
 package domain
 
 type Balance struct {
-	BTC BTC
 	USD USD
+	BTC BTC
 }
 
-func NewBalance(btc BTC, usd USD) Balance {
+func NewBalance(usd USD, btc BTC) Balance {
 	return Balance{
-		BTC: btc,
 		USD: usd,
+		BTC: btc,
 	}
 }
 
-func (b Balance) Total(bitcoinPrice USD) USD {
-	return b.BTC.ToUSD(bitcoinPrice) + b.USD
+func (b Balance) Total(bitcoinPrice BTCPrice) USD {
+	return USD{b.BTC.ToUSD(bitcoinPrice).GetCent() + b.USD.GetCent()}
 }

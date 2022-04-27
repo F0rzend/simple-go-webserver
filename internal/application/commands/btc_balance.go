@@ -5,7 +5,7 @@ import (
 )
 
 type ChangeBTCBalanceCommand struct {
-	UserId uint64
+	UserID uint64
 	Action string
 	Amount float64
 }
@@ -49,13 +49,18 @@ func (h ChangeBTCBalanceCommandHandler) Handle(cmd ChangeBTCBalanceCommand) erro
 		return err
 	}
 
-	btc, err := h.btcRepository.Get()
+	btcPrice, err := h.btcRepository.Get()
 	if err != nil {
 		return err
 	}
 
-	return h.userRepository.Update(cmd.UserId, func(user *domain.User) (*domain.User, error) {
-		if err := user.ChangeBTCBalance(action, domain.BTCFromFloat(cmd.Amount), btc.Price); err != nil {
+	return h.userRepository.Update(cmd.UserID, func(user *domain.User) (*domain.User, error) {
+		btc, err := domain.BTCFromFloat(cmd.Amount)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := user.ChangeBTCBalance(action, btc, btcPrice); err != nil {
 			return nil, err
 		}
 		return user, nil
