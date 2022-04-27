@@ -8,16 +8,16 @@ func NewAssembler() *Assembler {
 	return &Assembler{}
 }
 
-func (a *Assembler) UserToResponse(user domain.User) UserResponse {
+func (a *Assembler) UserToResponse(user *domain.User) UserResponse {
 	return UserResponse{
-		ID:            user.ID,
-		Name:          user.Name,
-		Username:      user.Username,
-		Email:         user.Email.Address,
-		BitcoinAmount: user.Balance.BTC.ToFloat(),
-		UsdBalance:    user.Balance.USD.ToFloat(),
-		CreatedAt:     user.CreatedAt,
-		UpdatedAt:     user.UpdatedAt,
+		ID:         user.ID,
+		Name:       user.Name,
+		Username:   user.Username,
+		Email:      user.Email.Address,
+		BTCBalance: user.Balance.BTC.ToFloat(),
+		USDBalance: user.Balance.USD.ToFloat(),
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
 	}
 }
 

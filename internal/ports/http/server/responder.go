@@ -1,4 +1,4 @@
-package http
+package server
 
 import (
 	"errors"
@@ -6,11 +6,12 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
-
-	"github.com/F0rzend/SimpleGoWebserver/internal/ports/http/types"
 )
 
-var errNilResponseWriter = errors.New("response writer is nil")
+var (
+	errNilResponseWriter = errors.New("response writer is nil")
+	errNilRequest        = errors.New("request is nil")
+)
 
 type Responder struct {
 	writer  http.ResponseWriter
@@ -20,6 +21,9 @@ type Responder struct {
 func NewResponder(w http.ResponseWriter, r *http.Request) (*Responder, error) {
 	if w == nil {
 		return nil, errNilResponseWriter
+	}
+	if r == nil {
+		return nil, errNilRequest
 	}
 
 	return &Responder{writer: w, request: r}, nil
@@ -33,36 +37,25 @@ func MustNewResponder(w http.ResponseWriter, r *http.Request) *Responder {
 	return resp
 }
 
-func (r *Responder) Response(response render.Renderer) {
-	if err := render.Render(
-		r.writer, r.request, response,
-	); err != nil {
-		log.Error().Err(err).Msg("error on response error")
+func (r *Responder) Response(response any) {
+	if response, ok := response.(render.Renderer); ok {
+		if err := render.Render(
+			r.writer, r.request, response,
+		); err != nil {
+			log.Error().Err(err).Msg("error on response error")
+		}
+		return
 	}
-}
-
-func SuccessResponse(result any) render.Renderer {
-	return types.Response{
-		Ok:     true,
-		Result: result,
-	}
-}
-
-func Error(code int, err string) render.Renderer {
-	return types.Response{
-		Ok: false,
-		Error: &types.HttpError{
-			Code:        code,
-			Error:       http.StatusText(code),
-			Description: err,
-		},
-	}
+	render.Respond(r.writer, r.request, response)
 }
 
 func (r *Responder) InternalError(err error) {
-	log.Error().Err(err).Send()
-	r.Status(http.StatusInternalServerError)
-	r.Response(types.InternalError)
+	log.Error().Err(err).Msg("internal error")
+	r.writer.WriteHeader(http.StatusInternalServerError)
+}
+
+func (r *Responder) StatusOnly(code int) {
+	r.writer.WriteHeader(code)
 }
 
 func (r *Responder) Status(code int) {

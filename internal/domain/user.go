@@ -26,7 +26,7 @@ func NewUser(
 	name string,
 	username string,
 	email string,
-	bitcoinAmount float64,
+	btcBalance float64,
 	usdBalance float64,
 	createdAt time.Time,
 	updatedAt time.Time,
@@ -44,7 +44,7 @@ func NewUser(
 		return nil, err
 	}
 
-	btc, err := BTCFromFloat(bitcoinAmount)
+	btc, err := BTCFromFloat(btcBalance)
 	if err != nil {
 		return nil, err
 	}

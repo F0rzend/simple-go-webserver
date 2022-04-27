@@ -10,17 +10,21 @@ import (
 	"github.com/go-chi/render"
 )
 
-var _ render.Binder = CreateUserRequest{}
+var (
+	_ render.Binder = CreateUserRequest{}
+
+	ErrBadRequest = errors.New("validation error")
+)
 
 type CreateUserRequest struct {
-	Name     string
-	Username string
-	Email    string
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 func (r CreateUserRequest) Bind(_ *http.Request) error {
 	if _, err := mail.ParseAddress(r.Email); err != nil {
-		return ErrInvalidEmail{Email: r.Email}
+		return ErrBadRequest
 	}
 	return nil
 }
@@ -33,7 +37,7 @@ type UpdateUserRequest struct {
 func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	if r.Email != nil {
 		if _, err := mail.ParseAddress(*r.Email); err != nil {
-			return ErrInvalidEmail{Email: *r.Email}
+			return ErrBadRequest
 		}
 	}
 	return nil
@@ -45,15 +49,10 @@ type SetBTCPriceRequest struct {
 
 func (r SetBTCPriceRequest) Bind(_ *http.Request) error {
 	if r.Price <= 0 {
-		return ErrInvalidPrice{Price: r.Price}
+		return ErrBadRequest
 	}
 	return nil
 }
-
-var (
-	ErrInvalidAction = errors.New("invalid action")
-	ErrInvalidAmount = errors.New("invalid amount")
-)
 
 type ChangeUSDBalanceRequest struct {
 	Action string  `json:"action"`
@@ -62,11 +61,11 @@ type ChangeUSDBalanceRequest struct {
 
 func (r ChangeUSDBalanceRequest) Bind(_ *http.Request) error {
 	if _, err := domain.NewUSDAction(r.Action); err != nil {
-		return ErrInvalidAction
+		return ErrBadRequest
 	}
 
 	if r.Amount < 0 {
-		return ErrInvalidAmount
+		return ErrBadRequest
 	}
 
 	return nil
@@ -79,11 +78,11 @@ type ChangeBTCBalanceRequest struct {
 
 func (r ChangeBTCBalanceRequest) Bind(_ *http.Request) error {
 	if _, err := domain.NewBTCAction(r.Action); err != nil {
-		return ErrInvalidAction
+		return ErrBadRequest
 	}
 
 	if r.Amount < 0 {
-		return ErrInvalidAmount
+		return ErrBadRequest
 	}
 
 	return nil

@@ -51,64 +51,20 @@ paths:
         required: true
 
       responses:
-        201:
-          description: Created
-          content:
-            application/json:
+        204:
+          description: Location of created user
+          headers:
+            Location:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
-                  result:
-                    description: Location to get created user
-                    type: string
-                    example: /users/1
+                type: string
+                format: uri
+                example: /users/1
         400:
-          description: Request validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 400
-                      error:
-                        type: string
-                        example: Bad Request
-                      description:
-                        type: string
-                        example: Invalid request body
+          description: Validation error
         409:
           description: User already exists
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 409
-                      error:
-                        type: string
-                        example: Conflict
-                      description:
-                        type: string
-                        example: User with email some@gmail.com already exists
+        500:
+          description: Error on server side
 
   /users/{id}:
     get:
@@ -130,35 +86,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
-                  result:
-                    $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/User'
         404:
           description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 404
-                      error:
-                        type: string
-                        example: Not Found
-                      description:
-                        type: string
-                        example: User with id 1 not found
+        500:
+          description: Error on server side
 
     put:
       tags:
@@ -189,64 +121,18 @@ paths:
         required: true
 
       responses:
-        200:
-          description: Updated user location
-          content:
-            application/json:
+        204:
+          description: Location to get updated user in the response header
+          headers:
+            Location:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
-                  result:
-                    description: Location to get updated user
-                    type: string
-                    example: /users/1
+                type: string
+                format: uri
+                example: /users/1
         400:
-          description: Request validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 400
-                      error:
-                        type: string
-                        example: Bad Request
-                      description:
-                        type: string
-                        example: Invalid request body
+          description: Validation error
         404:
           description: User to update not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 404
-                      error:
-                        type: string
-                        example: Not Found
-                      description:
-                        type: string
-                        example: User with id 1 not found
 
   /users/{id}/usd:
     post:
@@ -282,64 +168,18 @@ paths:
         required: true
 
       responses:
-        200:
-          description: OK
-          content:
-            application/json:
+        204:
+          description: Location to get updated user
+          headers:
+            Location:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
-                  result:
-                    description: Location to get updated user
-                    type: string
-                    example: /users/1
+                type: string
+                format: uri
+                example: /users/1
         400:
-          description: Request validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 400
-                      error:
-                        type: string
-                        example: Bad Request
-                      description:
-                        type: string
-                        example: Invalid amount. Amount must be greater than 0
+          description: Validation error
         404:
           description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 404
-                      error:
-                        type: string
-                        example: Not Found
-                      description:
-                        type: string
-                        example: User with id 1 not found
 
   /users/{id}/bitcoin:
     post:
@@ -375,64 +215,20 @@ paths:
         required: true
 
       responses:
-        200:
+        204:
           description: Location to get updated user
-          content:
-            application/json:
+          headers:
+            Location:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
-                  result:
-                    description: Location to get updated user
-                    type: string
-                    example: /users/1
+                type: string
+                format: uri
+                example: /users/1
+
         400:
-          description: Request validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 400
-                      error:
-                        type: string
-                        example: Bad Request
-                      description:
-                        type: string
-                        example: Invalid amount. Amount must be greater than 0
+          description: Validation error
+
         404:
           description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 404
-                      error:
-                        type: string
-                        example: Not Found
-                      description:
-                        type: string
-                        example: User with id 1 not found
 
   /users/{id}/balance:
     get:
@@ -454,38 +250,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
-                  result:
-                    description: User balance
-                    type: number
-                    format: float64
-                    example: 120.05
+                type: number
+                format: float64
+                example: 120.05
         404:
           description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 404
-                      error:
-                        type: string
-                        example: Not Found
-                      description:
-                        type: string
-                        example: User with id 1 not found
+        500:
+          description: Error on server side
 
   /bitcoin:
     get:
@@ -499,13 +270,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
-                  result:
-                    $ref: '#/components/schemas/Bitcoin'
+                $ref: '#/components/schemas/Bitcoin'
 
     put:
       tags:
@@ -524,42 +289,16 @@ paths:
                   format: float64
                   example: 100.00
       responses:
-        200:
-          description: Location to get current bitcoin price
-          content:
-            application/json:
+        204:
+          description: Location to get updated bitcoin price
+          headers:
+            Location:
               schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: true
-                  result:
-                    description: Location to get bitcoin price
-                    type: string
-                    example: /bitcoin
+                type: string
+                format: uri
+                example: /bitcoin
         400:
-          description: Request validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                    example: false
-                  error:
-                    type: object
-                    properties:
-                      error_code:
-                        type: integer
-                        example: 400
-                      error:
-                        type: string
-                        example: Bad Request
-                      description:
-                        type: string
-                        example: Invalid price. Price should be greater than 0
+          description: Validation error
 
 components:
   schemas:
