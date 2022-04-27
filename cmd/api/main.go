@@ -14,7 +14,7 @@ import (
 	"github.com/F0rzend/SimpleGoWebserver/internal/ports/http/server"
 )
 
-var DefaultBitcoinPrice = domain.USDFromCent(100_000_000) // nolint: gomnd
+var DefaultBitcoinPrice = domain.MustNewUSD(100) // nolint: gomnd
 
 func main() {
 	log.Logger = log.

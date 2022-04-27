@@ -3,71 +3,78 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"math/big"
+
+	"github.com/shopspring/decimal"
 )
 
 const (
-	CentInUSD  = 100
-	MinimalUSD = 0.01
+	CentInUSD = 100
 
 	USDPrefix = "$"
 )
 
 type USD struct {
-	cent uint64
+	amount decimal.Decimal
 }
 
-func USDFromCent(cent uint64) USD {
-	return USD{cent}
-}
+var ErrNegativeUSD = errors.New("USD amount cannot be negative")
 
-var ErrUSDAmountTooSmall = fmt.Errorf(
-	"usd amount cant be less than %f (%f cent)",
-	MinimalUSD,
-	MinimalUSD*CentInUSD,
-)
-
-func USDFromFloat(amount float64) (USD, error) {
-	if amount < MinimalUSD && amount != 0 {
-		return USD{}, ErrUSDAmountTooSmall
+func NewUSD(amount float64) (USD, error) {
+	if amount < 0 {
+		return USD{}, ErrNegativeUSD
 	}
-
-	return USD{uint64(amount * CentInUSD)}, nil
+	return USD{decimal.NewFromFloat(amount)}, nil
 }
 
-func (usd USD) ToFloat() float64 {
-	return float64(usd.GetCent()) / CentInUSD
+func MustNewUSD(amount float64) USD {
+	usd, err := NewUSD(amount)
+	if err != nil {
+		panic(err)
+	}
+	return usd
+}
+
+func (usd USD) ToFloat() *big.Float {
+	return usd.amount.BigFloat()
 }
 
 func (usd USD) IsZero() bool {
-	return usd.cent == 0
+	return usd.amount.IsZero()
 }
 
 func (usd USD) String() string {
 	if usd.IsZero() {
 		return fmt.Sprintf("%s0", USDPrefix)
 	}
-	if usd.GetCent()%CentInUSD == 0 {
-		return fmt.Sprintf("%s%d", USDPrefix, usd.GetCent()/CentInUSD)
+
+	if usd.amount.IsInteger() {
+		return fmt.Sprintf("%s%d", USDPrefix, usd.amount.BigInt())
 	}
+
 	precision := MustCountPrecision(CentInUSD)
 	format := fmt.Sprintf("$%%.%df", precision)
 	return fmt.Sprintf(format, usd.ToFloat())
 }
 
-func (usd USD) Add(other USD) (USD, error) {
-	return USD{usd.GetCent() + other.GetCent()}, nil
+func (usd USD) Add(toAdd USD) USD {
+	return USD{usd.amount.Add(toAdd.amount)}
 }
 
 var ErrSubtractMoreUSDThanHave = errors.New("can't subtract more usd than available")
 
 func (usd USD) Sub(toSubtract USD) (USD, error) {
-	if toSubtract.GetCent() > usd.GetCent() {
+	if toSubtract.amount.GreaterThan(usd.amount) {
 		return USD{}, ErrSubtractMoreUSDThanHave
 	}
 
-	return USD{usd.GetCent() - toSubtract.GetCent()}, nil
+	return USD{usd.amount.Sub(toSubtract.amount)}, nil
 }
 
-func (usd USD) GetCent() uint64 {
-	return usd.cent
+func (usd USD) LessThan(toCompare USD) bool {
+	return usd.amount.LessThan(toCompare.amount)
+}
+
+func (usd USD) Equal(toCompare USD) bool {
+	return usd.amount.Equal(toCompare.amount)
 }

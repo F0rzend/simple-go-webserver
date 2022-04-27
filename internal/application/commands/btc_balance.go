@@ -55,7 +55,7 @@ func (h ChangeBTCBalanceCommandHandler) Handle(cmd ChangeBTCBalanceCommand) erro
 	}
 
 	return h.userRepository.Update(cmd.UserID, func(user *domain.User) (*domain.User, error) {
-		btc, err := domain.BTCFromFloat(cmd.Amount)
+		btc, err := domain.NewBTC(cmd.Amount)
 		if err != nil {
 			return nil, err
 		}

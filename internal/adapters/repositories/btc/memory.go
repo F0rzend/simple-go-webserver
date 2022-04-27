@@ -11,10 +11,7 @@ type MemoryBTCRepository struct {
 }
 
 func NewMemoryBTCRepository(initialPrice domain.USD) (*MemoryBTCRepository, error) {
-	btcPrice, err := domain.NewBTCPrice(initialPrice)
-	if err != nil {
-		return nil, err
-	}
+	btcPrice := domain.NewBTCPrice(initialPrice)
 
 	return &MemoryBTCRepository{
 		bitcoin: btcPrice,
@@ -26,10 +23,7 @@ func (r *MemoryBTCRepository) Get() (domain.BTCPrice, error) {
 }
 
 func (r *MemoryBTCRepository) SetPrice(price domain.USD) error {
-	btcPrice, err := domain.NewBTCPrice(price)
-	if err != nil {
-		return err
-	}
+	btcPrice := domain.NewBTCPrice(price)
 
 	r.bitcoin = btcPrice
 	return nil

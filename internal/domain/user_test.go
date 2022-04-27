@@ -46,7 +46,7 @@ func TestNewUser(t *testing.T) {
 				Name:      "John Doe",
 				Username:  "johndoe",
 				Email:     &mail.Address{Name: "", Address: "johndoe@gmail.com"},
-				Balance:   Balance{USD: USD{0}, BTC: BTC{0}},
+				Balance:   Balance{USD: MustNewUSD(0), BTC: MustNewBTC(0)},
 				CreatedAt: now,
 				UpdatedAt: now,
 			},
@@ -110,7 +110,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      ErrBTCAmountTooSmall,
+			err:      ErrNegativeBTC,
 		},
 		{
 			testName: "small usd amount",
@@ -125,7 +125,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      ErrUSDAmountTooSmall,
+			err:      ErrNegativeUSD,
 		},
 	}
 
@@ -166,15 +166,15 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 			name: "success deposit",
 			user: User{
 				Balance: Balance{
-					USD: USD{0},
-					BTC: BTC{0},
+					USD: MustNewUSD(0),
+					BTC: MustNewBTC(0),
 				},
 			},
 			action: DepositUSDAction,
-			amount: USD{1},
+			amount: MustNewUSD(1),
 			expected: Balance{
-				USD: USD{1},
-				BTC: BTC{0},
+				USD: MustNewUSD(1),
+				BTC: MustNewBTC(0),
 			},
 			err: nil,
 		},
@@ -182,15 +182,15 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 			name: "success withdraw",
 			user: User{
 				Balance: Balance{
-					USD: USD{1},
-					BTC: BTC{0},
+					USD: MustNewUSD(1),
+					BTC: MustNewBTC(0),
 				},
 			},
 			action: WithdrawUSDAction,
-			amount: USD{1},
+			amount: MustNewUSD(1),
 			expected: Balance{
-				USD: USD{0},
-				BTC: BTC{0},
+				USD: MustNewUSD(0),
+				BTC: MustNewBTC(0),
 			},
 			err: nil,
 		},
@@ -198,15 +198,15 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 			name: "insufficient funds",
 			user: User{
 				Balance: Balance{
-					USD: USD{0},
-					BTC: BTC{0},
+					USD: MustNewUSD(0),
+					BTC: MustNewBTC(0),
 				},
 			},
 			action: WithdrawUSDAction,
-			amount: USD{1},
+			amount: MustNewUSD(1),
 			expected: Balance{
-				USD: USD{0},
-				BTC: BTC{0},
+				USD: MustNewUSD(0),
+				BTC: MustNewBTC(0),
 			},
 			err: ErrInsufficientFunds,
 		},
@@ -221,7 +221,8 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 			err := user.ChangeUSDBalance(tc.action, tc.amount)
 
 			assert.ErrorIs(t, err, tc.err)
-			assert.Equal(t, tc.expected, user.Balance)
+			assert.True(t, tc.expected.BTC.Equal(user.Balance.BTC))
+			assert.True(t, tc.expected.USD.Equal(user.Balance.USD))
 		})
 	}
 }
@@ -242,16 +243,16 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			name: "success buy",
 			user: User{
 				Balance: Balance{
-					USD: USD{1},
-					BTC: BTC{0},
+					USD: MustNewUSD(1),
+					BTC: MustNewBTC(0),
 				},
 			},
 			action:   BuyBTCAction,
-			amount:   BTC{1},
-			btcPrice: BTCPrice{price: USD{SatoshiInBitcoin}},
+			amount:   MustNewBTC(1),
+			btcPrice: NewBTCPrice(MustNewUSD(1)),
 			expected: Balance{
-				USD: USD{0},
-				BTC: BTC{1},
+				USD: MustNewUSD(0),
+				BTC: MustNewBTC(1),
 			},
 			err: nil,
 		},
@@ -259,16 +260,16 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			name: "success sale",
 			user: User{
 				Balance: Balance{
-					USD: USD{0},
-					BTC: BTC{1},
+					USD: MustNewUSD(0),
+					BTC: MustNewBTC(1),
 				},
 			},
 			action:   SellBTCAction,
-			amount:   BTC{1},
-			btcPrice: BTCPrice{price: USD{SatoshiInBitcoin}},
+			amount:   MustNewBTC(1),
+			btcPrice: NewBTCPrice(MustNewUSD(1)),
 			expected: Balance{
-				USD: USD{1},
-				BTC: BTC{0},
+				USD: MustNewUSD(1),
+				BTC: MustNewBTC(0),
 			},
 			err: nil,
 		},
@@ -276,16 +277,16 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			name: "insufficient funds on buy",
 			user: User{
 				Balance: Balance{
-					USD: USD{0},
-					BTC: BTC{0},
+					USD: MustNewUSD(0),
+					BTC: MustNewBTC(0),
 				},
 			},
 			action:   BuyBTCAction,
-			amount:   BTC{1},
-			btcPrice: BTCPrice{price: USD{SatoshiInBitcoin}},
+			amount:   MustNewBTC(1),
+			btcPrice: NewBTCPrice(MustNewUSD(1)),
 			expected: Balance{
-				USD: USD{0},
-				BTC: BTC{0},
+				USD: MustNewUSD(0),
+				BTC: MustNewBTC(0),
 			},
 			err: ErrInsufficientFunds,
 		},
@@ -293,16 +294,16 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			name: "insufficient funds on sell",
 			user: User{
 				Balance: Balance{
-					USD: USD{0},
-					BTC: BTC{0},
+					USD: MustNewUSD(0),
+					BTC: MustNewBTC(0),
 				},
 			},
 			action:   SellBTCAction,
-			amount:   BTC{1},
-			btcPrice: BTCPrice{price: USD{SatoshiInBitcoin}},
+			amount:   MustNewBTC(1),
+			btcPrice: NewBTCPrice(MustNewUSD(1)),
 			expected: Balance{
-				USD: USD{0},
-				BTC: BTC{0},
+				USD: MustNewUSD(0),
+				BTC: MustNewBTC(0),
 			},
 			err: ErrInsufficientFunds,
 		},
@@ -317,7 +318,8 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			err := user.ChangeBTCBalance(tc.action, tc.amount, tc.btcPrice)
 
 			assert.ErrorIs(t, err, tc.err)
-			assert.Equal(t, tc.expected, user.Balance)
+			assert.True(t, tc.expected.BTC.Equal(user.Balance.BTC))
+			assert.True(t, tc.expected.USD.Equal(user.Balance.USD))
 		})
 	}
 }

@@ -44,7 +44,7 @@ func (h ChangeUSDBalanceCommandHandler) Handle(cmd ChangeUSDBalanceCommand) erro
 	}
 
 	return h.userRepository.Update(cmd.UserID, func(user *domain.User) (*domain.User, error) {
-		usd, err := domain.USDFromFloat(cmd.Amount)
+		usd, err := domain.NewUSD(cmd.Amount)
 		if err != nil {
 			return nil, err
 		}

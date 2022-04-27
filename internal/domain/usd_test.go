@@ -1,72 +1,11 @@
 package domain
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestUSDFromCent(t *testing.T) {
-	var cent uint64 = 1_00
-	expected := USD{cent}
-	actual := USDFromCent(cent)
-
-	assert.Equal(t, expected, actual)
-}
-
-func TestUSDFromFloat(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name     string
-		input    float64
-		expected USD
-		err      error
-	}{
-		{
-			name:     "zero",
-			input:    0.0,
-			expected: USD{0},
-			err:      nil,
-		},
-		{
-			name:     "cent",
-			input:    0.01,
-			expected: USD{1},
-			err:      nil,
-		},
-		{
-			name:     "dollar",
-			input:    1.0,
-			expected: USD{1_00},
-			err:      nil,
-		},
-		{
-			name:     "less than 1 cent",
-			input:    0.001,
-			expected: USD{0},
-			err:      ErrUSDAmountTooSmall,
-		},
-		{
-			name:     "negative",
-			input:    -1.0,
-			expected: USD{0},
-			err:      ErrUSDAmountTooSmall,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			actual, err := USDFromFloat(tc.input)
-
-			assert.ErrorIs(t, err, tc.err)
-			assert.Equal(t, tc.expected, actual)
-		})
-	}
-}
 
 func TestUSD_ToFloat(t *testing.T) {
 	t.Parallel()
@@ -74,22 +13,22 @@ func TestUSD_ToFloat(t *testing.T) {
 	testCases := []struct {
 		name     string
 		usd      USD
-		expected float64
+		expected *big.Float
 	}{
 		{
 			name:     "zero",
-			usd:      USD{0},
-			expected: 0.0,
+			usd:      MustNewUSD(0),
+			expected: big.NewFloat(0),
 		},
 		{
 			name:     "cent",
-			usd:      USD{1},
-			expected: 0.01,
+			usd:      MustNewUSD(0.01),
+			expected: big.NewFloat(0.01),
 		},
 		{
 			name:     "dollar",
-			usd:      USD{1_00},
-			expected: 1.0,
+			usd:      MustNewUSD(1),
+			expected: big.NewFloat(1),
 		},
 	}
 
@@ -98,9 +37,10 @@ func TestUSD_ToFloat(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := tc.usd.ToFloat()
+			actual, _ := tc.usd.ToFloat().Float64()
+			expect, _ := tc.expected.Float64()
 
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, expect, actual)
 		})
 	}
 }
@@ -115,12 +55,12 @@ func TestUSD_IsZero(t *testing.T) {
 	}{
 		{
 			name:     "zero",
-			input:    USD{0},
+			input:    MustNewUSD(0),
 			expected: true,
 		},
 		{
 			name:     "not zero",
-			input:    USD{1},
+			input:    MustNewUSD(1),
 			expected: false,
 		},
 	}
@@ -147,17 +87,17 @@ func TestUSD_String(t *testing.T) {
 	}{
 		{
 			name:     "zero",
-			input:    USD{0},
+			input:    MustNewUSD(0),
 			expected: "$0",
 		},
 		{
 			name:     "cent",
-			input:    USD{1},
+			input:    MustNewUSD(0.01),
 			expected: "$0.01",
 		},
 		{
 			name:     "dollar",
-			input:    USD{1_00},
+			input:    MustNewUSD(1),
 			expected: "$1",
 		},
 	}
@@ -177,13 +117,12 @@ func TestUSD_String(t *testing.T) {
 func TestUSD_Add(t *testing.T) {
 	t.Parallel()
 
-	initial := USD{1}
-	toAdd := USD{2}
-	expected := USD{3}
+	initial := MustNewUSD(1)
+	toAdd := MustNewUSD(2)
+	expected := MustNewUSD(3)
 
-	actual, err := initial.Add(toAdd)
+	actual := initial.Add(toAdd)
 
-	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
@@ -199,15 +138,15 @@ func TestUSD_Sub(t *testing.T) {
 	}{
 		{
 			name:       "success",
-			initial:    USD{2},
-			toSubtract: USD{1},
-			expected:   USD{1},
+			initial:    MustNewUSD(2),
+			toSubtract: MustNewUSD(1),
+			expected:   MustNewUSD(1),
 			err:        nil,
 		},
 		{
 			name:       "subtract more than available",
-			initial:    USD{1},
-			toSubtract: USD{2},
+			initial:    MustNewUSD(1),
+			toSubtract: MustNewUSD(2),
 			expected:   USD{},
 			err:        ErrSubtractMoreUSDThanHave,
 		},

@@ -1,64 +1,11 @@
 package domain
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestBTCFromFloat(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name     string
-		input    float64
-		expected BTC
-		err      error
-	}{
-		{
-			name:     "zero",
-			input:    0.0,
-			expected: BTC{0},
-			err:      nil,
-		},
-		{
-			name:     "satoshi",
-			input:    0.00000001,
-			expected: BTC{1},
-			err:      nil,
-		},
-		{
-			name:     "bitcoin",
-			input:    1.0,
-			expected: BTC{SatoshiInBitcoin},
-			err:      nil,
-		},
-		{
-			name:     "less than 1 satoshi",
-			input:    0.000000001,
-			expected: BTC{0},
-			err:      ErrBTCAmountTooSmall,
-		},
-		{
-			name:     "negative",
-			input:    -1.0,
-			expected: BTC{0},
-			err:      ErrBTCAmountTooSmall,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			actual, err := BTCFromFloat(tc.input)
-
-			assert.ErrorIs(t, err, tc.err)
-			assert.Equal(t, tc.expected, actual)
-		})
-	}
-}
 
 func TestBTC_ToFloat(t *testing.T) {
 	t.Parallel()
@@ -66,22 +13,22 @@ func TestBTC_ToFloat(t *testing.T) {
 	testCases := []struct {
 		name     string
 		btc      BTC
-		expected float64
+		expected *big.Float
 	}{
 		{
 			name:     "zero",
-			btc:      BTC{0},
-			expected: 0.0,
+			btc:      MustNewBTC(0),
+			expected: big.NewFloat(0),
 		},
 		{
 			name:     "satoshi",
-			btc:      BTC{1},
-			expected: 0.00_000_001,
+			btc:      MustNewBTC(1e-8),
+			expected: big.NewFloat(1e-8),
 		},
 		{
 			name:     "bitcoin",
-			btc:      BTC{1_23456789},
-			expected: 1.23456789,
+			btc:      MustNewBTC(1),
+			expected: big.NewFloat(1),
 		},
 	}
 
@@ -90,9 +37,10 @@ func TestBTC_ToFloat(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := tc.btc.ToFloat()
+			actual, _ := tc.btc.ToFloat().Float64()
+			expect, _ := tc.expected.Float64()
 
-			assert.Equal(t, tc.expected, actual)
+			assert.Equal(t, expect, actual)
 		})
 	}
 }
@@ -108,33 +56,27 @@ func TestBTC_ToUSD(t *testing.T) {
 	}{
 		{
 			name:     "zero",
-			input:    BTC{0},
-			price:    BTCPrice{price: USD{0}},
-			expected: USD{0},
+			input:    MustNewBTC(0),
+			price:    BTCPrice{price: MustNewUSD(0)},
+			expected: MustNewUSD(0),
 		},
 		{
 			name:     "btc is 1 usd",
-			input:    BTC{SatoshiInBitcoin},
-			price:    BTCPrice{price: USD{1_00}},
-			expected: USD{1_00},
+			input:    MustNewBTC(1),
+			price:    BTCPrice{price: MustNewUSD(1)},
+			expected: MustNewUSD(1),
 		},
 		{
 			name:     "btc is 100 usd",
-			input:    BTC{2_00000000},
-			price:    BTCPrice{price: USD{10_00}},
-			expected: USD{20_00},
+			input:    MustNewBTC(1),
+			price:    BTCPrice{price: MustNewUSD(10)},
+			expected: MustNewUSD(10),
 		},
 		{
 			name:     "btc is 1 cent",
-			input:    BTC{SatoshiInBitcoin},
-			price:    BTCPrice{price: USD{1}},
-			expected: USD{1},
-		},
-		{
-			name:     "satoshi to dollar",
-			input:    BTC{1},
-			price:    BTCPrice{price: USD{SatoshiInBitcoin}},
-			expected: USD{1},
+			input:    MustNewBTC(100),
+			price:    BTCPrice{price: MustNewUSD(0.01)},
+			expected: MustNewUSD(1),
 		},
 	}
 
@@ -160,12 +102,12 @@ func TestBTC_IsZero(t *testing.T) {
 	}{
 		{
 			name:     "zero",
-			input:    BTC{0},
+			input:    MustNewBTC(0),
 			expected: true,
 		},
 		{
 			name:     "not zero",
-			input:    BTC{1},
+			input:    MustNewBTC(1),
 			expected: false,
 		},
 	}
@@ -192,17 +134,17 @@ func TestBTC_String(t *testing.T) {
 	}{
 		{
 			name:     "zero",
-			input:    BTC{0},
+			input:    MustNewBTC(0),
 			expected: "0 BTC",
 		},
 		{
 			name:     "satoshi",
-			input:    BTC{1},
+			input:    MustNewBTC(1e-8),
 			expected: "0.00000001 BTC",
 		},
 		{
 			name:     "bitcoin",
-			input:    BTC{SatoshiInBitcoin},
+			input:    MustNewBTC(1),
 			expected: "1 BTC",
 		},
 	}
@@ -222,13 +164,12 @@ func TestBTC_String(t *testing.T) {
 func TestBTC_Add(t *testing.T) {
 	t.Parallel()
 
-	initial := BTC{1}
-	toAdd := BTC{2}
-	expected := BTC{3}
+	initial := MustNewBTC(1)
+	toAdd := MustNewBTC(2)
+	expected := MustNewBTC(3)
 
-	actual, err := initial.Add(toAdd)
+	actual := initial.Add(toAdd)
 
-	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
@@ -244,15 +185,15 @@ func TestBTC_Sub(t *testing.T) {
 	}{
 		{
 			name:       "success",
-			initial:    BTC{2},
-			toSubtract: BTC{1},
-			expected:   BTC{1},
+			initial:    MustNewBTC(2),
+			toSubtract: MustNewBTC(1),
+			expected:   MustNewBTC(1),
 			err:        nil,
 		},
 		{
 			name:       "subtract more than available",
-			initial:    BTC{1},
-			toSubtract: BTC{2},
+			initial:    MustNewBTC(1),
+			toSubtract: MustNewBTC(2),
 			expected:   BTC{},
 			err:        ErrSubtractMoreBTCThanHave,
 		},
@@ -267,47 +208,6 @@ func TestBTC_Sub(t *testing.T) {
 
 			assert.ErrorIs(t, err, tc.err)
 			assert.Equal(t, tc.expected, actual)
-		})
-	}
-}
-
-func TestNewBTCPrice(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name     string
-		input    USD
-		expected USD
-		err      error
-	}{
-		{
-			name:     "zero",
-			input:    USD{0},
-			expected: USD{0},
-			err:      nil,
-		},
-		{
-			name:     "one cent",
-			input:    USD{1},
-			expected: USD{},
-			err:      ErrBTCPriceTooSmall,
-		},
-		{
-			name:     "one cent for satohi",
-			input:    USD{SatoshiInBitcoin},
-			expected: USD{SatoshiInBitcoin},
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			actual, err := NewBTCPrice(tc.input)
-
-			assert.ErrorIs(t, err, tc.err)
-			assert.Equal(t, tc.expected, actual.GetPrice())
 		})
 	}
 }

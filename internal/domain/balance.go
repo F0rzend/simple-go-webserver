@@ -13,5 +13,5 @@ func NewBalance(usd USD, btc BTC) Balance {
 }
 
 func (b Balance) Total(bitcoinPrice BTCPrice) USD {
-	return USD{b.BTC.ToUSD(bitcoinPrice).GetCent() + b.USD.GetCent()}
+	return b.BTC.ToUSD(bitcoinPrice).Add(b.USD)
 }

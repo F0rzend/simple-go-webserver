@@ -3,54 +3,57 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 const (
 	SatoshiInBitcoin = 100_000_000
-	MinimalBitcoin   = 0.00_000_001
 
 	BTCSuffix = "BTC"
 )
 
 type BTC struct {
-	satoshi uint64
+	amount decimal.Decimal
 }
 
-var ErrBTCAmountTooSmall = fmt.Errorf(
-	"bitcoin amount cant be less than %f (%f satoshi)",
-	MinimalBitcoin,
-	MinimalBitcoin*SatoshiInBitcoin,
-)
+var ErrNegativeBTC = errors.New("USD amount cannot be negative")
 
-func BTCFromFloat(amount float64) (BTC, error) {
-	if amount < MinimalBitcoin && amount != 0 {
-		return BTC{}, ErrBTCAmountTooSmall
+func NewBTC(amount float64) (BTC, error) {
+	if amount < 0 {
+		return BTC{}, ErrNegativeBTC
 	}
-	return BTC{uint64(amount * SatoshiInBitcoin)}, nil
+	return BTC{decimal.NewFromFloat(amount)}, nil
 }
 
-func (btc BTC) ToFloat() float64 {
-	return float64(btc.GetSatoshi()) / SatoshiInBitcoin
+func MustNewBTC(amount float64) BTC {
+	btc, err := NewBTC(amount)
+	if err != nil {
+		panic(err)
+	}
+	return btc
+}
+
+func (btc BTC) ToFloat() *big.Float {
+	return btc.amount.BigFloat()
 }
 
 func (btc BTC) ToUSD(price BTCPrice) USD {
-	if price.GetPrice().GetCent() == 0 {
-		return USD{0}
-	}
-	return USD{uint64(btc.ToFloat() * float64(price.GetPrice().GetCent()))}
+	return USD{btc.amount.Mul(price.GetPrice().amount)}
 }
 
 func (btc BTC) IsZero() bool {
-	return btc.satoshi == 0
+	return btc.amount.IsZero()
 }
 
 func (btc BTC) String() string {
 	if btc.IsZero() {
 		return fmt.Sprintf("0 %s", BTCSuffix)
 	}
-	if btc.GetSatoshi()%SatoshiInBitcoin == 0 {
-		return fmt.Sprintf("%d %s", btc.GetSatoshi()/SatoshiInBitcoin, BTCSuffix)
+	if btc.amount.IsInteger() {
+		return fmt.Sprintf("%d %s", btc.amount.BigInt(), BTCSuffix)
 	}
 
 	precision := MustCountPrecision(SatoshiInBitcoin)
@@ -58,21 +61,25 @@ func (btc BTC) String() string {
 	return fmt.Sprintf(format, btc.ToFloat())
 }
 
-func (btc BTC) Add(other BTC) (BTC, error) {
-	return BTC{btc.GetSatoshi() + other.GetSatoshi()}, nil
+func (btc BTC) Add(toAdd BTC) BTC {
+	return BTC{btc.amount.Add(toAdd.amount)}
 }
 
 var ErrSubtractMoreBTCThanHave = errors.New("can't subtract more btc than available")
 
 func (btc BTC) Sub(toSubtract BTC) (BTC, error) {
-	if toSubtract.GetSatoshi() > btc.GetSatoshi() {
+	if toSubtract.amount.GreaterThan(btc.amount) {
 		return BTC{}, ErrSubtractMoreBTCThanHave
 	}
-	return BTC{btc.GetSatoshi() - toSubtract.GetSatoshi()}, nil
+	return BTC{btc.amount.Sub(toSubtract.amount)}, nil
 }
 
-func (btc BTC) GetSatoshi() uint64 {
-	return btc.satoshi
+func (btc BTC) LessThan(other BTC) bool {
+	return btc.amount.LessThan(other.amount)
+}
+
+func (btc BTC) Equal(other BTC) bool {
+	return btc.amount.Equal(other.amount)
 }
 
 type BTCPrice struct {
@@ -80,16 +87,11 @@ type BTCPrice struct {
 	updatedAt time.Time
 }
 
-var ErrBTCPriceTooSmall = errors.New("bitcoin price cant be less than 1 satoshi by 1 cent")
-
-func NewBTCPrice(price USD) (BTCPrice, error) {
-	if price.GetCent() < SatoshiInBitcoin && price.GetCent() != 0 {
-		return BTCPrice{}, ErrBTCPriceTooSmall
-	}
+func NewBTCPrice(price USD) BTCPrice {
 	return BTCPrice{
 		price:     price,
 		updatedAt: time.Now(),
-	}, nil
+	}
 }
 
 func (btcPrice BTCPrice) GetPrice() USD {
