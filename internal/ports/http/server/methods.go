@@ -43,7 +43,7 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rspd.Status(http.StatusCreated)
+	rspd.Status(http.StatusNoContent)
 	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
 }
 
@@ -168,7 +168,7 @@ func (s *Server) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rspd.Status(http.StatusCreated)
+	rspd.Status(http.StatusNoContent)
 	rspd.LocationHeader("/bitcoin")
 }
 
@@ -207,7 +207,7 @@ func (s *Server) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rspd.Status(http.StatusOK)
+	rspd.Status(http.StatusNoContent)
 	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
 }
 
