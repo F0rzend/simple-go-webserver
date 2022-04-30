@@ -1,0 +1,14 @@
+.dockerignore
+
+# Jetbrains IDEA
+.idea
+
+# Git and GitHub
+.git
+.gitignore
+LICENSE
+README.md
+
+# Project
+docs
+.golangci.yml

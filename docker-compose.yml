@@ -1,0 +1,12 @@
+services:
+  app:
+    image: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - GO_VERSION=1.18
+    ports:
+      - "8080:8080"
+    environment:
+      - ADDRESS=0.0.0.0:8080

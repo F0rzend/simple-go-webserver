@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -29,6 +30,18 @@ func main() {
 	app := application.NewApplication(userRepository, btcRepository)
 	httpServer := server.NewServer(app)
 
-	log.Info().Msg("starting server")
-	log.Error().Err(http.ListenAndServe("localhost:8080", httpServer.GetRouter()))
+	address := getEnv("ADDRESS", ":8080")
+	log.Info().Msg(fmt.Sprintf("starting server on %s", address))
+	log.Error().Err(http.ListenAndServe(
+		address,
+		httpServer.GetRouter(),
+	))
+}
+
+func getEnv(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }
