@@ -1,4 +1,4 @@
-package userRepository
+package userrepositories
 
 import (
 	"github.com/F0rzend/SimpleGoWebserver/internal/domain"

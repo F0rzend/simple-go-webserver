@@ -110,7 +110,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      ErrNegativeBTC,
+			err:      ErrNegativeCurrency(-1),
 		},
 		{
 			testName: "small usd amount",
@@ -125,7 +125,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      ErrNegativeUSD,
+			err:      ErrNegativeCurrency(-1),
 		},
 	}
 
@@ -208,7 +208,7 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 				USD: MustNewUSD(0),
 				BTC: MustNewBTC(0),
 			},
-			err: ErrInsufficientFunds,
+			err: ErrInsufficientFunds(1),
 		},
 	}
 
@@ -288,7 +288,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 				USD: MustNewUSD(0),
 				BTC: MustNewBTC(0),
 			},
-			err: ErrInsufficientFunds,
+			err: ErrInsufficientFunds(1),
 		},
 		{
 			name: "insufficient funds on sell",
@@ -305,7 +305,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 				USD: MustNewUSD(0),
 				BTC: MustNewBTC(0),
 			},
-			err: ErrInsufficientFunds,
+			err: ErrInsufficientFunds(1),
 		},
 	}
 

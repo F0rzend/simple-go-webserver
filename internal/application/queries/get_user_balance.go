@@ -42,10 +42,5 @@ func (h GetUserBalanceQueryHandler) Handle(userID uint64) (domain.USD, error) {
 		return domain.USD{}, err
 	}
 
-	btcPrice, err := h.btcRepository.Get()
-	if err != nil {
-		return domain.USD{}, err
-	}
-
-	return user.Balance.Total(btcPrice), nil
+	return user.Balance.Total(h.btcRepository.Get()), nil
 }

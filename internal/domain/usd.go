@@ -18,11 +18,9 @@ type USD struct {
 	amount decimal.Decimal
 }
 
-var ErrNegativeUSD = errors.New("USD amount cannot be negative")
-
 func NewUSD(amount float64) (USD, error) {
 	if amount < 0 {
-		return USD{}, ErrNegativeUSD
+		return USD{}, ErrNegativeCurrency(amount)
 	}
 	return USD{decimal.NewFromFloat(amount)}, nil
 }
@@ -37,6 +35,11 @@ func MustNewUSD(amount float64) USD {
 
 func (usd USD) ToFloat() *big.Float {
 	return usd.amount.BigFloat()
+}
+
+func (usd USD) ToFloat64() float64 {
+	amount, _ := usd.ToFloat().Float64()
+	return amount
 }
 
 func (usd USD) IsZero() bool {

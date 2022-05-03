@@ -35,6 +35,10 @@ type UpdateUserRequest struct {
 }
 
 func (r UpdateUserRequest) Bind(_ *http.Request) error {
+	if r.Name == nil && r.Email == nil {
+		return ErrBadRequest
+	}
+
 	if r.Email != nil {
 		if _, err := mail.ParseAddress(*r.Email); err != nil {
 			return ErrBadRequest
@@ -60,11 +64,11 @@ type ChangeUSDBalanceRequest struct {
 }
 
 func (r ChangeUSDBalanceRequest) Bind(_ *http.Request) error {
-	if _, err := domain.NewUSDAction(r.Action); err != nil {
+	if r.Action == "" || r.Amount == 0 {
 		return ErrBadRequest
 	}
 
-	if r.Amount < 0 {
+	if _, err := domain.NewUSDAction(r.Action); err != nil {
 		return ErrBadRequest
 	}
 
@@ -78,10 +82,6 @@ type ChangeBTCBalanceRequest struct {
 
 func (r ChangeBTCBalanceRequest) Bind(_ *http.Request) error {
 	if _, err := domain.NewBTCAction(r.Action); err != nil {
-		return ErrBadRequest
-	}
-
-	if r.Amount < 0 {
 		return ErrBadRequest
 	}
 

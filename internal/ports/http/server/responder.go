@@ -51,7 +51,7 @@ func (r *Responder) Response(response any) {
 
 func (r *Responder) InternalError(err error) {
 	log.Error().Err(err).Msg("internal error")
-	r.writer.WriteHeader(http.StatusInternalServerError)
+	r.StatusOnly(http.StatusInternalServerError)
 }
 
 func (r *Responder) StatusOnly(code int) {

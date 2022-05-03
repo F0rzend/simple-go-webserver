@@ -49,18 +49,13 @@ func (h ChangeBTCBalanceCommandHandler) Handle(cmd ChangeBTCBalanceCommand) erro
 		return err
 	}
 
-	btcPrice, err := h.btcRepository.Get()
-	if err != nil {
-		return err
-	}
-
 	return h.userRepository.Update(cmd.UserID, func(user *domain.User) (*domain.User, error) {
 		btc, err := domain.NewBTC(cmd.Amount)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := user.ChangeBTCBalance(action, btc, btcPrice); err != nil {
+		if err := user.ChangeBTCBalance(action, btc, h.btcRepository.Get()); err != nil {
 			return nil, err
 		}
 		return user, nil

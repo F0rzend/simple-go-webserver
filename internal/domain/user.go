@@ -65,7 +65,23 @@ func NewUser(
 	}, nil
 }
 
-var ErrInsufficientFunds = errors.New("insufficient funds")
+func MustNewUser(
+	id uint64,
+	name string,
+	username string,
+	email string,
+	btcBalance float64,
+	usdBalance float64,
+	createdAt time.Time,
+	updatedAt time.Time,
+) *User {
+	user, err := NewUser(id, name, username, email, btcBalance, usdBalance, createdAt, updatedAt)
+	if err != nil {
+		panic(err)
+	}
+
+	return user
+}
 
 func (u *User) ChangeUSDBalance(action USDAction, amount USD) error {
 	switch action {
@@ -73,7 +89,7 @@ func (u *User) ChangeUSDBalance(action USDAction, amount USD) error {
 		u.Balance.USD = u.Balance.USD.Add(amount)
 	case WithdrawUSDAction:
 		if u.Balance.USD.LessThan(amount) {
-			return ErrInsufficientFunds
+			return ErrInsufficientFunds(amount.ToFloat64())
 		}
 		updatedUSD, err := u.Balance.USD.Sub(amount)
 		if err != nil {
@@ -89,7 +105,7 @@ func (u *User) ChangeBTCBalance(action BTCAction, amount BTC, price BTCPrice) er
 	switch action {
 	case BuyBTCAction:
 		if u.Balance.USD.LessThan(price.GetPrice()) {
-			return ErrInsufficientFunds
+			return ErrInsufficientFunds(amount.ToFloat64())
 		}
 
 		updatedUSD, err := u.Balance.USD.Sub(amount.ToUSD(price))
@@ -101,7 +117,7 @@ func (u *User) ChangeBTCBalance(action BTCAction, amount BTC, price BTCPrice) er
 		u.Balance.BTC = u.Balance.BTC.Add(amount)
 	case SellBTCAction:
 		if u.Balance.BTC.LessThan(amount) {
-			return ErrInsufficientFunds
+			return ErrInsufficientFunds(amount.ToFloat64())
 		}
 
 		updatedBTC, err := u.Balance.BTC.Sub(amount)

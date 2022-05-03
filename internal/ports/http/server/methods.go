@@ -45,6 +45,7 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	rspd.Status(http.StatusNoContent)
 	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
+	rspd.Response(nil)
 }
 
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -108,6 +109,7 @@ func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	rspd.Status(http.StatusNoContent)
 	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
+	rspd.Response(nil)
 }
 
 func (s *Server) GetUserBalance(w http.ResponseWriter, r *http.Request) {
@@ -132,44 +134,6 @@ func (s *Server) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 
 	rspd.Status(http.StatusOK)
 	rspd.Response(balance.ToFloat())
-}
-
-func (s *Server) GetBTC(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
-	btc, err := s.app.Queries.GetBTC.Handle()
-	if err != nil {
-		rspd.InternalError(err)
-		return
-	}
-
-	rspd.Status(http.StatusOK)
-	rspd.Response(s.assembler.BTCToResponse(btc))
-}
-
-func (s *Server) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
-	request := new(types.SetBTCPriceRequest)
-	if err := render.Bind(r, request); err != nil {
-		switch err {
-		case types.ErrBadRequest:
-			rspd.StatusOnly(http.StatusBadRequest)
-		default:
-			rspd.InternalError(err)
-		}
-		return
-	}
-
-	if err := s.app.Commands.SetBTCPrice.Handle(commands.SetBTCPriceCommand{
-		Price: request.Price,
-	}); err != nil {
-		rspd.InternalError(err)
-		return
-	}
-
-	rspd.Status(http.StatusNoContent)
-	rspd.LocationHeader("/bitcoin")
 }
 
 func (s *Server) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
@@ -197,18 +161,23 @@ func (s *Server) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
 		Action: request.Action,
 		Amount: request.Amount,
 	})
+
 	switch err.(type) {
 	case nil:
+	case domain.ErrInsufficientFunds, domain.ErrNegativeCurrency:
+		rspd.StatusOnly(http.StatusBadRequest)
+		return
 	case domain.ErrUserNotFound:
 		rspd.StatusOnly(http.StatusNotFound)
 		return
 	default:
-		rspd.InternalError(err)
+		rspd.StatusOnly(http.StatusInternalServerError)
 		return
 	}
 
 	rspd.Status(http.StatusNoContent)
 	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
+	rspd.Response(nil)
 }
 
 func (s *Server) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
@@ -238,14 +207,53 @@ func (s *Server) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
 	})
 	switch err.(type) {
 	case nil:
+	case domain.ErrInsufficientFunds, domain.ErrNegativeCurrency:
+		rspd.StatusOnly(http.StatusBadRequest)
+		return
 	case domain.ErrUserNotFound:
 		rspd.StatusOnly(http.StatusNotFound)
 		return
 	default:
-		rspd.InternalError(err)
+		rspd.StatusOnly(http.StatusInternalServerError)
 		return
 	}
 
 	rspd.Status(http.StatusNoContent)
 	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
+	rspd.Response(nil)
+}
+
+func (s *Server) GetBTC(w http.ResponseWriter, r *http.Request) {
+	rspd := MustNewResponder(w, r)
+
+	btc := s.app.Queries.GetBTC.Handle()
+
+	rspd.Status(http.StatusOK)
+	rspd.Response(s.assembler.BTCToResponse(btc))
+}
+
+func (s *Server) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
+	rspd := MustNewResponder(w, r)
+
+	request := new(types.SetBTCPriceRequest)
+	if err := render.Bind(r, request); err != nil {
+		switch err {
+		case types.ErrBadRequest:
+			rspd.StatusOnly(http.StatusBadRequest)
+		default:
+			rspd.InternalError(err)
+		}
+		return
+	}
+
+	if err := s.app.Commands.SetBTCPrice.Handle(commands.SetBTCPriceCommand{
+		Price: request.Price,
+	}); err != nil {
+		rspd.InternalError(err)
+		return
+	}
+
+	rspd.Status(http.StatusNoContent)
+	rspd.LocationHeader("/bitcoin")
+	rspd.Response(nil)
 }

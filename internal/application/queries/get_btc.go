@@ -27,6 +27,6 @@ func MustNewGetBTCCommand(btcRepository domain.BTCRepository) GetBTCQueryHandler
 	return cmd
 }
 
-func (h *GetBTCQueryHandler) Handle() (domain.BTCPrice, error) {
+func (h *GetBTCQueryHandler) Handle() domain.BTCPrice {
 	return h.btcRepository.Get()
 }

@@ -1,4 +1,4 @@
-package btc
+package btcrepositories
 
 import (
 	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
@@ -18,8 +18,8 @@ func NewMemoryBTCRepository(initialPrice domain.USD) (*MemoryBTCRepository, erro
 	}, nil
 }
 
-func (r *MemoryBTCRepository) Get() (domain.BTCPrice, error) {
-	return r.bitcoin, nil
+func (r *MemoryBTCRepository) Get() domain.BTCPrice {
+	return r.bitcoin
 }
 
 func (r *MemoryBTCRepository) SetPrice(price domain.USD) error {

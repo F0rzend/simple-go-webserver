@@ -19,11 +19,9 @@ type BTC struct {
 	amount decimal.Decimal
 }
 
-var ErrNegativeBTC = errors.New("USD amount cannot be negative")
-
 func NewBTC(amount float64) (BTC, error) {
 	if amount < 0 {
-		return BTC{}, ErrNegativeBTC
+		return BTC{}, ErrNegativeCurrency(amount)
 	}
 	return BTC{decimal.NewFromFloat(amount)}, nil
 }
@@ -38,6 +36,11 @@ func MustNewBTC(amount float64) BTC {
 
 func (btc BTC) ToFloat() *big.Float {
 	return btc.amount.BigFloat()
+}
+
+func (btc BTC) ToFloat64() float64 {
+	amount, _ := btc.amount.Float64()
+	return amount
 }
 
 func (btc BTC) ToUSD(price BTCPrice) USD {
