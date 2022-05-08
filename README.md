@@ -16,7 +16,6 @@ We use DDD (Domain Driven Design) to separate the domain logic from the applicat
  * [moq](https://github.com/matryer/moq) for adapters mocking
  * [Swagger](https://swagger.io)
  * [OpenAPI](https://openapi.io)
- * [JSON Web Token](https://jwt.io)
  * [chi router](https://go-chi.io/)
  * [Docker](https://www.docker.com/)
  * [docker-compose](https://docs.docker.com/compose/overview/)
