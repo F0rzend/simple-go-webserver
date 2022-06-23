@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
+	"github.com/F0rzend/simple-go-webserver/internal/domain"
 )
 
 type ChangeUSDBalanceCommand struct {

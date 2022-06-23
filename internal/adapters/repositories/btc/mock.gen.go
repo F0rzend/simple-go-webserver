@@ -4,8 +4,9 @@
 package btcrepositories
 
 import (
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 	"sync"
+
+	"github.com/F0rzend/simple-go-webserver/internal/domain"
 )
 
 // Ensure, that MockBTCRepository does implement domain.BTCRepository.
@@ -40,8 +41,7 @@ type MockBTCRepository struct {
 	// calls tracks calls to the methods.
 	calls struct {
 		// Get holds details about calls to the Get method.
-		Get []struct {
-		}
+		Get []struct{}
 		// SetPrice holds details about calls to the SetPrice method.
 		SetPrice []struct {
 			// Price is the price argument value.
@@ -57,8 +57,7 @@ func (mock *MockBTCRepository) Get() domain.BTCPrice {
 	if mock.GetFunc == nil {
 		panic("MockBTCRepository.GetFunc: method is nil but BTCRepository.Get was just called")
 	}
-	callInfo := struct {
-	}{}
+	callInfo := struct{}{}
 	mock.lockGet.Lock()
 	mock.calls.Get = append(mock.calls.Get, callInfo)
 	mock.lockGet.Unlock()
@@ -68,10 +67,8 @@ func (mock *MockBTCRepository) Get() domain.BTCPrice {
 // GetCalls gets all the calls that were made to Get.
 // Check the length with:
 //     len(mockedBTCRepository.GetCalls())
-func (mock *MockBTCRepository) GetCalls() []struct {
-} {
-	var calls []struct {
-	}
+func (mock *MockBTCRepository) GetCalls() []struct{} {
+	var calls []struct{}
 	mock.lockGet.RLock()
 	calls = mock.calls.Get
 	mock.lockGet.RUnlock()

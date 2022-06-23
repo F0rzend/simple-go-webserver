@@ -8,8 +8,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/application"
-	"github.com/F0rzend/SimpleGoWebserver/internal/ports/http/server"
+	"github.com/F0rzend/simple-go-webserver/internal/application"
+	"github.com/F0rzend/simple-go-webserver/internal/ports/http/server"
 )
 
 func main() {

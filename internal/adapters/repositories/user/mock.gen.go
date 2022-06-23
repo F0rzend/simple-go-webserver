@@ -4,8 +4,9 @@
 package userrepositories
 
 import (
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
 	"sync"
+
+	"github.com/F0rzend/simple-go-webserver/internal/domain"
 )
 
 // Ensure, that MockUserRepository does implement domain.UserRepository.

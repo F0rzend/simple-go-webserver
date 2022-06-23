@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/application"
-	"github.com/F0rzend/SimpleGoWebserver/internal/ports/http/types"
+	"github.com/F0rzend/simple-go-webserver/internal/application"
+	"github.com/F0rzend/simple-go-webserver/internal/ports/http/types"
 )
 
 type Server struct {

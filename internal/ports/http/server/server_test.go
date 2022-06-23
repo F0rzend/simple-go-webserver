@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/tests"
+	"github.com/F0rzend/simple-go-webserver/internal/tests"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/application"
+	"github.com/F0rzend/simple-go-webserver/internal/application"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/ports/http/types"
+	"github.com/F0rzend/simple-go-webserver/internal/ports/http/types"
 
 	"github.com/stretchr/testify/assert"
 )

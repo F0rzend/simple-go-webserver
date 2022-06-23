@@ -1,6 +1,6 @@
 package queries
 
-import "github.com/F0rzend/SimpleGoWebserver/internal/domain"
+import "github.com/F0rzend/simple-go-webserver/internal/domain"
 
 type GetUserQueryHandler struct {
 	userRepository domain.UserRepository

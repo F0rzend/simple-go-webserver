@@ -3,11 +3,11 @@ package application
 import (
 	"time"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/adapters/repositories/btc"
-	"github.com/F0rzend/SimpleGoWebserver/internal/adapters/repositories/user"
-	"github.com/F0rzend/SimpleGoWebserver/internal/application/commands"
-	"github.com/F0rzend/SimpleGoWebserver/internal/application/queries"
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
+	"github.com/F0rzend/simple-go-webserver/internal/adapters/repositories/btc"
+	"github.com/F0rzend/simple-go-webserver/internal/adapters/repositories/user"
+	"github.com/F0rzend/simple-go-webserver/internal/application/commands"
+	"github.com/F0rzend/simple-go-webserver/internal/application/queries"
+	"github.com/F0rzend/simple-go-webserver/internal/domain"
 )
 
 type Application struct {

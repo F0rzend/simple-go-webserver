@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/mail"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
+	"github.com/F0rzend/simple-go-webserver/internal/domain"
 
 	"github.com/go-chi/render"
 )

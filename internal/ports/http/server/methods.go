@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
+	"github.com/F0rzend/simple-go-webserver/internal/domain"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/go-chi/render"
 
-	"github.com/F0rzend/SimpleGoWebserver/internal/application/commands"
-	"github.com/F0rzend/SimpleGoWebserver/internal/ports/http/types"
+	"github.com/F0rzend/simple-go-webserver/internal/application/commands"
+	"github.com/F0rzend/simple-go-webserver/internal/ports/http/types"
 )
 
 func getUserIDFromURL(r *http.Request) (uint64, error) {

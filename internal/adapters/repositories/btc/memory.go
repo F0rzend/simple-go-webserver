@@ -1,7 +1,7 @@
 package btcrepositories
 
 import (
-	"github.com/F0rzend/SimpleGoWebserver/internal/domain"
+	"github.com/F0rzend/simple-go-webserver/internal/domain"
 )
 
 var _ domain.BTCRepository = &MemoryBTCRepository{}
