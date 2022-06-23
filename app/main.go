@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -19,16 +18,19 @@ func main() {
 
 	app, err := application.NewApplication()
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to create btc repository")
+		log.Fatal().Err(err).Send()
 	}
 	httpServer := server.NewServer(app)
 
 	address := getEnv("ADDRESS", ":8080")
-	log.Info().Msg(fmt.Sprintf("starting server on %s", address))
-	log.Error().Err(http.ListenAndServe(
+	log.Info().Msgf("starting server on %s", address)
+
+	if err := http.ListenAndServe(
 		address,
 		httpServer.GetRouter(),
-	))
+	); err != nil {
+		log.Error().Err(err).Send()
+	}
 }
 
 func getEnv(key, defaultValue string) string {
