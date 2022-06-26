@@ -21,7 +21,7 @@ func getUserIDFromURL(r *http.Request) (uint64, error) {
 }
 
 func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var request *types.CreateUserRequest
+	request := &types.CreateUserRequest{}
 
 	if err := render.Bind(r, request); err != nil {
 		switch err {
@@ -75,7 +75,8 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	var request *types.UpdateUserRequest
+	request := &types.UpdateUserRequest{}
+
 	id, err := getUserIDFromURL(r)
 	if err != nil {
 		log.Error().Err(err).Send()
@@ -147,7 +148,8 @@ func (s *Server) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request *types.ChangeUSDBalanceRequest
+	request := &types.ChangeUSDBalanceRequest{}
+
 	if err := render.Bind(r, request); err != nil {
 		switch err {
 		case types.ErrBadRequest:
@@ -191,7 +193,8 @@ func (s *Server) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request *types.ChangeBTCBalanceRequest
+	request := &types.ChangeBTCBalanceRequest{}
+
 	if err := render.Bind(r, request); err != nil {
 		switch err {
 		case types.ErrBadRequest:
@@ -235,7 +238,8 @@ func (s *Server) GetBTC(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
-	var request *types.SetBTCPriceRequest
+	request := &types.SetBTCPriceRequest{}
+
 	if err := render.Bind(r, request); err != nil {
 		switch err {
 		case types.ErrBadRequest:
