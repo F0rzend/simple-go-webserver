@@ -4,11 +4,18 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/go-chi/chi/v5"
+
+	bitcoinEndpoints "github.com/F0rzend/simple-go-webserver/app/bitcoin/http/endpoints"
+	userEndpoints "github.com/F0rzend/simple-go-webserver/app/user/http/endpoints"
+
+	bitcoinService "github.com/F0rzend/simple-go-webserver/app/bitcoin/service"
+	userService "github.com/F0rzend/simple-go-webserver/app/user/service"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-
-	"github.com/F0rzend/simple-go-webserver/app/application"
-	"github.com/F0rzend/simple-go-webserver/app/ports/http/server"
 )
 
 func main() {
@@ -16,18 +23,20 @@ func main() {
 		With().Caller().Logger().
 		Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	app, err := application.NewApplication()
-	if err != nil {
-		log.Fatal().Err(err).Send()
-	}
-	httpServer := server.NewServer(app)
+	userHTTPEndpoints := userEndpoints.NewUserHTTPEndpoints(userService.MustUserService())
+	bitcoinHTTPEndpoints := bitcoinEndpoints.NewBitcoinHTTPEndpoints(bitcoinService.MustBitcoinService())
+
+	router := getRouter(
+		userHTTPEndpoints,
+		bitcoinHTTPEndpoints,
+	)
 
 	address := getEnv("ADDRESS", ":8080")
-	log.Info().Msgf("starting server on %s", address)
+	log.Info().Msgf("starting endpoints on %s", address)
 
 	if err := http.ListenAndServe(
 		address,
-		httpServer.GetRouter(),
+		router,
 	); err != nil {
 		log.Error().Err(err).Send()
 	}
@@ -39,4 +48,21 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+func getRouter(
+	userRoutes *userEndpoints.UserHTTPEndpoints,
+	bitcoinRoutes *bitcoinEndpoints.BitcoinHTTPEndpoints,
+) http.Handler {
+	r := chi.NewRouter()
+	r.Use(
+		middleware.Logger,
+		middleware.Recoverer,
+		middleware.AllowContentType("application/json"),
+	)
+
+	userRoutes.Register(r)
+	bitcoinRoutes.Register(r)
+
+	return r
 }
