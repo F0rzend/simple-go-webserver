@@ -5,30 +5,31 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/F0rzend/simple-go-webserver/app/domain"
 	"github.com/go-chi/chi/v5"
-
 	"github.com/go-chi/render"
+	"github.com/rs/zerolog/log"
 
 	"github.com/F0rzend/simple-go-webserver/app/application/commands"
+	"github.com/F0rzend/simple-go-webserver/app/domain"
 	"github.com/F0rzend/simple-go-webserver/app/ports/http/types"
 )
+
+type hash map[string]any
 
 func getUserIDFromURL(r *http.Request) (uint64, error) {
 	return strconv.ParseUint(chi.URLParam(r, "id"), 10, 64) // nolint: gomnd
 }
 
 func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
-	request := new(types.CreateUserRequest)
+	var request *types.CreateUserRequest
 
 	if err := render.Bind(r, request); err != nil {
 		switch err {
 		case types.ErrBadRequest:
-			rspd.StatusOnly(http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 		default:
-			rspd.InternalError(err)
+			log.Error().Err(err).Send()
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
@@ -39,21 +40,21 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Email:    request.Email,
 	})
 	if err != nil {
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rspd.Status(http.StatusNoContent)
-	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
-	rspd.Response(nil)
+	render.Status(r, http.StatusNoContent)
+	w.Header().Set("Location", fmt.Sprintf("/users/%d", id))
+	render.Respond(w, r, nil)
 }
 
 func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
 	id, err := getUserIDFromURL(r)
 	if err != nil {
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -61,33 +62,34 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	switch err.(type) {
 	case nil:
 	case domain.ErrUserNotFound:
-		rspd.StatusOnly(http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	default:
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rspd.Status(http.StatusOK)
-	rspd.Response(s.assembler.UserToResponse(user))
+	render.Status(r, http.StatusOK)
+	render.Respond(w, r, s.assembler.UserToResponse(user))
 }
 
 func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
-	request := new(types.UpdateUserRequest)
+	var request *types.UpdateUserRequest
 	id, err := getUserIDFromURL(r)
 	if err != nil {
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err := render.Bind(r, request); err != nil {
 		switch err {
 		case types.ErrBadRequest:
-			rspd.StatusOnly(http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 		default:
-			rspd.InternalError(err)
+			log.Error().Err(err).Send()
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
@@ -100,24 +102,24 @@ func (s *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	switch err.(type) {
 	case nil:
 	case domain.ErrUserNotFound:
-		rspd.StatusOnly(http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	default:
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rspd.Status(http.StatusNoContent)
-	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
-	rspd.Response(nil)
+	render.Status(r, http.StatusNoContent)
+	w.Header().Set("Location", fmt.Sprintf("/users/%d", id))
+	render.Respond(w, r, nil)
 }
 
 func (s *Server) GetUserBalance(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
 	id, err := getUserIDFromURL(r)
 	if err != nil {
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -125,33 +127,34 @@ func (s *Server) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	switch err.(type) {
 	case nil:
 	case domain.ErrUserNotFound:
-		rspd.StatusOnly(http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	default:
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rspd.Status(http.StatusOK)
-	rspd.Response(balance.ToFloat())
+	render.Status(r, http.StatusOK)
+	render.Respond(w, r, hash{"balance": balance.ToFloat()})
 }
 
 func (s *Server) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
 	id, err := getUserIDFromURL(r)
 	if err != nil {
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	request := new(types.ChangeUSDBalanceRequest)
+	var request *types.ChangeUSDBalanceRequest
 	if err := render.Bind(r, request); err != nil {
 		switch err {
 		case types.ErrBadRequest:
-			rspd.StatusOnly(http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 		default:
-			rspd.InternalError(err)
+			log.Error().Err(err).Send()
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
@@ -165,37 +168,37 @@ func (s *Server) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
 	switch err.(type) {
 	case nil:
 	case domain.ErrInsufficientFunds, domain.ErrNegativeCurrency:
-		rspd.StatusOnly(http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	case domain.ErrUserNotFound:
-		rspd.StatusOnly(http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	default:
-		rspd.StatusOnly(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rspd.Status(http.StatusNoContent)
-	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
-	rspd.Response(nil)
+	render.Status(r, http.StatusNoContent)
+	w.Header().Set("Location", fmt.Sprintf("/users/%d", id))
+	render.Respond(w, r, nil)
 }
 
 func (s *Server) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
 	id, err := getUserIDFromURL(r)
 	if err != nil {
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	request := new(types.ChangeBTCBalanceRequest)
+	var request *types.ChangeBTCBalanceRequest
 	if err := render.Bind(r, request); err != nil {
 		switch err {
 		case types.ErrBadRequest:
-			rspd.StatusOnly(http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 		default:
-			rspd.InternalError(err)
+			log.Error().Err(err).Send()
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
@@ -208,40 +211,38 @@ func (s *Server) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
 	switch err.(type) {
 	case nil:
 	case domain.ErrInsufficientFunds, domain.ErrNegativeCurrency:
-		rspd.StatusOnly(http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	case domain.ErrUserNotFound:
-		rspd.StatusOnly(http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	default:
-		rspd.StatusOnly(http.StatusInternalServerError)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rspd.Status(http.StatusNoContent)
-	rspd.LocationHeader(fmt.Sprintf("/users/%d", id))
-	rspd.Response(nil)
+	render.Status(r, http.StatusNoContent)
+	w.Header().Set("Location", fmt.Sprintf("/users/%d", id))
+	render.Respond(w, r, nil)
 }
 
 func (s *Server) GetBTC(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
 	btc := s.app.Queries.GetBTC.Handle()
 
-	rspd.Status(http.StatusOK)
-	rspd.Response(s.assembler.BTCToResponse(btc))
+	render.Status(r, http.StatusOK)
+	render.Respond(w, r, hash{"btc": s.assembler.BTCToResponse(btc)})
 }
 
 func (s *Server) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
-	rspd := MustNewResponder(w, r)
-
-	request := new(types.SetBTCPriceRequest)
+	var request *types.SetBTCPriceRequest
 	if err := render.Bind(r, request); err != nil {
 		switch err {
 		case types.ErrBadRequest:
-			rspd.StatusOnly(http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 		default:
-			rspd.InternalError(err)
+			log.Error().Err(err).Send()
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
@@ -249,11 +250,12 @@ func (s *Server) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
 	if err := s.app.Commands.SetBTCPrice.Handle(commands.SetBTCPriceCommand{
 		Price: request.Price,
 	}); err != nil {
-		rspd.InternalError(err)
+		log.Error().Err(err).Send()
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rspd.Status(http.StatusNoContent)
-	rspd.LocationHeader("/bitcoin")
-	rspd.Response(nil)
+	render.Status(r, http.StatusNoContent)
+	w.Header().Set("Location", "/bitcoin")
+	render.Respond(w, r, nil)
 }
