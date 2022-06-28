@@ -1,23 +1,21 @@
-package userrepositories
+package repositories
 
 import (
-	domain2 "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-var _ domain2.UserRepository = &MemoryUserRepository{}
-
 type MemoryUserRepository struct {
-	users map[uint64]*domain2.User
+	users map[uint64]*userEntity.User
 }
 
 func NewMemoryUserRepository() *MemoryUserRepository {
 	return &MemoryUserRepository{
-		users: make(map[uint64]*domain2.User),
+		users: make(map[uint64]*userEntity.User),
 	}
 }
 
-func (r *MemoryUserRepository) Create(user *domain2.User) error {
+func (r *MemoryUserRepository) Create(user *userEntity.User) error {
 	if _, ok := r.users[user.ID]; ok {
 		return common.ErrUserAlreadyExists(user.ID)
 	}
@@ -25,7 +23,7 @@ func (r *MemoryUserRepository) Create(user *domain2.User) error {
 	return nil
 }
 
-func (r *MemoryUserRepository) Get(id uint64) (*domain2.User, error) {
+func (r *MemoryUserRepository) Get(id uint64) (*userEntity.User, error) {
 	user, ok := r.users[id]
 	if !ok {
 		return nil, common.ErrUserNotFound(id)
@@ -35,7 +33,7 @@ func (r *MemoryUserRepository) Get(id uint64) (*domain2.User, error) {
 
 func (r *MemoryUserRepository) Update(
 	id uint64,
-	updFunc func(*domain2.User) (*domain2.User, error),
+	updFunc func(*userEntity.User) (*userEntity.User, error),
 ) error {
 	currentUser, ok := r.users[id]
 

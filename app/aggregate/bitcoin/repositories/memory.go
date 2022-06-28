@@ -4,8 +4,6 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
-var _ entity.BTCRepository = &MemoryBTCRepository{}
-
 type MemoryBTCRepository struct {
 	bitcoin entity.BTCPrice
 }
