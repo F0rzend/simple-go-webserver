@@ -71,10 +71,9 @@ func TestServer_SetBTCPrice(t *testing.T) {
 func getHTTPHandler(t *testing.T) http.Handler {
 	t.Helper()
 
-	bitcoinService, err := service.NewComponentTestBitcoinService()
-	if err != nil {
-		t.Fatal(err)
-	}
+	bitcoinService := service.NewBitcoinService(
+		tests.NewMockBitcoinRepository(),
+	)
 	handlers := NewBitcoinHTTPHandlers(bitcoinService)
 
 	r := chi.NewRouter()

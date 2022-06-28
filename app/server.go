@@ -3,6 +3,11 @@ package main
 import (
 	"net/http"
 
+	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
@@ -17,14 +22,20 @@ type Server struct {
 	bitcoinRoutes *bitcoinHTTPHandlers.BitcoinHTTPHandlers
 }
 
-func NewServer() *Server {
-	userRoutes := userHTTPHandlers.NewUserHTTPHandlers(userService.MustUserService())
-	bitcoinRoutes := bitcoinHTTPHandlers.NewBitcoinHTTPHandlers(bitcoinService.MustBitcoinService())
+func NewServer() (*Server, error) {
+	bitcoinRepository, err := repositories.NewMemoryBTCRepository(entity.MustNewUSD(100))
+	if err != nil {
+		return nil, err
+	}
+	userRepository := userRepositories.NewMemoryUserRepository()
+
+	bitcoinRoutes := bitcoinHTTPHandlers.NewBitcoinHTTPHandlers(bitcoinService.NewBitcoinService(bitcoinRepository))
+	userRoutes := userHTTPHandlers.NewUserHTTPHandlers(userService.NewUserService(userRepository, bitcoinRepository))
 
 	return &Server{
 		userRoutes:    userRoutes,
 		bitcoinRoutes: bitcoinRoutes,
-	}
+	}, nil
 }
 
 func (s *Server) GetHTTPHandler() http.Handler {

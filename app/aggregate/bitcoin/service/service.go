@@ -1,10 +1,7 @@
 package service
 
 import (
-	"time"
-
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 )
 
 type BitcoinService struct {
@@ -12,33 +9,11 @@ type BitcoinService struct {
 	GetBTCPrice GetBTCPriceHandler
 }
 
-func newBitcoinService(
+func NewBitcoinService(
 	bitcoinRepository entity.BTCRepository,
 ) *BitcoinService {
 	return &BitcoinService{
 		SetBTCPrice: MustNewSetBTCPriceCommand(bitcoinRepository),
 		GetBTCPrice: MustNewGetBTCCommand(bitcoinRepository),
 	}
-}
-
-func MustBitcoinService() *BitcoinService {
-	btcRepository, err := repositories.NewMemoryBTCRepository(entity.MustNewUSD(100))
-	if err != nil {
-		panic(err)
-	}
-
-	return newBitcoinService(btcRepository)
-}
-
-func NewComponentTestBitcoinService() (*BitcoinService, error) { // TODO Move to /app/tests
-	bitcoinRepository := &repositories.MockBTCRepository{
-		GetFunc: func() entity.BTCPrice {
-			return entity.NewBTCPrice(entity.MustNewUSD(100), time.Now())
-		},
-		SetPriceFunc: func(price entity.USD) error {
-			return nil
-		},
-	}
-
-	return newBitcoinService(bitcoinRepository), nil
 }

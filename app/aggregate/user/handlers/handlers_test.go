@@ -333,10 +333,10 @@ func TestServer_ChangeBTCBalance(t *testing.T) {
 func getHTTPHandler(t *testing.T) http.Handler {
 	t.Helper()
 
-	userService, err := service.NewComponentTestUserService()
-	if err != nil {
-		t.Fatal(err)
-	}
+	userService := service.NewUserService(
+		tests.NewMockUserRepository(),
+		tests.NewMockBitcoinRepository(),
+	)
 
 	r := chi.NewRouter()
 	NewUserHTTPHandlers(userService).SetRoutes(r)

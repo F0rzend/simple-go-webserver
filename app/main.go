@@ -28,7 +28,10 @@ func main() {
 	address := getEnv("ADDRESS", ":8080")
 	log.Info().Msgf("starting endpoints on %s", address)
 
-	server := NewServer()
+	server, err := NewServer()
+	if err != nil {
+		log.Fatal().Err(err).Send()
+	}
 
 	if err := http.ListenAndServe(
 		address,

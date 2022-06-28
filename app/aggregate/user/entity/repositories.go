@@ -1,6 +1,6 @@
 package entity
 
-//go:generate moq -out "../repositories/mock.gen.go" -pkg userrepositories . UserRepository:MockUserRepository
+//go:generate moq -out "../../../tests/user_repository.gen.go" -pkg tests . UserRepository:MockUserRepository
 type UserRepository interface {
 	Create(user *User) error
 	Get(id uint64) (*User, error)
