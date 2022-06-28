@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 )
@@ -28,10 +30,10 @@ func MustBitcoinService() *BitcoinService {
 	return newBitcoinService(btcRepository)
 }
 
-func NewComponentTestBitcoinService() (*BitcoinService, error) {
+func NewComponentTestBitcoinService() (*BitcoinService, error) { // TODO Move to /app/tests
 	bitcoinRepository := &repositories.MockBTCRepository{
 		GetFunc: func() entity.BTCPrice {
-			return entity.NewBTCPrice(entity.MustNewUSD(100))
+			return entity.NewBTCPrice(entity.MustNewUSD(100), time.Now())
 		},
 		SetPriceFunc: func(price entity.USD) error {
 			return nil

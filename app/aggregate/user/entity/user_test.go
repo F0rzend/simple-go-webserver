@@ -234,6 +234,8 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 func TestUser_ChangeBTCBalance(t *testing.T) {
 	t.Parallel()
 
+	now := time.Now()
+
 	testCases := []struct {
 		name     string
 		user     User
@@ -253,7 +255,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			},
 			action:   entity.BuyBTCAction,
 			amount:   entity.MustNewBTC(1),
-			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1)),
+			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1), now),
 			expected: Balance{
 				USD: entity.MustNewUSD(0),
 				BTC: entity.MustNewBTC(1),
@@ -270,7 +272,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			},
 			action:   entity.SellBTCAction,
 			amount:   entity.MustNewBTC(1),
-			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1)),
+			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1), now),
 			expected: Balance{
 				USD: entity.MustNewUSD(1),
 				BTC: entity.MustNewBTC(0),
@@ -287,7 +289,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			},
 			action:   entity.BuyBTCAction,
 			amount:   entity.MustNewBTC(1),
-			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1)),
+			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1), now),
 			expected: Balance{
 				USD: entity.MustNewUSD(0),
 				BTC: entity.MustNewBTC(0),
@@ -304,7 +306,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			},
 			action:   entity.SellBTCAction,
 			amount:   entity.MustNewBTC(1),
-			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1)),
+			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1), now),
 			expected: Balance{
 				USD: entity.MustNewUSD(0),
 				BTC: entity.MustNewBTC(0),

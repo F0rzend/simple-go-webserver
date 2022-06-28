@@ -46,7 +46,7 @@ func MustUserService() *UserService {
 	return newUserService(userRepository, btcRepository)
 }
 
-func NewComponentTestUserService() (*UserService, error) {
+func NewComponentTestUserService() (*UserService, error) { // TODO Move to /app/tests
 	now := time.Now()
 	users := map[uint64]*userEntity.User{
 		1: userEntity.MustNewUser(
@@ -112,7 +112,7 @@ func NewComponentTestUserService() (*UserService, error) {
 	}
 	btcRepository := &bitcoinRepositories.MockBTCRepository{
 		GetFunc: func() bitcoinEntity.BTCPrice {
-			return bitcoinEntity.NewBTCPrice(bitcoinEntity.MustNewUSD(100))
+			return bitcoinEntity.NewBTCPrice(bitcoinEntity.MustNewUSD(100), time.Now())
 		},
 		SetPriceFunc: func(price bitcoinEntity.USD) error {
 			return nil

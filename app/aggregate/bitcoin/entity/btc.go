@@ -92,10 +92,10 @@ type BTCPrice struct {
 	updatedAt time.Time
 }
 
-func NewBTCPrice(price USD) BTCPrice {
+func NewBTCPrice(price USD, updatedAt time.Time) BTCPrice {
 	return BTCPrice{
 		price:     price,
-		updatedAt: time.Now(),
+		updatedAt: updatedAt,
 	}
 }
 
