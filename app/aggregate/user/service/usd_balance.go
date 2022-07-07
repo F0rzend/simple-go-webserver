@@ -22,27 +22,16 @@ type ChangeUSDBalanceHandler struct {
 	userRepository userEntity.UserRepository
 }
 
-func NewChangeUSDBalanceCommand(
+func MustNewChangeUSDBalanceHandler(
 	userRepository userEntity.UserRepository,
-) (ChangeUSDBalanceHandler, error) {
+) ChangeUSDBalanceHandler {
 	if userRepository == nil {
-		return ChangeUSDBalanceHandler{}, ErrNilUserRepository
+		panic(ErrNilUserRepository)
 	}
 
 	return ChangeUSDBalanceHandler{
 		userRepository: userRepository,
-	}, nil
-}
-
-func MustNewChangeUSDBalanceHandler(
-	userRepository userEntity.UserRepository,
-) ChangeUSDBalanceHandler {
-	cmd, err := NewChangeUSDBalanceCommand(userRepository)
-	if err != nil {
-		panic(err)
 	}
-
-	return cmd
 }
 
 func (h ChangeUSDBalanceHandler) Handle(cmd ChangeUSDBalance) error {

@@ -13,23 +13,14 @@ type GetUserHandler struct {
 	userRepository entity.UserRepository
 }
 
-func NewGetUserQuery(userRepository entity.UserRepository) (GetUserHandler, error) {
+func MustNewGetUserHandler(userRepository entity.UserRepository) GetUserHandler {
 	if userRepository == nil {
-		return GetUserHandler{}, ErrNilUserRepository
+		panic(ErrNilUserRepository)
 	}
 
 	return GetUserHandler{
 		userRepository: userRepository,
-	}, nil
-}
-
-func MustNewGetUserHandler(userRepository entity.UserRepository) GetUserHandler {
-	handler, err := NewGetUserQuery(userRepository)
-	if err != nil {
-		panic(err)
 	}
-
-	return handler
 }
 
 func (h *GetUserHandler) Handle(userID uint64) (*entity.User, error) {

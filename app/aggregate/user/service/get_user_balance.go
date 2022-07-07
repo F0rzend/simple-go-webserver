@@ -15,33 +15,21 @@ type GetUserBalanceHandler struct {
 	btcRepository  entity.BTCRepository
 }
 
-func NewGetUserBalance(
+func MustNewGetUserBalance(
 	userRepository userDomain.UserRepository,
 	btcRepository entity.BTCRepository,
-) (GetUserBalanceHandler, error) {
+) GetUserBalanceHandler {
 	if userRepository == nil {
-		return GetUserBalanceHandler{}, ErrNilUserRepository
+		panic(ErrNilUserRepository)
 	}
 	if btcRepository == nil {
-		return GetUserBalanceHandler{}, ErrNilBTCRepository
+		panic(ErrNilBTCRepository)
 	}
 
 	return GetUserBalanceHandler{
 		userRepository: userRepository,
 		btcRepository:  btcRepository,
-	}, nil
-}
-
-func MustNewGetUserBalance(
-	userRepository userDomain.UserRepository,
-	btcRepository entity.BTCRepository,
-) GetUserBalanceHandler {
-	handler, err := NewGetUserBalance(userRepository, btcRepository)
-	if err != nil {
-		panic(err)
 	}
-
-	return handler
 }
 
 func (h GetUserBalanceHandler) Handle(userID uint64) (entity.USD, error) {

@@ -10,7 +10,7 @@ import (
 func NewMockUserRepository() userEntity.UserRepository {
 	now := time.Now()
 	users := map[uint64]*userEntity.User{
-		1: userEntity.MustNewUser(
+		1: must(userEntity.NewUser(
 			1,
 			"John",
 			"Doe",
@@ -19,8 +19,8 @@ func NewMockUserRepository() userEntity.UserRepository {
 			0,
 			now,
 			now,
-		),
-		2: userEntity.MustNewUser(
+		)),
+		2: must(userEntity.NewUser(
 			2,
 			"Jane",
 			"Doe",
@@ -29,7 +29,7 @@ func NewMockUserRepository() userEntity.UserRepository {
 			100,
 			now,
 			now,
-		),
+		)),
 	}
 	return &MockUserRepository{
 		CreateFunc: func(user *userEntity.User) error {

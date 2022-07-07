@@ -22,23 +22,14 @@ type UpdateUserHandler struct {
 	userRepository entity.UserRepository
 }
 
-func NewUpdateUserHandler(userRepository entity.UserRepository) (UpdateUserHandler, error) {
+func MustNewUpdateUserHandler(userRepository entity.UserRepository) UpdateUserHandler {
 	if userRepository == nil {
-		return UpdateUserHandler{}, ErrNilUserRepository
+		panic(ErrNilUserRepository)
 	}
 
 	return UpdateUserHandler{
 		userRepository: userRepository,
-	}, nil
-}
-
-func MustNewUpdateUserHandler(userRepository entity.UserRepository) UpdateUserHandler {
-	handler, err := NewUpdateUserHandler(userRepository)
-	if err != nil {
-		panic(err)
 	}
-
-	return handler
 }
 
 func (h *UpdateUserHandler) Handle(cmd UpdateUser) error {

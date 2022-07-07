@@ -49,3 +49,10 @@ func AssertStatus(
 
 	return w, r
 }
+
+func must[value any](val value, err error) value {
+	if err != nil {
+		panic(err)
+	}
+	return val
+}

@@ -21,24 +21,15 @@ type CreateUserHandler struct {
 	userRepository userEntity.UserRepository
 }
 
-func NewCreateUserCommand(userRepository userEntity.UserRepository) (CreateUserHandler, error) {
+func MustNewCreateUserHandler(userRepository userEntity.UserRepository) CreateUserHandler {
 	if userRepository == nil {
-		return CreateUserHandler{}, ErrNilUserRepository
+		panic(ErrNilUserRepository)
 	}
 
 	return CreateUserHandler{
 		getID:          userIDGenerator(),
 		userRepository: userRepository,
-	}, nil
-}
-
-func MustNewCreateUserHandler(userRepository userEntity.UserRepository) CreateUserHandler {
-	handler, err := NewCreateUserCommand(userRepository)
-	if err != nil {
-		panic(err)
 	}
-
-	return handler
 }
 
 func userIDGenerator() func() uint64 {

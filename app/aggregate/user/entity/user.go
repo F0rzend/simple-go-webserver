@@ -68,38 +68,33 @@ func NewUser(
 	}, nil
 }
 
-func MustNewUser(
-	id uint64,
-	name string,
-	username string,
-	email string,
-	btcBalance float64,
-	usdBalance float64,
-	createdAt time.Time,
-	updatedAt time.Time,
-) *User {
-	user, err := NewUser(id, name, username, email, btcBalance, usdBalance, createdAt, updatedAt)
-	if err != nil {
-		panic(err)
-	}
-
-	return user
-}
-
 func (u *User) ChangeUSDBalance(action bitcoinEntity.USDAction, amount bitcoinEntity.USD) error {
 	switch action {
 	case bitcoinEntity.DepositUSDAction:
-		u.Balance.USD = u.Balance.USD.Add(amount)
+		return u.deposit(amount)
 	case bitcoinEntity.WithdrawUSDAction:
-		if u.Balance.USD.LessThan(amount) {
-			return ErrInsufficientFunds
-		}
-		updatedUSD, err := u.Balance.USD.Sub(amount)
-		if err != nil {
-			return err
-		}
-		u.Balance.USD = updatedUSD
+		return u.withdraw(amount)
+	default:
+		return bitcoinEntity.ErrInvalidAction
 	}
+}
+
+func (u *User) deposit(amount bitcoinEntity.USD) error {
+	u.Balance.USD = u.Balance.USD.Add(amount)
+
+	return nil
+}
+
+func (u *User) withdraw(amount bitcoinEntity.USD) error {
+	if u.Balance.USD.LessThan(amount) {
+		return ErrInsufficientFunds
+	}
+
+	updatedUSD, err := u.Balance.USD.Sub(amount)
+	if err != nil {
+		return err
+	}
+	u.Balance.USD = updatedUSD
 
 	return nil
 }
@@ -107,32 +102,42 @@ func (u *User) ChangeUSDBalance(action bitcoinEntity.USDAction, amount bitcoinEn
 func (u *User) ChangeBTCBalance(action bitcoinEntity.BTCAction, amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
 	switch action {
 	case bitcoinEntity.BuyBTCAction:
-		if u.Balance.USD.LessThan(price.GetPrice()) {
-			return ErrInsufficientFunds
-		}
-
-		updatedUSD, err := u.Balance.USD.Sub(amount.ToUSD(price))
-		if err != nil {
-			return err
-		}
-
-		u.Balance.USD = updatedUSD
-		u.Balance.BTC = u.Balance.BTC.Add(amount)
+		return u.buyBTC(amount, price)
 	case bitcoinEntity.SellBTCAction:
-		if u.Balance.BTC.LessThan(amount) {
-			return ErrInsufficientFunds
-		}
-
-		updatedBTC, err := u.Balance.BTC.Sub(amount)
-		if err != nil {
-			return err
-		}
-
-		u.Balance.BTC = updatedBTC
-		u.Balance.USD = u.Balance.USD.Add(amount.ToUSD(price))
+		return u.sellBTC(amount, price)
 	default:
 		return bitcoinEntity.ErrInvalidAction
 	}
+}
+
+func (u *User) buyBTC(amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
+	if u.Balance.USD.LessThan(price.GetPrice()) {
+		return ErrInsufficientFunds
+	}
+
+	updatedUSD, err := u.Balance.USD.Sub(amount.ToUSD(price))
+	if err != nil {
+		return err
+	}
+
+	u.Balance.USD = updatedUSD
+	u.Balance.BTC = u.Balance.BTC.Add(amount)
+
+	return nil
+}
+
+func (u *User) sellBTC(amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
+	if u.Balance.BTC.LessThan(amount) {
+		return ErrInsufficientFunds
+	}
+
+	updatedBTC, err := u.Balance.BTC.Sub(amount)
+	if err != nil {
+		return err
+	}
+
+	u.Balance.BTC = updatedBTC
+	u.Balance.USD = u.Balance.USD.Add(amount.ToUSD(price))
 
 	return nil
 }

@@ -23,32 +23,21 @@ type ChangeBTCBalanceHandler struct {
 	btcRepository  bitcoinEntity.BTCRepository
 }
 
-func NewChangeBTCBalanceCommand(
+func MustNewChangeBTCBalanceHandler(
 	userRepository userEntity.UserRepository,
 	btcRepository bitcoinEntity.BTCRepository,
-) (ChangeBTCBalanceHandler, error) {
+) ChangeBTCBalanceHandler {
 	if userRepository == nil {
-		return ChangeBTCBalanceHandler{}, ErrNilUserRepository
+		panic(ErrNilUserRepository)
 	}
 	if btcRepository == nil {
-		return ChangeBTCBalanceHandler{}, ErrNilBTCRepository
+		panic(ErrNilBTCRepository)
 	}
 
 	return ChangeBTCBalanceHandler{
 		userRepository: userRepository,
 		btcRepository:  btcRepository,
-	}, nil
-}
-
-func MustNewChangeBTCBalanceHandler(
-	userRepository userEntity.UserRepository,
-	btcRepository bitcoinEntity.BTCRepository,
-) ChangeBTCBalanceHandler {
-	cmd, err := NewChangeBTCBalanceCommand(userRepository, btcRepository)
-	if err != nil {
-		panic(err)
 	}
-	return cmd
 }
 
 func (h ChangeBTCBalanceHandler) Handle(cmd ChangeBTCBalance) error {
