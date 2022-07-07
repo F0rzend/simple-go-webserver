@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 

@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
-
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 

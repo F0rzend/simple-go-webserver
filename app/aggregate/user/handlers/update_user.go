@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"net/mail"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type UpdateUserRequest struct {
@@ -55,7 +54,7 @@ func (h *UserHTTPHandlers) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.UpdateUser.Handle(userService.UpdateUser{
+	if err := h.service.UpdateUser.Handle(service.UpdateUser{
 		ID:    id,
 		Name:  request.Name,
 		Email: request.Email,

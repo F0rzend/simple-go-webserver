@@ -4,10 +4,10 @@ import (
 	"math/big"
 	"net/http"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
+
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 func (h *UserHTTPHandlers) getUserBalance(w http.ResponseWriter, r *http.Request) {

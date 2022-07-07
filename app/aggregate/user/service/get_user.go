@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
@@ -27,7 +27,7 @@ func (h *GetUserHandler) Handle(userID uint64) (*entity.User, error) {
 	switch user, err := h.userRepository.Get(userID); err {
 	case nil:
 		return user, nil
-	case userRepositories.ErrUserNotFound:
+	case repositories.ErrUserNotFound:
 		return nil, common.NewServiceError(
 			http.StatusNotFound,
 			fmt.Sprintf(

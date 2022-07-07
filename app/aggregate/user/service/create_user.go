@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
-
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
@@ -18,10 +17,10 @@ type CreateUser struct {
 
 type CreateUserHandler struct {
 	getID          func() uint64
-	userRepository userEntity.UserRepository
+	userRepository entity.UserRepository
 }
 
-func MustNewCreateUserHandler(userRepository userEntity.UserRepository) CreateUserHandler {
+func MustNewCreateUserHandler(userRepository entity.UserRepository) CreateUserHandler {
 	if userRepository == nil {
 		panic(ErrNilUserRepository)
 	}
@@ -41,7 +40,7 @@ func userIDGenerator() func() uint64 {
 }
 
 func (h *CreateUserHandler) Handle(cmd CreateUser) (uint64, error) {
-	user, err := userEntity.NewUser(
+	user, err := entity.NewUser(
 		h.getID(),
 		cmd.Name,
 		cmd.Username,
@@ -53,17 +52,17 @@ func (h *CreateUserHandler) Handle(cmd CreateUser) (uint64, error) {
 	)
 	switch err {
 	case nil:
-	case userEntity.ErrNameEmpty:
+	case entity.ErrNameEmpty:
 		return 0, common.NewServiceError(
 			http.StatusBadRequest,
 			"Name cannot be empty",
 		)
-	case userEntity.ErrUsernameEmpty:
+	case entity.ErrUsernameEmpty:
 		return 0, common.NewServiceError(
 			http.StatusBadRequest,
 			"Username cannot be empty",
 		)
-	case userEntity.ErrInvalidEmail:
+	case entity.ErrInvalidEmail:
 		return 0, common.NewServiceError(
 			http.StatusBadRequest,
 			"You must provide a valid email",
@@ -75,7 +74,7 @@ func (h *CreateUserHandler) Handle(cmd CreateUser) (uint64, error) {
 	switch err := h.userRepository.Create(user); err {
 	case nil:
 		return user.ID, nil
-	case userRepositories.ErrUserAlreadyExists:
+	case repositories.ErrUserAlreadyExists:
 		return 0, common.NewServiceError(
 			http.StatusBadRequest,
 			"This email is already registered",

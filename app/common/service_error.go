@@ -3,9 +3,8 @@ package common
 import (
 	"net/http"
 
-	"github.com/rs/zerolog/log"
-
 	"github.com/go-chi/render"
+	"github.com/rs/zerolog/log"
 )
 
 type ServiceError struct {

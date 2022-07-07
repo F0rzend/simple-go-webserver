@@ -6,10 +6,9 @@ import (
 	"net/mail"
 	"time"
 
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type UpdateUser struct {
@@ -53,7 +52,7 @@ func (h *UpdateUserHandler) Handle(cmd UpdateUser) error {
 			return user, nil
 		},
 	); err {
-	case userRepositories.ErrUserNotFound:
+	case repositories.ErrUserNotFound:
 		return common.NewServiceError(
 			http.StatusNotFound,
 			fmt.Sprintf(

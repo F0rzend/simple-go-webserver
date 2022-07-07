@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
-
 	"github.com/go-chi/chi/v5"
 
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 

@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
+
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type SetBTCPriceRequest struct {

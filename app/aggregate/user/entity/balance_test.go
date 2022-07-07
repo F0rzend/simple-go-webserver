@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
 func TestBalance_Total(t *testing.T) {

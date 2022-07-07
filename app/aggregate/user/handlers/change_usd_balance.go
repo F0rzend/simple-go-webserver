@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type ChangeUSDBalanceRequest struct {

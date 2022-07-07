@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
+
+	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type UserResponse struct {

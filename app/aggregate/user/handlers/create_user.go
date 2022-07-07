@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"net/mail"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type CreateUserRequest struct {
@@ -43,7 +42,7 @@ func (h *UserHTTPHandlers) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.service.CreateUser.Handle(userService.CreateUser{
+	id, err := h.service.CreateUser.Handle(service.CreateUser{
 		Name:     request.Name,
 		Username: request.Username,
 		Email:    request.Email,

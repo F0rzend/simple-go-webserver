@@ -3,14 +3,14 @@ package tests
 import (
 	"time"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 )
 
-func NewMockUserRepository() userEntity.UserRepository {
+func NewMockUserRepository() entity.UserRepository {
 	now := time.Now()
-	users := map[uint64]*userEntity.User{
-		1: must(userEntity.NewUser(
+	users := map[uint64]*entity.User{
+		1: must(entity.NewUser(
 			1,
 			"John",
 			"Doe",
@@ -20,23 +20,23 @@ func NewMockUserRepository() userEntity.UserRepository {
 			now,
 			now,
 		)),
-		2: must(userEntity.NewUser(
-			2,
+		2: must(entity.NewUser(
+			2, //nolint:gomnd
 			"Jane",
 			"Doe",
 			"janedoe@mail.com",
-			100,
-			100,
+			100, //nolint:gomnd
+			100, //nolint:gomnd
 			now,
 			now,
 		)),
 	}
 	return &MockUserRepository{
-		CreateFunc: func(user *userEntity.User) error {
+		CreateFunc: func(user *entity.User) error {
 			now := time.Now()
 			btc, _ := user.Balance.BTC.ToFloat().Float64()
 			usd, _ := user.Balance.USD.ToFloat().Float64()
-			_, err := userEntity.NewUser(
+			_, err := entity.NewUser(
 				user.ID,
 				user.Name,
 				user.Username,
@@ -50,21 +50,21 @@ func NewMockUserRepository() userEntity.UserRepository {
 		},
 		DeleteFunc: func(id uint64) error {
 			if _, ok := users[id]; !ok {
-				return userRepositories.ErrUserNotFound
+				return repositories.ErrUserNotFound
 			}
 			return nil
 		},
-		GetFunc: func(id uint64) (*userEntity.User, error) {
+		GetFunc: func(id uint64) (*entity.User, error) {
 			user, ok := users[id]
 			if !ok {
-				return nil, userRepositories.ErrUserNotFound
+				return nil, repositories.ErrUserNotFound
 			}
 			return user, nil
 		},
-		UpdateFunc: func(id uint64, updFunc func(*userEntity.User) (*userEntity.User, error)) error {
+		UpdateFunc: func(id uint64, updFunc func(*entity.User) (*entity.User, error)) error {
 			user, ok := users[id]
 			if !ok {
-				return userRepositories.ErrUserNotFound
+				return repositories.ErrUserNotFound
 			}
 			userCopy := *user
 			_, err := updFunc(&userCopy)

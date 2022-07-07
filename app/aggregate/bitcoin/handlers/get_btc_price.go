@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-
 	"github.com/go-chi/render"
+
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
 type BTCResponse struct {

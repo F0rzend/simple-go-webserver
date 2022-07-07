@@ -3,17 +3,16 @@ package main
 import (
 	"net/http"
 
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
-
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	bitcoinHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
+	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 	bitcoinService "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
+
 	userHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/user/handlers"
+	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 )
 
@@ -23,7 +22,7 @@ type Server struct {
 }
 
 func NewServer() (*Server, error) {
-	bitcoinRepository, err := repositories.NewMemoryBTCRepository(entity.MustNewUSD(100))
+	bitcoinRepository, err := bitcoinRepositories.NewMemoryBTCRepository(bitcoinEntity.MustNewUSD(100))
 	if err != nil {
 		return nil, err
 	}
