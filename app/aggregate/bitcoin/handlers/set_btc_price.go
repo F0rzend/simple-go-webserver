@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
@@ -39,8 +41,7 @@ func (h *BitcoinHTTPHandlers) setBTCPrice(w http.ResponseWriter, r *http.Request
 	if err := h.service.SetBTCPrice.Handle(service.SetBTCPrice{
 		Price: request.Price,
 	}); err != nil {
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 
