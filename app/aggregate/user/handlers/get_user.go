@@ -45,14 +45,8 @@ func (h *UserHTTPHandlers) getUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.service.GetUser.Handle(id)
-	switch err.(type) {
-	case nil:
-	case common.ErrUserNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		return
-	default:
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
+	if err != nil {
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

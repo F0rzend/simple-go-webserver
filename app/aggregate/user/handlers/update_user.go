@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/mail"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
@@ -55,19 +55,12 @@ func (h *UserHTTPHandlers) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.UpdateUser.Handle(userService.UpdateUser{
+	if err := h.service.UpdateUser.Handle(userService.UpdateUser{
 		ID:    id,
 		Name:  request.Name,
 		Email: request.Email,
-	})
-	switch err.(type) {
-	case nil:
-	case userEntity.ErrUserNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		return
-	default:
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
+	}); err != nil {
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

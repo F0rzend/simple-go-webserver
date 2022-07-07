@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"net/http"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
@@ -19,14 +19,8 @@ func (h *UserHTTPHandlers) getUserBalance(w http.ResponseWriter, r *http.Request
 	}
 
 	balance, err := h.service.GetUserBalance.Handle(id)
-	switch err.(type) {
-	case nil:
-	case userEntity.ErrUserNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		return
-	default:
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
+	if err != nil {
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

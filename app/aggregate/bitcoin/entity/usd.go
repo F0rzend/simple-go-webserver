@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
 	"github.com/shopspring/decimal"
 )
 
@@ -22,7 +20,7 @@ type USD struct {
 
 func NewUSD(amount float64) (USD, error) {
 	if amount < 0 {
-		return USD{}, common.ErrNegativeCurrency(amount)
+		return USD{}, ErrNegativeCurrency
 	}
 	return USD{decimal.NewFromFloat(amount)}, nil
 }

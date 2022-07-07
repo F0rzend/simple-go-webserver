@@ -1,8 +1,13 @@
 package service
 
 import (
+	"fmt"
+	"net/http"
 	"net/mail"
 	"time"
+
+	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
@@ -37,7 +42,7 @@ func MustNewUpdateUserHandler(userRepository entity.UserRepository) UpdateUserHa
 }
 
 func (h *UpdateUserHandler) Handle(cmd UpdateUser) error {
-	return h.userRepository.Update(
+	switch err := h.userRepository.Update(
 		cmd.ID,
 		func(user *entity.User) (*entity.User, error) {
 			if cmd.Name != nil {
@@ -47,7 +52,7 @@ func (h *UpdateUserHandler) Handle(cmd UpdateUser) error {
 			if cmd.Email != nil {
 				addr, err := mail.ParseAddress(*cmd.Email)
 				if err != nil {
-					return nil, err
+					return nil, entity.ErrInvalidEmail
 				}
 				user.Email = addr
 			}
@@ -56,5 +61,21 @@ func (h *UpdateUserHandler) Handle(cmd UpdateUser) error {
 
 			return user, nil
 		},
-	)
+	); err {
+	case userRepositories.ErrUserNotFound:
+		return common.NewServiceError(
+			http.StatusNotFound,
+			fmt.Sprintf(
+				"User with id %d not found",
+				cmd.ID,
+			),
+		)
+	case entity.ErrInvalidEmail:
+		return common.NewServiceError(
+			http.StatusBadRequest,
+			"You must provide a valid email",
+		)
+	default:
+		return err
+	}
 }

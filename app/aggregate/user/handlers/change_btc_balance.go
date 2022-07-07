@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
-	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type ChangeBTCBalanceRequest struct {
@@ -46,22 +47,12 @@ func (h *UserHTTPHandlers) changeBTCBalance(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = h.service.ChangeBTCBalance.Handle(userService.ChangeBTCBalance{
+	if err = h.service.ChangeBTCBalance.Handle(userService.ChangeBTCBalance{
 		UserID: id,
 		Action: request.Action,
 		Amount: request.Amount,
-	})
-	switch err.(type) {
-	case nil:
-	case common.ErrInsufficientFunds, common.ErrNegativeCurrency:
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	case common.ErrUserNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		return
-	default:
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
+	}); err != nil {
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

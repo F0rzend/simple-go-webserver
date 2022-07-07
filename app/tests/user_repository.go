@@ -4,7 +4,7 @@ import (
 	"time"
 
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/F0rzend/simple-go-webserver/app/common"
+	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 )
 
 func NewMockUserRepository() userEntity.UserRepository {
@@ -50,21 +50,21 @@ func NewMockUserRepository() userEntity.UserRepository {
 		},
 		DeleteFunc: func(id uint64) error {
 			if _, ok := users[id]; !ok {
-				return common.ErrUserNotFound(id)
+				return userRepositories.ErrUserNotFound
 			}
 			return nil
 		},
 		GetFunc: func(id uint64) (*userEntity.User, error) {
 			user, ok := users[id]
 			if !ok {
-				return nil, common.ErrUserNotFound(id)
+				return nil, userRepositories.ErrUserNotFound
 			}
 			return user, nil
 		},
 		UpdateFunc: func(id uint64, updFunc func(*userEntity.User) (*userEntity.User, error)) error {
 			user, ok := users[id]
 			if !ok {
-				return common.ErrUserNotFound(id)
+				return userRepositories.ErrUserNotFound
 			}
 			userCopy := *user
 			_, err := updFunc(&userCopy)

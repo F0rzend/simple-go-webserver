@@ -2,7 +2,6 @@ package repositories
 
 import (
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type MemoryUserRepository struct {
@@ -17,8 +16,15 @@ func NewMemoryUserRepository() *MemoryUserRepository {
 
 func (r *MemoryUserRepository) Create(user *userEntity.User) error {
 	if _, ok := r.users[user.ID]; ok {
-		return common.ErrUserAlreadyExists(user.ID)
+		return ErrUserAlreadyExists
 	}
+
+	for _, registeredUser := range r.users {
+		if registeredUser.Email == user.Email {
+			return ErrUserAlreadyExists
+		}
+	}
+
 	r.users[user.ID] = user
 	return nil
 }
@@ -26,7 +32,7 @@ func (r *MemoryUserRepository) Create(user *userEntity.User) error {
 func (r *MemoryUserRepository) Get(id uint64) (*userEntity.User, error) {
 	user, ok := r.users[id]
 	if !ok {
-		return nil, common.ErrUserNotFound(id)
+		return nil, ErrUserNotFound
 	}
 	return user, nil
 }
@@ -38,7 +44,7 @@ func (r *MemoryUserRepository) Update(
 	currentUser, ok := r.users[id]
 
 	if !ok {
-		return common.ErrUserNotFound(id)
+		return ErrUserNotFound
 	}
 
 	updatedUser, err := updFunc(currentUser)
@@ -53,7 +59,7 @@ func (r *MemoryUserRepository) Update(
 func (r *MemoryUserRepository) Delete(id uint64) error {
 	_, ok := r.users[id]
 	if !ok {
-		return common.ErrUserNotFound(id)
+		return ErrUserNotFound
 	}
 	delete(r.users, id)
 	return nil

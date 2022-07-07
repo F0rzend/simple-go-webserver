@@ -1,12 +1,9 @@
 package entity
 
 import (
-	"errors"
 	"net/mail"
 	"testing"
 	"time"
-
-	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 
@@ -69,7 +66,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      errors.New("mail: missing '@' or angle-addr"),
+			err:      ErrInvalidEmail,
 		},
 		{
 			testName: "empty name",
@@ -114,7 +111,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      common.ErrNegativeCurrency(-1),
+			err:      entity.ErrNegativeCurrency,
 		},
 		{
 			testName: "small usd amount",
@@ -129,7 +126,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      common.ErrNegativeCurrency(-1),
+			err:      entity.ErrNegativeCurrency,
 		},
 	}
 
@@ -212,7 +209,7 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 				USD: entity.MustNewUSD(0),
 				BTC: entity.MustNewBTC(0),
 			},
-			err: common.ErrInsufficientFunds(1),
+			err: ErrInsufficientFunds,
 		},
 	}
 
@@ -294,7 +291,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 				USD: entity.MustNewUSD(0),
 				BTC: entity.MustNewBTC(0),
 			},
-			err: common.ErrInsufficientFunds(1),
+			err: ErrInsufficientFunds,
 		},
 		{
 			name: "insufficient funds on sell",
@@ -311,7 +308,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 				USD: entity.MustNewUSD(0),
 				BTC: entity.MustNewBTC(0),
 			},
-			err: common.ErrInsufficientFunds(1),
+			err: ErrInsufficientFunds,
 		},
 	}
 

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/mail"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
@@ -47,8 +49,7 @@ func (h *UserHTTPHandlers) createUser(w http.ResponseWriter, r *http.Request) {
 		Email:    request.Email,
 	})
 	if err != nil {
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

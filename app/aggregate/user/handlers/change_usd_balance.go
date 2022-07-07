@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
-	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type ChangeUSDBalanceRequest struct {
@@ -59,22 +60,12 @@ func (h *UserHTTPHandlers) changeUSDBalance(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = h.service.ChangeUSDBalance.Handle(userService.ChangeUSDBalance{
+	if err := h.service.ChangeUSDBalance.Handle(userService.ChangeUSDBalance{
 		UserID: id,
 		Action: request.Action,
 		Amount: request.Amount,
-	})
-
-	switch err.(type) {
-	case nil:
-	case common.ErrInsufficientFunds, common.ErrNegativeCurrency:
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	case common.ErrUserNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		return
-	default:
-		w.WriteHeader(http.StatusInternalServerError)
+	}); err != nil {
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

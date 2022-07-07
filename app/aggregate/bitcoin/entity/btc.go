@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-
-	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 const (
@@ -23,7 +21,7 @@ type BTC struct {
 
 func NewBTC(amount float64) (BTC, error) {
 	if amount < 0 {
-		return BTC{}, common.ErrNegativeCurrency(amount)
+		return BTC{}, ErrNegativeCurrency
 	}
 	return BTC{decimal.NewFromFloat(amount)}, nil
 }

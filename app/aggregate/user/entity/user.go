@@ -5,9 +5,7 @@ import (
 	"net/mail"
 	"time"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
-	domain2 "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
 type User struct {
@@ -23,6 +21,7 @@ type User struct {
 var (
 	ErrNameEmpty     = errors.New("name is empty")
 	ErrUsernameEmpty = errors.New("username is empty")
+	ErrInvalidEmail  = errors.New("invalid email")
 )
 
 func NewUser(
@@ -45,15 +44,15 @@ func NewUser(
 
 	addr, err := mail.ParseAddress(email)
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidEmail
 	}
 
-	usdAmount, err := domain2.NewUSD(usdBalance)
+	usdAmount, err := bitcoinEntity.NewUSD(usdBalance)
 	if err != nil {
 		return nil, err
 	}
 
-	btcAmount, err := domain2.NewBTC(btcBalance)
+	btcAmount, err := bitcoinEntity.NewBTC(btcBalance)
 	if err != nil {
 		return nil, err
 	}
@@ -87,13 +86,13 @@ func MustNewUser(
 	return user
 }
 
-func (u *User) ChangeUSDBalance(action domain2.USDAction, amount domain2.USD) error {
+func (u *User) ChangeUSDBalance(action bitcoinEntity.USDAction, amount bitcoinEntity.USD) error {
 	switch action {
-	case domain2.DepositUSDAction:
+	case bitcoinEntity.DepositUSDAction:
 		u.Balance.USD = u.Balance.USD.Add(amount)
-	case domain2.WithdrawUSDAction:
+	case bitcoinEntity.WithdrawUSDAction:
 		if u.Balance.USD.LessThan(amount) {
-			return common.ErrInsufficientFunds(amount.ToFloat64())
+			return ErrInsufficientFunds
 		}
 		updatedUSD, err := u.Balance.USD.Sub(amount)
 		if err != nil {
@@ -105,11 +104,11 @@ func (u *User) ChangeUSDBalance(action domain2.USDAction, amount domain2.USD) er
 	return nil
 }
 
-func (u *User) ChangeBTCBalance(action domain2.BTCAction, amount domain2.BTC, price domain2.BTCPrice) error {
+func (u *User) ChangeBTCBalance(action bitcoinEntity.BTCAction, amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
 	switch action {
-	case domain2.BuyBTCAction:
+	case bitcoinEntity.BuyBTCAction:
 		if u.Balance.USD.LessThan(price.GetPrice()) {
-			return common.ErrInsufficientFunds(amount.ToFloat64())
+			return ErrInsufficientFunds
 		}
 
 		updatedUSD, err := u.Balance.USD.Sub(amount.ToUSD(price))
@@ -119,9 +118,9 @@ func (u *User) ChangeBTCBalance(action domain2.BTCAction, amount domain2.BTC, pr
 
 		u.Balance.USD = updatedUSD
 		u.Balance.BTC = u.Balance.BTC.Add(amount)
-	case domain2.SellBTCAction:
+	case bitcoinEntity.SellBTCAction:
 		if u.Balance.BTC.LessThan(amount) {
-			return common.ErrInsufficientFunds(amount.ToFloat64())
+			return ErrInsufficientFunds
 		}
 
 		updatedBTC, err := u.Balance.BTC.Sub(amount)
@@ -132,7 +131,7 @@ func (u *User) ChangeBTCBalance(action domain2.BTCAction, amount domain2.BTC, pr
 		u.Balance.BTC = updatedBTC
 		u.Balance.USD = u.Balance.USD.Add(amount.ToUSD(price))
 	default:
-		return domain2.ErrInvalidAction
+		return bitcoinEntity.ErrInvalidAction
 	}
 
 	return nil

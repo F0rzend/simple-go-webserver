@@ -1,9 +1,13 @@
 package service
 
 import (
+	"net/http"
 	"time"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+
+	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type CreateUser struct {
@@ -14,10 +18,10 @@ type CreateUser struct {
 
 type CreateUserHandler struct {
 	getID          func() uint64
-	userRepository entity.UserRepository
+	userRepository userEntity.UserRepository
 }
 
-func NewCreateUserCommand(userRepository entity.UserRepository) (CreateUserHandler, error) {
+func NewCreateUserCommand(userRepository userEntity.UserRepository) (CreateUserHandler, error) {
 	if userRepository == nil {
 		return CreateUserHandler{}, ErrNilUserRepository
 	}
@@ -28,7 +32,7 @@ func NewCreateUserCommand(userRepository entity.UserRepository) (CreateUserHandl
 	}, nil
 }
 
-func MustNewCreateUserHandler(userRepository entity.UserRepository) CreateUserHandler {
+func MustNewCreateUserHandler(userRepository userEntity.UserRepository) CreateUserHandler {
 	handler, err := NewCreateUserCommand(userRepository)
 	if err != nil {
 		panic(err)
@@ -38,7 +42,7 @@ func MustNewCreateUserHandler(userRepository entity.UserRepository) CreateUserHa
 }
 
 func userIDGenerator() func() uint64 {
-	var id uint64 = 0
+	var id uint64
 	return func() uint64 {
 		id++
 		return id
@@ -46,7 +50,7 @@ func userIDGenerator() func() uint64 {
 }
 
 func (h *CreateUserHandler) Handle(cmd CreateUser) (uint64, error) {
-	user, err := entity.NewUser(
+	user, err := userEntity.NewUser(
 		h.getID(),
 		cmd.Name,
 		cmd.Username,
@@ -56,13 +60,36 @@ func (h *CreateUserHandler) Handle(cmd CreateUser) (uint64, error) {
 		time.Now(),
 		time.Now(),
 	)
-	if err != nil {
+	switch err {
+	case nil:
+	case userEntity.ErrNameEmpty:
+		return 0, common.NewServiceError(
+			http.StatusBadRequest,
+			"Name cannot be empty",
+		)
+	case userEntity.ErrUsernameEmpty:
+		return 0, common.NewServiceError(
+			http.StatusBadRequest,
+			"Username cannot be empty",
+		)
+	case userEntity.ErrInvalidEmail:
+		return 0, common.NewServiceError(
+			http.StatusBadRequest,
+			"You must provide a valid email",
+		)
+	default:
 		return 0, err
 	}
 
-	if err := h.userRepository.Create(user); err != nil {
+	switch err := h.userRepository.Create(user); err {
+	case nil:
+		return user.ID, nil
+	case userRepositories.ErrUserAlreadyExists:
+		return 0, common.NewServiceError(
+			http.StatusBadRequest,
+			"This email is already registered",
+		)
+	default:
 		return 0, err
 	}
-
-	return user.ID, nil
 }
