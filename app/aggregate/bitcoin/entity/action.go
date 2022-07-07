@@ -45,8 +45,7 @@ func NewUSDAction(action string) (USDAction, error) {
 	return usdAction, nil
 }
 
-func GetUSDActions() []string {
-	var actions []string
+func GetUSDActions() (actions []string) {
 	for action := range usdActions {
 		actions = append(actions, action)
 	}

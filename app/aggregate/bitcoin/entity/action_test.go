@@ -82,3 +82,21 @@ func TestUSDAction(t *testing.T) {
 		})
 	}
 }
+
+func Test_GetUSDActions(t *testing.T) {
+	t.Parallel()
+
+	expected := []string{"deposit", "withdraw"}
+	actual := GetUSDActions()
+
+	assertEqualSlices(t, expected, actual)
+}
+
+func assertEqualSlices[T any, slice []T](t *testing.T, expected, actual slice) {
+	t.Helper()
+
+	assert.Len(t, actual, len(expected))
+	for _, action := range expected {
+		assert.Contains(t, actual, action)
+	}
+}
