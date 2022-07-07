@@ -6,6 +6,8 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	"github.com/F0rzend/simple-go-webserver/app"
 )
 
 func setupLogger() {
@@ -28,7 +30,7 @@ func main() {
 	address := getEnv("ADDRESS", ":8080")
 	log.Info().Msgf("starting endpoints on %s", address)
 
-	server, err := NewServer()
+	server, err := app.NewServer()
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
