@@ -11,11 +11,11 @@ COPY . .
 
 ENV CGO_ENABLED=0
 ENV GO_OSARCH="linux/amd64"
-RUN go build -o ./app .
+RUN go build -o ./binary .
 
 FROM gcr.io/distroless/base:latest
 
-COPY --from=builder /build/app /app
+COPY --from=builder /build/binary /app
 
 CMD ["/app"]
 
