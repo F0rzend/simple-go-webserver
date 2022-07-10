@@ -24,7 +24,7 @@ func (r SetBTCPriceRequest) Bind(_ *http.Request) error {
 	return nil
 }
 
-func (h *BitcoinHTTPHandlers) setBTCPrice(w http.ResponseWriter, r *http.Request) {
+func (h *BitcoinHTTPHandlers) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
 	request := &SetBTCPriceRequest{}
 
 	switch err := render.Bind(r, request); err {

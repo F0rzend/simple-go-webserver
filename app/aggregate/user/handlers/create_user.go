@@ -28,7 +28,7 @@ func (r CreateUserRequest) Bind(_ *http.Request) error {
 	return nil
 }
 
-func (h *UserHTTPHandlers) createUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	request := &CreateUserRequest{}
 
 	if err := render.Bind(r, request); err != nil {

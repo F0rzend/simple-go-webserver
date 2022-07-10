@@ -10,7 +10,7 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-func (h *UserHTTPHandlers) getUserBalance(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	id, err := getUserIDFromURL(r)
 	if err != nil {
 		log.Error().Err(err).Send()

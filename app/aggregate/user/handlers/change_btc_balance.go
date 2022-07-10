@@ -25,7 +25,7 @@ func (r ChangeBTCBalanceRequest) Bind(_ *http.Request) error {
 	return nil
 }
 
-func (h *UserHTTPHandlers) changeBTCBalance(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
 	request := &ChangeBTCBalanceRequest{}
 
 	id, err := getUserIDFromURL(r)

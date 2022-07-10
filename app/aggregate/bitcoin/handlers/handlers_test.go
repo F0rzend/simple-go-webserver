@@ -10,7 +10,7 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 
-// Tests BitcoinHTTPHandlers.getBTCPrice (GET /bitcoin endpoint)
+// Tests BitcoinHTTPHandlers.GetBTCPrice (GET /bitcoin endpoint)
 func TestServer_GetBTCPrice(t *testing.T) {
 	t.Parallel()
 
@@ -25,7 +25,7 @@ func TestServer_GetBTCPrice(t *testing.T) {
 	)
 }
 
-// Tests BitcoinHTTPHandlers.setBTCPrice (POST /bitcoin endpoint)
+// Tests BitcoinHTTPHandlers.SetBTCPrice (POST /bitcoin endpoint)
 func TestServer_SetBTCPrice(t *testing.T) {
 	t.Parallel()
 

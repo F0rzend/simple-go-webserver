@@ -33,7 +33,7 @@ func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	return nil
 }
 
-func (h *UserHTTPHandlers) updateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	request := &UpdateUserRequest{}
 
 	id, err := getUserIDFromURL(r)

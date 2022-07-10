@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
@@ -23,7 +23,7 @@ type UserResponse struct {
 	UpdatedAt  string     `json:"updated_at"`
 }
 
-func UserToResponse(user *userEntity.User) *UserResponse {
+func UserToResponse(user *entity.User) *UserResponse {
 	return &UserResponse{
 		ID:         user.ID,
 		Name:       user.Name,
@@ -36,7 +36,7 @@ func UserToResponse(user *userEntity.User) *UserResponse {
 	}
 }
 
-func (h *UserHTTPHandlers) getUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 	id, err := getUserIDFromURL(r)
 	if err != nil {
 		log.Error().Err(err).Send()

@@ -46,8 +46,22 @@ func (s *Server) GetHTTPHandler() http.Handler {
 		middleware.AllowContentType("application/json"),
 	)
 
-	s.userRoutes.SetRoutes(r)
-	s.bitcoinRoutes.SetRoutes(r)
+	r.Route("/users", func(r chi.Router) {
+		r.Post("/", s.userRoutes.CreateUser)
+
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/", s.userRoutes.GetUser)
+			r.Put("/", s.userRoutes.UpdateUser)
+			r.Get("/balance", s.userRoutes.GetUserBalance)
+
+			r.Post("/bitcoin", s.userRoutes.ChangeBTCBalance)
+			r.Post("/usd", s.userRoutes.ChangeUSDBalance)
+		})
+	})
+	r.Route("/bitcoin", func(r chi.Router) {
+		r.Get("/", s.bitcoinRoutes.GetBTCPrice)
+		r.Put("/", s.bitcoinRoutes.SetBTCPrice)
+	})
 
 	return r
 }

@@ -38,7 +38,7 @@ func (r ChangeUSDBalanceRequest) Bind(_ *http.Request) error {
 	return nil
 }
 
-func (h *UserHTTPHandlers) changeUSDBalance(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
 	request := &ChangeUSDBalanceRequest{}
 
 	id, err := getUserIDFromURL(r)
