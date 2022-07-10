@@ -11,7 +11,7 @@ COPY . .
 
 ENV CGO_ENABLED=0
 ENV GO_OSARCH="linux/amd64"
-RUN go build -o ./binary .
+RUN go build -o ./binary app/main.go
 
 FROM gcr.io/distroless/base:latest
 
