@@ -11,29 +11,13 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-type ChangeUSDBalance struct {
+type ChangeUserBalanceCommand struct {
 	UserID uint64
 	Action string
 	Amount float64
 }
 
-type ChangeUSDBalanceHandler struct {
-	userRepository userEntity.UserRepository
-}
-
-func MustNewChangeUSDBalanceHandler(
-	userRepository userEntity.UserRepository,
-) ChangeUSDBalanceHandler {
-	if userRepository == nil {
-		panic(ErrNilUserRepository)
-	}
-
-	return ChangeUSDBalanceHandler{
-		userRepository: userRepository,
-	}
-}
-
-func (h ChangeUSDBalanceHandler) Handle(cmd ChangeUSDBalance) error {
+func (us *UserServiceImpl) ChangeUserBalance(cmd ChangeUserBalanceCommand) error {
 	action, err := bitcoinEntity.NewUSDAction(cmd.Action)
 	if err != nil {
 		return common.NewServiceError(
@@ -45,7 +29,7 @@ func (h ChangeUSDBalanceHandler) Handle(cmd ChangeUSDBalance) error {
 		)
 	}
 
-	switch err := h.userRepository.Update(cmd.UserID, func(user *userEntity.User) (*userEntity.User, error) {
+	switch err := us.userRepository.Update(cmd.UserID, func(user *userEntity.User) (*userEntity.User, error) {
 		usd, err := bitcoinEntity.NewUSD(cmd.Amount)
 		if err != nil {
 			return nil, err

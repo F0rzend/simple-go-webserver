@@ -59,7 +59,7 @@ func (h *UserHTTPHandlers) ChangeUSDBalance(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := h.service.ChangeUSDBalance.Handle(userService.ChangeUSDBalance{
+	if err := h.service.ChangeUserBalance(userService.ChangeUserBalanceCommand{
 		UserID: id,
 		Action: request.Action,
 		Amount: request.Amount,

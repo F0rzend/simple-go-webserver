@@ -18,7 +18,7 @@ func NewMemoryBTCRepository(initialPrice entity.USD) (*MemoryBTCRepository, erro
 	}, nil
 }
 
-func (r *MemoryBTCRepository) Get() entity.BTCPrice {
+func (r *MemoryBTCRepository) GetPrice() entity.BTCPrice {
 	return r.bitcoin
 }
 

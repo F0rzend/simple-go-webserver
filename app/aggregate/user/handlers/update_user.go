@@ -54,7 +54,7 @@ func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.UpdateUser.Handle(service.UpdateUser{
+	if err := h.service.UpdateUser(service.UpdateUserCommand{
 		ID:    id,
 		Name:  request.Name,
 		Email: request.Email,

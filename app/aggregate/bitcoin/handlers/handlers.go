@@ -5,10 +5,10 @@ import (
 )
 
 type BitcoinHTTPHandlers struct {
-	service *service.BitcoinService
+	service service.BitcoinService
 }
 
-func NewBitcoinHTTPHandlers(bitcoinService *service.BitcoinService) *BitcoinHTTPHandlers {
+func NewBitcoinHTTPHandlers(bitcoinService service.BitcoinService) *BitcoinHTTPHandlers {
 	return &BitcoinHTTPHandlers{
 		service: bitcoinService,
 	}

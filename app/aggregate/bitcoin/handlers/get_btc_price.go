@@ -23,7 +23,7 @@ func BTCToResponse(btc entity.BTCPrice) BTCResponse {
 }
 
 func (h *BitcoinHTTPHandlers) GetBTCPrice(w http.ResponseWriter, r *http.Request) {
-	btc := h.service.GetBTCPrice.Handle()
+	btc := h.service.GetBTCPrice()
 
 	render.Status(r, http.StatusOK)
 	render.Respond(w, r, map[string]BTCResponse{"btc": BTCToResponse(btc)})

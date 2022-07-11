@@ -11,28 +11,14 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-type UpdateUser struct {
+type UpdateUserCommand struct {
 	ID    uint64
 	Name  *string
 	Email *string
 }
 
-type UpdateUserHandler struct {
-	userRepository entity.UserRepository
-}
-
-func MustNewUpdateUserHandler(userRepository entity.UserRepository) UpdateUserHandler {
-	if userRepository == nil {
-		panic(ErrNilUserRepository)
-	}
-
-	return UpdateUserHandler{
-		userRepository: userRepository,
-	}
-}
-
-func (h *UpdateUserHandler) Handle(cmd UpdateUser) error {
-	switch err := h.userRepository.Update(
+func (us *UserServiceImpl) UpdateUser(cmd UpdateUserCommand) error {
+	switch err := us.userRepository.Update(
 		cmd.ID,
 		func(user *entity.User) (*entity.User, error) {
 			if cmd.Name != nil {

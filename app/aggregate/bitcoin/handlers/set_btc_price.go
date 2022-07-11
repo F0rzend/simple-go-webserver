@@ -4,10 +4,11 @@ import (
 	"errors"
 	"net/http"
 
+	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
@@ -18,7 +19,7 @@ type SetBTCPriceRequest struct {
 var ErrBadRequest = errors.New("validation error")
 
 func (r SetBTCPriceRequest) Bind(_ *http.Request) error {
-	if r.Price <= 0 {
+	if _, err := bitcoinEntity.NewUSD(r.Price); err != nil {
 		return ErrBadRequest
 	}
 	return nil
@@ -38,9 +39,7 @@ func (h *BitcoinHTTPHandlers) SetBTCPrice(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := h.service.SetBTCPrice.Handle(service.SetBTCPrice{
-		Price: request.Price,
-	}); err != nil {
+	if err := h.service.SetBTCPrice(request.Price); err != nil {
 		common.RenderHTTPError(w, r, err)
 		return
 	}

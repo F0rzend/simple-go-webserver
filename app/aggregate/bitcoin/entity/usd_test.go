@@ -4,8 +4,46 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/shopspring/decimal"
+
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewUSD(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		input    float64
+		expected USD
+		err      error
+	}{
+		{
+			name:     "success",
+			input:    1,
+			expected: USD{decimal.NewFromFloat(1)},
+			err:      nil,
+		},
+		{
+			name:     "negative",
+			input:    -1,
+			expected: USD{},
+			err:      ErrNegativeCurrency,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual, err := NewUSD(tc.input)
+
+			assert.ErrorIs(t, err, tc.err)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
 
 func TestUSD_ToFloat(t *testing.T) {
 	t.Parallel()

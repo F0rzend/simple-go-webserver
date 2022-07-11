@@ -9,26 +9,12 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-type CreateUser struct {
+var getUserID = userIDGenerator()
+
+type CreateUserCommand struct {
 	Name     string
 	Username string
 	Email    string
-}
-
-type CreateUserHandler struct {
-	getID          func() uint64
-	userRepository entity.UserRepository
-}
-
-func MustNewCreateUserHandler(userRepository entity.UserRepository) CreateUserHandler {
-	if userRepository == nil {
-		panic(ErrNilUserRepository)
-	}
-
-	return CreateUserHandler{
-		getID:          userIDGenerator(),
-		userRepository: userRepository,
-	}
 }
 
 func userIDGenerator() func() uint64 {
@@ -39,9 +25,9 @@ func userIDGenerator() func() uint64 {
 	}
 }
 
-func (h *CreateUserHandler) Handle(cmd CreateUser) (uint64, error) {
+func (us *UserServiceImpl) CreateUser(cmd CreateUserCommand) (uint64, error) {
 	user, err := entity.NewUser(
-		h.getID(),
+		getUserID(),
 		cmd.Name,
 		cmd.Username,
 		cmd.Email,
@@ -71,7 +57,7 @@ func (h *CreateUserHandler) Handle(cmd CreateUser) (uint64, error) {
 		return 0, err
 	}
 
-	switch err := h.userRepository.Create(user); err {
+	switch err := us.userRepository.Create(user); err {
 	case nil:
 		return user.ID, nil
 	case repositories.ErrUserAlreadyExists:

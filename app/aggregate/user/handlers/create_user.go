@@ -42,7 +42,7 @@ func (h *UserHTTPHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.service.CreateUser.Handle(service.CreateUser{
+	id, err := h.service.CreateUser(service.CreateUserCommand{
 		Name:     request.Name,
 		Username: request.Username,
 		Email:    request.Email,

@@ -5,27 +5,27 @@ import (
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
-type UserService struct {
-	CreateUser       CreateUserHandler
-	UpdateUser       UpdateUserHandler
-	ChangeBTCBalance ChangeBTCBalanceHandler
-	ChangeUSDBalance ChangeUSDBalanceHandler
+type UserService interface {
+	CreateUser(cmd CreateUserCommand) (uint64, error)
+	GetUser(uint64) (*userEntity.User, error)
+	UpdateUser(cmd UpdateUserCommand) error
 
-	GetUser        GetUserHandler
-	GetUserBalance GetUserBalanceHandler
+	GetUserBalance(userID uint64) (bitcoinEntity.USD, error)
+	ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand) error
+	ChangeUserBalance(cmd ChangeUserBalanceCommand) error
+}
+
+type UserServiceImpl struct {
+	userRepository    userEntity.UserRepository
+	bitcoinRepository bitcoinEntity.BTCRepository
 }
 
 func NewUserService(
 	userRepository userEntity.UserRepository,
-	btcRepository bitcoinEntity.BTCRepository,
-) *UserService {
-	return &UserService{
-		CreateUser:       MustNewCreateUserHandler(userRepository),
-		UpdateUser:       MustNewUpdateUserHandler(userRepository),
-		ChangeBTCBalance: MustNewChangeBTCBalanceHandler(userRepository, btcRepository),
-		ChangeUSDBalance: MustNewChangeUSDBalanceHandler(userRepository),
-
-		GetUser:        MustNewGetUserHandler(userRepository),
-		GetUserBalance: MustNewGetUserBalance(userRepository, btcRepository),
+	bitcoinRepository bitcoinEntity.BTCRepository,
+) UserService {
+	return &UserServiceImpl{
+		userRepository:    userRepository,
+		bitcoinRepository: bitcoinRepository,
 	}
 }

@@ -8,11 +8,10 @@ import (
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	bitcoinHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
-	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 	bitcoinService "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 
+	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	userHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/user/handlers"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 )
 
@@ -21,20 +20,17 @@ type Server struct {
 	bitcoinRoutes *bitcoinHTTPHandlers.BitcoinHTTPHandlers
 }
 
-func NewServer() (*Server, error) {
-	bitcoinRepository, err := bitcoinRepositories.NewMemoryBTCRepository(bitcoinEntity.MustNewUSD(100))
-	if err != nil {
-		return nil, err
-	}
-	userRepository := userRepositories.NewMemoryUserRepository()
-
+func NewServer(
+	userRepository userEntity.UserRepository,
+	bitcoinRepository bitcoinEntity.BTCRepository,
+) *Server {
 	bitcoinRoutes := bitcoinHTTPHandlers.NewBitcoinHTTPHandlers(bitcoinService.NewBitcoinService(bitcoinRepository))
 	userRoutes := userHTTPHandlers.NewUserHTTPHandlers(userService.NewUserService(userRepository, bitcoinRepository))
 
 	return &Server{
 		userRoutes:    userRoutes,
 		bitcoinRoutes: bitcoinRoutes,
-	}, nil
+	}
 }
 
 func (s *Server) GetHTTPHandler() http.Handler {

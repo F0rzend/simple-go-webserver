@@ -44,7 +44,7 @@ func (h *UserHTTPHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.GetUser.Handle(id)
+	user, err := h.service.GetUser(id)
 	if err != nil {
 		common.RenderHTTPError(w, r, err)
 		return

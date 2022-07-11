@@ -10,47 +10,25 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-type ChangeBTCBalance struct {
+type ChangeBitcoinBalanceCommand struct {
 	UserID uint64
 	Action string
 	Amount float64
 }
 
-type ChangeBTCBalanceHandler struct {
-	userRepository userEntity.UserRepository
-	btcRepository  bitcoinEntity.BTCRepository
-}
-
-func MustNewChangeBTCBalanceHandler(
-	userRepository userEntity.UserRepository,
-	btcRepository bitcoinEntity.BTCRepository,
-) ChangeBTCBalanceHandler {
-	if userRepository == nil {
-		panic(ErrNilUserRepository)
-	}
-	if btcRepository == nil {
-		panic(ErrNilBTCRepository)
-	}
-
-	return ChangeBTCBalanceHandler{
-		userRepository: userRepository,
-		btcRepository:  btcRepository,
-	}
-}
-
-func (h ChangeBTCBalanceHandler) Handle(cmd ChangeBTCBalance) error {
+func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand) error {
 	action, err := bitcoinEntity.NewBTCAction(cmd.Action)
 	if err != nil {
 		return err
 	}
 
-	switch err = h.userRepository.Update(cmd.UserID, func(user *userEntity.User) (*userEntity.User, error) {
+	switch err = us.userRepository.Update(cmd.UserID, func(user *userEntity.User) (*userEntity.User, error) {
 		btc, err := bitcoinEntity.NewBTC(cmd.Amount)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := user.ChangeBTCBalance(action, btc, h.btcRepository.Get()); err != nil {
+		if err := user.ChangeBTCBalance(action, btc, us.bitcoinRepository.GetPrice()); err != nil {
 			return nil, err
 		}
 		return user, nil

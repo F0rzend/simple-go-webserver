@@ -46,7 +46,7 @@ func (h *UserHTTPHandlers) ChangeBTCBalance(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err = h.service.ChangeBTCBalance.Handle(userService.ChangeBTCBalance{
+	if err = h.service.ChangeBitcoinBalance(userService.ChangeBitcoinBalanceCommand{
 		UserID: id,
 		Action: request.Action,
 		Amount: request.Amount,

@@ -5,10 +5,10 @@ import (
 )
 
 type UserHTTPHandlers struct {
-	service *service.UserService
+	service service.UserService
 }
 
-func NewUserHTTPHandlers(userService *service.UserService) *UserHTTPHandlers {
+func NewUserHTTPHandlers(userService service.UserService) *UserHTTPHandlers {
 	return &UserHTTPHandlers{
 		service: userService,
 	}

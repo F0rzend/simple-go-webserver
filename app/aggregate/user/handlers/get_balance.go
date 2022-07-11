@@ -18,7 +18,7 @@ func (h *UserHTTPHandlers) GetUserBalance(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	balance, err := h.service.GetUserBalance.Handle(id)
+	balance, err := h.service.GetUserBalance(id)
 	if err != nil {
 		common.RenderHTTPError(w, r, err)
 		return

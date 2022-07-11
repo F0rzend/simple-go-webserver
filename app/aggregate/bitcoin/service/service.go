@@ -4,16 +4,20 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
-type BitcoinService struct {
-	SetBTCPrice SetBTCPriceHandler
-	GetBTCPrice GetBTCPriceHandler
+//go:generate moq -out "./mock.gen.go" -pkg service . BitcoinService:MockBitcoinService
+type BitcoinService interface {
+	GetBTCPrice() entity.BTCPrice
+	SetBTCPrice(newPrice float64) error
+}
+
+type BitcoinServiceImpl struct {
+	bitcoinRepository entity.BTCRepository
 }
 
 func NewBitcoinService(
 	bitcoinRepository entity.BTCRepository,
-) *BitcoinService {
-	return &BitcoinService{
-		SetBTCPrice: MustNewSetBTCPriceCommand(bitcoinRepository),
-		GetBTCPrice: MustNewGetBTCCommand(bitcoinRepository),
+) BitcoinService {
+	return &BitcoinServiceImpl{
+		bitcoinRepository: bitcoinRepository,
 	}
 }

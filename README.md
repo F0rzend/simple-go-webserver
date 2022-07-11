@@ -60,7 +60,7 @@ Then you need to go to the project directory and build it:
 cd SimpleGoWebserver && go build -o simplegowebserver cmd/api/main.go
 ```
 
-Now you can run the project. You must be in the same folder as the binary
+Now you can run the project. You Must be in the same folder as the binary
 and run the following command:
 ```shell
 ./simplegowebserver
@@ -68,7 +68,7 @@ and run the following command:
 
 After this you will see the following message:
 ```shell
-0:00AM INF cmd/api/main.go:27 > starting server on :8080
+0:00AM INF cmd/api/main.go:27 > starting handler on :8080
 ```
 
 ## Run project via docker compose

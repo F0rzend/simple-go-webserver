@@ -9,22 +9,8 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-type GetUserHandler struct {
-	userRepository entity.UserRepository
-}
-
-func MustNewGetUserHandler(userRepository entity.UserRepository) GetUserHandler {
-	if userRepository == nil {
-		panic(ErrNilUserRepository)
-	}
-
-	return GetUserHandler{
-		userRepository: userRepository,
-	}
-}
-
-func (h *GetUserHandler) Handle(userID uint64) (*entity.User, error) {
-	switch user, err := h.userRepository.Get(userID); err {
+func (us *UserServiceImpl) GetUser(userID uint64) (*entity.User, error) {
+	switch user, err := us.userRepository.Get(userID); err {
 	case nil:
 		return user, nil
 	case repositories.ErrUserNotFound:
