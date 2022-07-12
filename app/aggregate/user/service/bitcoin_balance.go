@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
@@ -21,23 +22,32 @@ func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand)
 	switch err {
 	case nil:
 	case bitcoinEntity.ErrInvalidAction:
-		return common.NewServiceError(http.StatusBadRequest, fmt.Sprintf("Invalid action: %s", cmd.Action))
+		return common.NewServiceError(
+			http.StatusBadRequest,
+			fmt.Sprintf(
+				"You must pass the correct action. Allowed: %s",
+				strings.Join(bitcoinEntity.GetBTCActions(), ", "),
+			),
+		)
 	default:
 		return err
 	}
 
-	switch err = us.userRepository.Update(cmd.UserID, func(user *userEntity.User) (*userEntity.User, error) {
-		btc, err := bitcoinEntity.NewBTC(cmd.Amount)
-		if err != nil {
-			return nil, err
-		}
+	btc, err := bitcoinEntity.NewBTC(cmd.Amount)
+	switch err {
+	case nil:
+	case bitcoinEntity.ErrNegativeCurrency:
+		return common.NewServiceError(
+			http.StatusBadRequest,
+			"The amount of currency cannot be negative. Please pass a number greater than 0",
+		)
+	default:
+		return err
+	}
 
-		currentBitcoinPrice := us.bitcoinRepository.GetPrice()
-		if err := user.ChangeBTCBalance(action, btc, currentBitcoinPrice); err != nil {
-			return nil, err
-		}
-		return user, nil
-	}); err {
+	user, err := us.userRepository.Get(cmd.UserID)
+	switch err {
+	case nil:
 	case repositories.ErrUserNotFound:
 		return common.NewServiceError(
 			http.StatusNotFound,
@@ -45,11 +55,13 @@ func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand)
 				cmd.UserID,
 			),
 		)
-	case bitcoinEntity.ErrNegativeCurrency:
-		return common.NewServiceError(
-			http.StatusBadRequest,
-			"The amount of currency cannot be negative. Please pass a number greater than 0",
-		)
+	default:
+		return err
+	}
+
+	currentBitcoinPrice := us.bitcoinRepository.GetPrice()
+
+	switch err := user.ChangeBTCBalance(action, btc, currentBitcoinPrice); err {
 	case userEntity.ErrInsufficientFunds:
 		return common.NewServiceError(
 			http.StatusBadRequest,

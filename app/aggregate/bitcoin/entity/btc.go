@@ -68,6 +68,7 @@ func (btc BTC) Add(toAdd BTC) BTC {
 	return BTC{btc.amount.Add(toAdd.amount)}
 }
 
+// TODO remove sub error
 var ErrSubtractMoreBTCThanHave = errors.New("can't subtract more btc than available")
 
 func (btc BTC) Sub(toSubtract BTC) (BTC, error) {

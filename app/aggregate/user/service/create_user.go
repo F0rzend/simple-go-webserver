@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
@@ -57,15 +56,8 @@ func (us *UserServiceImpl) CreateUser(cmd CreateUserCommand) (uint64, error) {
 		return 0, err
 	}
 
-	switch err := us.userRepository.Create(user); err {
-	case nil:
-		return user.ID, nil
-	case repositories.ErrUserAlreadyExists:
-		return 0, common.NewServiceError(
-			http.StatusBadRequest,
-			"This email is already registered",
-		)
-	default:
+	if err := us.userRepository.Save(user); err != nil {
 		return 0, err
 	}
+	return user.ID, nil
 }

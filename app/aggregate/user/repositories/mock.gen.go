@@ -18,17 +18,14 @@ var _ entity.UserRepository = &MockUserRepository{}
 //
 // 		// make and configure a mocked entity.UserRepository
 // 		mockedUserRepository := &MockUserRepository{
-// 			CreateFunc: func(user *entity.User) error {
-// 				panic("mock out the Create method")
-// 			},
 // 			DeleteFunc: func(id uint64) error {
 // 				panic("mock out the Delete method")
 // 			},
 // 			GetFunc: func(id uint64) (*entity.User, error) {
 // 				panic("mock out the Get method")
 // 			},
-// 			UpdateFunc: func(id uint64, updFunc func(*entity.User) (*entity.User, error)) error {
-// 				panic("mock out the Update method")
+// 			SaveFunc: func(user *entity.User) error {
+// 				panic("mock out the Save method")
 // 			},
 // 		}
 //
@@ -37,25 +34,17 @@ var _ entity.UserRepository = &MockUserRepository{}
 //
 // 	}
 type MockUserRepository struct {
-	// CreateFunc mocks the Create method.
-	CreateFunc func(user *entity.User) error
-
 	// DeleteFunc mocks the Delete method.
 	DeleteFunc func(id uint64) error
 
 	// GetFunc mocks the Get method.
 	GetFunc func(id uint64) (*entity.User, error)
 
-	// UpdateFunc mocks the Update method.
-	UpdateFunc func(id uint64, updFunc func(*entity.User) (*entity.User, error)) error
+	// SaveFunc mocks the Save method.
+	SaveFunc func(user *entity.User) error
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// Create holds details about calls to the Create method.
-		Create []struct {
-			// User is the user argument value.
-			User *entity.User
-		}
 		// Delete holds details about calls to the Delete method.
 		Delete []struct {
 			// ID is the id argument value.
@@ -66,49 +55,15 @@ type MockUserRepository struct {
 			// ID is the id argument value.
 			ID uint64
 		}
-		// Update holds details about calls to the Update method.
-		Update []struct {
-			// ID is the id argument value.
-			ID uint64
-			// UpdFunc is the updFunc argument value.
-			UpdFunc func(*entity.User) (*entity.User, error)
+		// Save holds details about calls to the Save method.
+		Save []struct {
+			// User is the user argument value.
+			User *entity.User
 		}
 	}
-	lockCreate sync.RWMutex
 	lockDelete sync.RWMutex
 	lockGet    sync.RWMutex
-	lockUpdate sync.RWMutex
-}
-
-// Create calls CreateFunc.
-func (mock *MockUserRepository) Create(user *entity.User) error {
-	if mock.CreateFunc == nil {
-		panic("MockUserRepository.CreateFunc: method is nil but UserRepository.Create was just called")
-	}
-	callInfo := struct {
-		User *entity.User
-	}{
-		User: user,
-	}
-	mock.lockCreate.Lock()
-	mock.calls.Create = append(mock.calls.Create, callInfo)
-	mock.lockCreate.Unlock()
-	return mock.CreateFunc(user)
-}
-
-// CreateCalls gets all the calls that were made to Create.
-// Check the length with:
-//     len(mockedUserRepository.CreateCalls())
-func (mock *MockUserRepository) CreateCalls() []struct {
-	User *entity.User
-} {
-	var calls []struct {
-		User *entity.User
-	}
-	mock.lockCreate.RLock()
-	calls = mock.calls.Create
-	mock.lockCreate.RUnlock()
-	return calls
+	lockSave   sync.RWMutex
 }
 
 // Delete calls DeleteFunc.
@@ -173,37 +128,33 @@ func (mock *MockUserRepository) GetCalls() []struct {
 	return calls
 }
 
-// Update calls UpdateFunc.
-func (mock *MockUserRepository) Update(id uint64, updFunc func(*entity.User) (*entity.User, error)) error {
-	if mock.UpdateFunc == nil {
-		panic("MockUserRepository.UpdateFunc: method is nil but UserRepository.Update was just called")
+// Save calls SaveFunc.
+func (mock *MockUserRepository) Save(user *entity.User) error {
+	if mock.SaveFunc == nil {
+		panic("MockUserRepository.SaveFunc: method is nil but UserRepository.Save was just called")
 	}
 	callInfo := struct {
-		ID      uint64
-		UpdFunc func(*entity.User) (*entity.User, error)
+		User *entity.User
 	}{
-		ID:      id,
-		UpdFunc: updFunc,
+		User: user,
 	}
-	mock.lockUpdate.Lock()
-	mock.calls.Update = append(mock.calls.Update, callInfo)
-	mock.lockUpdate.Unlock()
-	return mock.UpdateFunc(id, updFunc)
+	mock.lockSave.Lock()
+	mock.calls.Save = append(mock.calls.Save, callInfo)
+	mock.lockSave.Unlock()
+	return mock.SaveFunc(user)
 }
 
-// UpdateCalls gets all the calls that were made to Update.
+// SaveCalls gets all the calls that were made to Save.
 // Check the length with:
-//     len(mockedUserRepository.UpdateCalls())
-func (mock *MockUserRepository) UpdateCalls() []struct {
-	ID      uint64
-	UpdFunc func(*entity.User) (*entity.User, error)
+//     len(mockedUserRepository.SaveCalls())
+func (mock *MockUserRepository) SaveCalls() []struct {
+	User *entity.User
 } {
 	var calls []struct {
-		ID      uint64
-		UpdFunc func(*entity.User) (*entity.User, error)
+		User *entity.User
 	}
-	mock.lockUpdate.RLock()
-	calls = mock.calls.Update
-	mock.lockUpdate.RUnlock()
+	mock.lockSave.RLock()
+	calls = mock.calls.Save
+	mock.lockSave.RUnlock()
 	return calls
 }

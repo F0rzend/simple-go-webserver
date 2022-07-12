@@ -18,25 +18,27 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name                  string
-		cmd                   ChangeBitcoinBalanceCommand
-		updateUserFunc        func(uint64, func(*userEntity.User) (*userEntity.User, error)) error
-		getPriceFunc          func() bitcoinEntity.BTCPrice
-		updateUserCallsAmount int
-		getPriceCallsAmount   int
-		err                   error
+		name                string
+		cmd                 ChangeBitcoinBalanceCommand
+		getUserFunc         func(id uint64) (*userEntity.User, error)
+		saveUserFunc        func(user *userEntity.User) error
+		getBitcoinPriceFunc func() bitcoinEntity.BTCPrice
+		getUserCallsAmount  int
+		saveUserCallsAmount int
+		getPriceCallsAmount int
+		err                 error
 	}{
 		{
 			name: "invalid action",
 			cmd: ChangeBitcoinBalanceCommand{
 				Action: "invalid",
 			},
-			updateUserFunc: func(_ uint64, _ func(*userEntity.User) (*userEntity.User, error)) error {
-				return userRepositories.ErrUserNotFound
+			saveUserFunc: func(user *userEntity.User) error {
+				return nil
 			},
 			err: common.NewServiceError(
 				http.StatusBadRequest,
-				"Invalid action: invalid",
+				"You must pass the correct action. Allowed: buy, sell",
 			),
 		},
 		{
@@ -45,10 +47,10 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				UserID: 42,
 				Action: "buy",
 			},
-			updateUserFunc: func(_ uint64, _ func(*userEntity.User) (*userEntity.User, error)) error {
-				return userRepositories.ErrUserNotFound
+			getUserFunc: func(id uint64) (*userEntity.User, error) {
+				return nil, userRepositories.ErrUserNotFound
 			},
-			updateUserCallsAmount: 1,
+			getUserCallsAmount: 1,
 			err: common.NewServiceError(
 				http.StatusNotFound,
 				"User with id 42 not found",
@@ -61,11 +63,6 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Action: "buy",
 				Amount: -1,
 			},
-			updateUserFunc: func(userID uint64, updateFunc func(*userEntity.User) (*userEntity.User, error)) error {
-				_, err := updateFunc(&userEntity.User{})
-				return err
-			},
-			updateUserCallsAmount: 1,
 			err: common.NewServiceError(
 				http.StatusBadRequest,
 				"The amount of currency cannot be negative. Please pass a number greater than 0",
@@ -78,26 +75,14 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Action: "buy",
 				Amount: 1,
 			},
-			updateUserFunc: func(userID uint64, updateFunc func(*userEntity.User) (*userEntity.User, error)) error {
-				zeroUSD, _ := bitcoinEntity.NewUSD(0)
-				zeroBTC, _ := bitcoinEntity.NewBTC(0)
-
-				_, err := updateFunc(
-					&userEntity.User{
-						Balance: userEntity.Balance{
-							USD: zeroUSD,
-							BTC: zeroBTC,
-						},
-					},
-				)
-				return err
+			getUserFunc: func(_ uint64) (*userEntity.User, error) {
+				return &userEntity.User{}, nil
 			},
-			getPriceFunc: func() bitcoinEntity.BTCPrice {
+			getBitcoinPriceFunc: func() bitcoinEntity.BTCPrice {
 				price, _ := bitcoinEntity.NewUSD(1)
 				return bitcoinEntity.NewBTCPrice(price, time.Now())
 			},
-			updateUserCallsAmount: 1,
-			getPriceCallsAmount:   1,
+			getPriceCallsAmount: 1,
 			err: common.NewServiceError(
 				http.StatusBadRequest,
 				"The user does not have enough funds to buy BTC",
@@ -110,26 +95,14 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Action: "sell",
 				Amount: 1,
 			},
-			updateUserFunc: func(userID uint64, updateFunc func(*userEntity.User) (*userEntity.User, error)) error {
-				zeroUSD, _ := bitcoinEntity.NewUSD(0)
-				zeroBTC, _ := bitcoinEntity.NewBTC(0)
-
-				_, err := updateFunc(
-					&userEntity.User{
-						Balance: userEntity.Balance{
-							USD: zeroUSD,
-							BTC: zeroBTC,
-						},
-					},
-				)
-				return err
+			getUserFunc: func(_ uint64) (*userEntity.User, error) {
+				return &userEntity.User{}, nil
 			},
-			getPriceFunc: func() bitcoinEntity.BTCPrice {
+			getBitcoinPriceFunc: func() bitcoinEntity.BTCPrice {
 				price, _ := bitcoinEntity.NewUSD(1)
 				return bitcoinEntity.NewBTCPrice(price, time.Now())
 			},
-			updateUserCallsAmount: 1,
-			getPriceCallsAmount:   1,
+			getPriceCallsAmount: 1,
 			err: common.NewServiceError(
 				http.StatusBadRequest,
 				"The user does not have enough funds to sell BTC",
@@ -142,26 +115,23 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Action: "buy",
 				Amount: 1,
 			},
-			updateUserFunc: func(userID uint64, updateFunc func(*userEntity.User) (*userEntity.User, error)) error {
-				userBalance, _ := bitcoinEntity.NewUSD(10)
-				zeroBTC, _ := bitcoinEntity.NewBTC(0)
+			getUserFunc: func(_ uint64) (*userEntity.User, error) {
+				dollarBalance, _ := bitcoinEntity.NewUSD(1)
+				bitcoinBalance, _ := bitcoinEntity.NewBTC(0)
 
-				_, err := updateFunc(
-					&userEntity.User{
-						Balance: userEntity.Balance{
-							USD: userBalance,
-							BTC: zeroBTC,
-						},
+				return &userEntity.User{
+					Balance: userEntity.Balance{
+						USD: dollarBalance,
+						BTC: bitcoinBalance,
 					},
-				)
-				return err
+				}, nil
 			},
-			getPriceFunc: func() bitcoinEntity.BTCPrice {
+			getBitcoinPriceFunc: func() bitcoinEntity.BTCPrice {
 				price, _ := bitcoinEntity.NewUSD(1)
 				return bitcoinEntity.NewBTCPrice(price, time.Now())
 			},
-			updateUserCallsAmount: 1,
-			getPriceCallsAmount:   1,
+			getUserCallsAmount:  1,
+			getPriceCallsAmount: 1,
 		},
 		{
 			name: "user has enough funds to sell btc",
@@ -170,26 +140,23 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Action: "sell",
 				Amount: 1,
 			},
-			updateUserFunc: func(userID uint64, updateFunc func(*userEntity.User) (*userEntity.User, error)) error {
-				zeroUSD, _ := bitcoinEntity.NewUSD(0)
-				userBalance, _ := bitcoinEntity.NewBTC(1)
+			getUserFunc: func(_ uint64) (*userEntity.User, error) {
+				dollarBalance, _ := bitcoinEntity.NewUSD(0)
+				bitcoinBalance, _ := bitcoinEntity.NewBTC(1)
 
-				_, err := updateFunc(
-					&userEntity.User{
-						Balance: userEntity.Balance{
-							USD: zeroUSD,
-							BTC: userBalance,
-						},
+				return &userEntity.User{
+					Balance: userEntity.Balance{
+						USD: dollarBalance,
+						BTC: bitcoinBalance,
 					},
-				)
-				return err
+				}, nil
 			},
-			getPriceFunc: func() bitcoinEntity.BTCPrice {
+			getBitcoinPriceFunc: func() bitcoinEntity.BTCPrice {
 				price, _ := bitcoinEntity.NewUSD(1)
 				return bitcoinEntity.NewBTCPrice(price, time.Now())
 			},
-			updateUserCallsAmount: 1,
-			getPriceCallsAmount:   1,
+			getUserCallsAmount:  1,
+			getPriceCallsAmount: 1,
 		},
 	}
 
@@ -198,15 +165,15 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userRepositories.MockUserRepository{UpdateFunc: tc.updateUserFunc}
-			bitcoinRepository := &bitcoinRepositories.MockBTCRepository{GetPriceFunc: tc.getPriceFunc}
+			userRepository := &userRepositories.MockUserRepository{SaveFunc: tc.saveUserFunc, GetFunc: tc.getUserFunc}
+			bitcoinRepository := &bitcoinRepositories.MockBTCRepository{GetPriceFunc: tc.getBitcoinPriceFunc}
 
 			service := NewUserService(userRepository, bitcoinRepository)
 
 			err := service.ChangeBitcoinBalance(tc.cmd)
 
 			assert.Equal(t, tc.err, err)
-			assert.Len(t, userRepository.UpdateCalls(), tc.updateUserCallsAmount)
+			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 			assert.Len(t, bitcoinRepository.GetPriceCalls(), tc.getPriceCallsAmount)
 		})
 	}

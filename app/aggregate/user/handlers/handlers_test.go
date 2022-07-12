@@ -430,7 +430,7 @@ func NewMockUserRepository() entity.UserRepository {
 		),
 	}
 	return &userRepositories.MockUserRepository{
-		CreateFunc: func(user *entity.User) error {
+		SaveFunc: func(user *entity.User) error {
 			now := time.Now()
 			btc, _ := user.Balance.BTC.ToFloat().Float64()
 			usd, _ := user.Balance.USD.ToFloat().Float64()
@@ -458,15 +458,6 @@ func NewMockUserRepository() entity.UserRepository {
 				return nil, userRepositories.ErrUserNotFound
 			}
 			return user, nil
-		},
-		UpdateFunc: func(id uint64, updFunc func(*entity.User) (*entity.User, error)) error {
-			user, ok := users[id]
-			if !ok {
-				return userRepositories.ErrUserNotFound
-			}
-			userCopy := *user
-			_, err := updFunc(&userCopy)
-			return err
 		},
 	}
 }

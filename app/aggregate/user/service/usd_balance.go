@@ -19,7 +19,9 @@ type ChangeUserBalanceCommand struct {
 
 func (us *UserServiceImpl) ChangeUserBalance(cmd ChangeUserBalanceCommand) error {
 	action, err := bitcoinEntity.NewUSDAction(cmd.Action)
-	if err != nil {
+	switch err {
+	case nil:
+	case bitcoinEntity.ErrInvalidAction:
 		return common.NewServiceError(
 			http.StatusBadRequest,
 			fmt.Sprintf(
@@ -27,19 +29,25 @@ func (us *UserServiceImpl) ChangeUserBalance(cmd ChangeUserBalanceCommand) error
 				strings.Join(bitcoinEntity.GetUSDActions(), ", "),
 			),
 		)
+	default:
+		return err
 	}
 
-	switch err := us.userRepository.Update(cmd.UserID, func(user *userEntity.User) (*userEntity.User, error) {
-		usd, err := bitcoinEntity.NewUSD(cmd.Amount)
-		if err != nil {
-			return nil, err
-		}
+	usd, err := bitcoinEntity.NewUSD(cmd.Amount)
+	switch err {
+	case nil:
+	case bitcoinEntity.ErrNegativeCurrency:
+		return common.NewServiceError(
+			http.StatusBadRequest,
+			"The amount of currency cannot be negative. Please pass a number greater than 0",
+		)
+	default:
+		return err
+	}
 
-		if err := user.ChangeUSDBalance(action, usd); err != nil {
-			return nil, err
-		}
-		return user, nil
-	}); err {
+	user, err := us.userRepository.Get(cmd.UserID)
+	switch err {
+	case nil:
 	case repositories.ErrUserNotFound:
 		return common.NewServiceError(
 			http.StatusNotFound,
@@ -47,15 +55,18 @@ func (us *UserServiceImpl) ChangeUserBalance(cmd ChangeUserBalanceCommand) error
 				cmd.UserID,
 			),
 		)
-	case bitcoinEntity.ErrNegativeCurrency:
-		return common.NewServiceError(
-			http.StatusBadRequest,
-			"The amount of currency cannot be negative. Please pass a number greater than 0",
-		)
+	default:
+		return err
+	}
+
+	switch err := user.ChangeUSDBalance(action, usd); err {
 	case userEntity.ErrInsufficientFunds:
 		return common.NewServiceError(
 			http.StatusBadRequest,
-			"The user does not have enough funds to make a withdrawal",
+			fmt.Sprintf(
+				"The user does not have enough funds to %s BTC",
+				cmd.Action,
+			),
 		)
 	default:
 		return err
