@@ -18,7 +18,11 @@ type ChangeBitcoinBalanceCommand struct {
 
 func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand) error {
 	action, err := bitcoinEntity.NewBTCAction(cmd.Action)
-	if err != nil {
+	switch err {
+	case nil:
+	case bitcoinEntity.ErrInvalidAction:
+		return common.NewServiceError(http.StatusBadRequest, fmt.Sprintf("Invalid action: %s", cmd.Action))
+	default:
 		return err
 	}
 
@@ -28,7 +32,8 @@ func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand)
 			return nil, err
 		}
 
-		if err := user.ChangeBTCBalance(action, btc, us.bitcoinRepository.GetPrice()); err != nil {
+		currentBitcoinPrice := us.bitcoinRepository.GetPrice()
+		if err := user.ChangeBTCBalance(action, btc, currentBitcoinPrice); err != nil {
 			return nil, err
 		}
 		return user, nil
