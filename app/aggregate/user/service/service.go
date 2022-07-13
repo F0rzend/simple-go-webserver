@@ -18,6 +18,8 @@ type UserService interface {
 type UserServiceImpl struct {
 	userRepository    userEntity.UserRepository
 	bitcoinRepository bitcoinEntity.BTCRepository
+
+	userIDGenerator func() uint64
 }
 
 func NewUserService(
@@ -27,5 +29,7 @@ func NewUserService(
 	return &UserServiceImpl{
 		userRepository:    userRepository,
 		bitcoinRepository: bitcoinRepository,
+
+		userIDGenerator: getUserIDGenerator(),
 	}
 }

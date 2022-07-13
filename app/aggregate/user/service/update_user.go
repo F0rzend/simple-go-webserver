@@ -11,13 +11,13 @@ import (
 )
 
 type UpdateUserCommand struct {
-	ID    uint64
-	Name  *string
-	Email *string
+	UserID uint64
+	Name   *string
+	Email  *string
 }
 
 func (us *UserServiceImpl) UpdateUser(cmd UpdateUserCommand) error {
-	user, err := us.userRepository.Get(cmd.ID)
+	user, err := us.userRepository.Get(cmd.UserID)
 	switch err {
 	case nil:
 	case repositories.ErrUserNotFound:
@@ -25,11 +25,18 @@ func (us *UserServiceImpl) UpdateUser(cmd UpdateUserCommand) error {
 			http.StatusNotFound,
 			fmt.Sprintf(
 				"User with id %d not found",
-				cmd.ID,
+				cmd.UserID,
 			),
 		)
 	default:
 		return err
+	}
+
+	if cmd.Name == nil && cmd.Email == nil {
+		return common.NewServiceError(
+			http.StatusBadRequest,
+			"At least one field must be updated",
+		)
 	}
 
 	if cmd.Name != nil {

@@ -25,7 +25,7 @@ func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand)
 		return common.NewServiceError(
 			http.StatusBadRequest,
 			fmt.Sprintf(
-				"You must pass the correct action. Allowed: %s",
+				"You must specify a valid action. Available actions: %s",
 				strings.Join(bitcoinEntity.GetBTCActions(), ", "),
 			),
 		)
@@ -62,6 +62,8 @@ func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand)
 	currentBitcoinPrice := us.bitcoinRepository.GetPrice()
 
 	switch err := user.ChangeBTCBalance(action, btc, currentBitcoinPrice); err {
+	case nil:
+		return us.userRepository.Save(user)
 	case userEntity.ErrInsufficientFunds:
 		return common.NewServiceError(
 			http.StatusBadRequest,

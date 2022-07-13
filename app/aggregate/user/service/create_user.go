@@ -8,15 +8,13 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-var getUserID = userIDGenerator()
-
 type CreateUserCommand struct {
 	Name     string
 	Username string
 	Email    string
 }
 
-func userIDGenerator() func() uint64 {
+func getUserIDGenerator() func() uint64 {
 	var id uint64
 	return func() uint64 {
 		id++
@@ -26,7 +24,7 @@ func userIDGenerator() func() uint64 {
 
 func (us *UserServiceImpl) CreateUser(cmd CreateUserCommand) (uint64, error) {
 	user, err := entity.NewUser(
-		getUserID(),
+		us.userIDGenerator(),
 		cmd.Name,
 		cmd.Username,
 		cmd.Email,

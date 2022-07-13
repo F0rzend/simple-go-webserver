@@ -17,12 +17,38 @@ import (
 func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 	t.Parallel()
 
+	var (
+		zeroDollar, _  = bitcoinEntity.NewUSD(0)
+		zeroBitcoin, _ = bitcoinEntity.NewBTC(0)
+
+		oneDollar, _  = bitcoinEntity.NewUSD(1)
+		oneBitcoin, _ = bitcoinEntity.NewBTC(1)
+	)
+
+	testUsers := map[uint64]*userEntity.User{
+		0: {},
+		1: {Balance: userEntity.Balance{USD: oneDollar, BTC: zeroBitcoin}},
+		2: {Balance: userEntity.Balance{USD: zeroDollar, BTC: oneBitcoin}},
+	}
+
+	getUserFunc := func(id uint64) (*userEntity.User, error) {
+		user, ok := testUsers[id]
+		if !ok {
+			return nil, userRepositories.ErrUserNotFound
+		}
+		return user, nil
+	}
+	saveUserFunc := func(user *userEntity.User) error {
+		return nil
+	}
+	getBitcoinPriceFunc := func() bitcoinEntity.BTCPrice {
+		price, _ := bitcoinEntity.NewUSD(1)
+		return bitcoinEntity.NewBTCPrice(price, time.Now())
+	}
+
 	testCases := []struct {
 		name                string
 		cmd                 ChangeBitcoinBalanceCommand
-		getUserFunc         func(id uint64) (*userEntity.User, error)
-		saveUserFunc        func(user *userEntity.User) error
-		getBitcoinPriceFunc func() bitcoinEntity.BTCPrice
 		getUserCallsAmount  int
 		saveUserCallsAmount int
 		getPriceCallsAmount int
@@ -33,12 +59,9 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			cmd: ChangeBitcoinBalanceCommand{
 				Action: "invalid",
 			},
-			saveUserFunc: func(user *userEntity.User) error {
-				return nil
-			},
 			err: common.NewServiceError(
 				http.StatusBadRequest,
-				"You must pass the correct action. Allowed: buy, sell",
+				"You must specify a valid action. Available actions: buy, sell",
 			),
 		},
 		{
@@ -46,9 +69,6 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			cmd: ChangeBitcoinBalanceCommand{
 				UserID: 42,
 				Action: "buy",
-			},
-			getUserFunc: func(id uint64) (*userEntity.User, error) {
-				return nil, userRepositories.ErrUserNotFound
 			},
 			getUserCallsAmount: 1,
 			err: common.NewServiceError(
@@ -59,7 +79,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		{
 			name: "negative currency",
 			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 42,
+				UserID: 0,
 				Action: "buy",
 				Amount: -1,
 			},
@@ -71,16 +91,9 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		{
 			name: "user has not enough funds to buy btc",
 			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 42,
+				UserID: 0,
 				Action: "buy",
 				Amount: 1,
-			},
-			getUserFunc: func(_ uint64) (*userEntity.User, error) {
-				return &userEntity.User{}, nil
-			},
-			getBitcoinPriceFunc: func() bitcoinEntity.BTCPrice {
-				price, _ := bitcoinEntity.NewUSD(1)
-				return bitcoinEntity.NewBTCPrice(price, time.Now())
 			},
 			getPriceCallsAmount: 1,
 			err: common.NewServiceError(
@@ -89,18 +102,11 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			),
 		},
 		{
-			name: "user has not enough funds to buy btc",
+			name: "user has not enough funds to sell btc",
 			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 42,
+				UserID: 0,
 				Action: "sell",
 				Amount: 1,
-			},
-			getUserFunc: func(_ uint64) (*userEntity.User, error) {
-				return &userEntity.User{}, nil
-			},
-			getBitcoinPriceFunc: func() bitcoinEntity.BTCPrice {
-				price, _ := bitcoinEntity.NewUSD(1)
-				return bitcoinEntity.NewBTCPrice(price, time.Now())
 			},
 			getPriceCallsAmount: 1,
 			err: common.NewServiceError(
@@ -111,51 +117,23 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		{
 			name: "user has enough funds to buy btc",
 			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 42,
+				UserID: 1,
 				Action: "buy",
 				Amount: 1,
 			},
-			getUserFunc: func(_ uint64) (*userEntity.User, error) {
-				dollarBalance, _ := bitcoinEntity.NewUSD(1)
-				bitcoinBalance, _ := bitcoinEntity.NewBTC(0)
-
-				return &userEntity.User{
-					Balance: userEntity.Balance{
-						USD: dollarBalance,
-						BTC: bitcoinBalance,
-					},
-				}, nil
-			},
-			getBitcoinPriceFunc: func() bitcoinEntity.BTCPrice {
-				price, _ := bitcoinEntity.NewUSD(1)
-				return bitcoinEntity.NewBTCPrice(price, time.Now())
-			},
 			getUserCallsAmount:  1,
+			saveUserCallsAmount: 1,
 			getPriceCallsAmount: 1,
 		},
 		{
 			name: "user has enough funds to sell btc",
 			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 42,
+				UserID: 2,
 				Action: "sell",
 				Amount: 1,
 			},
-			getUserFunc: func(_ uint64) (*userEntity.User, error) {
-				dollarBalance, _ := bitcoinEntity.NewUSD(0)
-				bitcoinBalance, _ := bitcoinEntity.NewBTC(1)
-
-				return &userEntity.User{
-					Balance: userEntity.Balance{
-						USD: dollarBalance,
-						BTC: bitcoinBalance,
-					},
-				}, nil
-			},
-			getBitcoinPriceFunc: func() bitcoinEntity.BTCPrice {
-				price, _ := bitcoinEntity.NewUSD(1)
-				return bitcoinEntity.NewBTCPrice(price, time.Now())
-			},
 			getUserCallsAmount:  1,
+			saveUserCallsAmount: 1,
 			getPriceCallsAmount: 1,
 		},
 	}
@@ -165,8 +143,8 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userRepositories.MockUserRepository{SaveFunc: tc.saveUserFunc, GetFunc: tc.getUserFunc}
-			bitcoinRepository := &bitcoinRepositories.MockBTCRepository{GetPriceFunc: tc.getBitcoinPriceFunc}
+			userRepository := &userRepositories.MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
+			bitcoinRepository := &bitcoinRepositories.MockBTCRepository{GetPriceFunc: getBitcoinPriceFunc}
 
 			service := NewUserService(userRepository, bitcoinRepository)
 

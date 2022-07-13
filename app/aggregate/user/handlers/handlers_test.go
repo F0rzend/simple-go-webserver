@@ -393,7 +393,7 @@ func NewMockUserRepository() entity.UserRepository {
 		usdBalance float64,
 		createdAt time.Time,
 		updatedAt time.Time,
-	) *entity.User {
+	) entity.User {
 		user, _ := entity.NewUser(
 			id,
 			name,
@@ -404,10 +404,10 @@ func NewMockUserRepository() entity.UserRepository {
 			createdAt,
 			updatedAt,
 		)
-		return user
+		return *user
 	}
 
-	users := map[uint64]*entity.User{
+	users := map[uint64]entity.User{
 		1: mustNewUser(
 			1,
 			"John",
@@ -419,12 +419,12 @@ func NewMockUserRepository() entity.UserRepository {
 			now,
 		),
 		2: mustNewUser(
-			2, //nolint:gomnd
+			2,
 			"Jane",
 			"Doe",
 			"janedoe@mail.com",
-			100, //nolint:gomnd
-			100, //nolint:gomnd
+			100,
+			100,
 			now,
 			now,
 		),
@@ -457,7 +457,7 @@ func NewMockUserRepository() entity.UserRepository {
 			if !ok {
 				return nil, userRepositories.ErrUserNotFound
 			}
-			return user, nil
+			return &user, nil
 		},
 	}
 }

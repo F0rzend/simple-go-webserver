@@ -55,9 +55,9 @@ func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.UpdateUser(service.UpdateUserCommand{
-		ID:    id,
-		Name:  request.Name,
-		Email: request.Email,
+		UserID: id,
+		Name:   request.Name,
+		Email:  request.Email,
 	}); err != nil {
 		common.RenderHTTPError(w, r, err)
 		return

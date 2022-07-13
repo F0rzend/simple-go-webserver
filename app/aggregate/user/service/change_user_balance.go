@@ -25,7 +25,7 @@ func (us *UserServiceImpl) ChangeUserBalance(cmd ChangeUserBalanceCommand) error
 		return common.NewServiceError(
 			http.StatusBadRequest,
 			fmt.Sprintf(
-				"You must pass the correct action. Allowed: %s",
+				"You must specify a valid action. Available actions: %s",
 				strings.Join(bitcoinEntity.GetUSDActions(), ", "),
 			),
 		)
@@ -60,11 +60,13 @@ func (us *UserServiceImpl) ChangeUserBalance(cmd ChangeUserBalanceCommand) error
 	}
 
 	switch err := user.ChangeUSDBalance(action, usd); err {
+	case nil:
+		return us.userRepository.Save(user)
 	case userEntity.ErrInsufficientFunds:
 		return common.NewServiceError(
 			http.StatusBadRequest,
 			fmt.Sprintf(
-				"The user does not have enough funds to %s BTC",
+				"The user does not have enough funds to %s USD",
 				cmd.Action,
 			),
 		)
