@@ -7,10 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 
+	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	bitcoinService "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 )
 
@@ -31,10 +30,7 @@ func TestGetBTCPrice(t *testing.T) {
 	)
 
 	w, r := tests.PrepareHandlerArgs(t, http.MethodGet, "/bitcoin", nil)
-	tests.ProcessHandler(t,
-		handler,
-		w, r,
-		http.StatusOK,
-	)
+	handler.ServeHTTP(w, r)
+	tests.AssertStatus(t, w, r, http.StatusOK)
 	assert.Len(t, service.GetBTCPriceCalls(), 1)
 }

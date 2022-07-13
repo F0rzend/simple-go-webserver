@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -20,12 +21,21 @@ type Server struct {
 	bitcoinRoutes *bitcoinHTTPHandlers.BitcoinHTTPHandlers
 }
 
+func getUserIDFromURL(r *http.Request) (uint64, error) {
+	const userIDURLKey = "id"
+
+	return strconv.ParseUint(chi.URLParam(r, userIDURLKey), 10, 64)
+}
+
 func NewServer(
 	userRepository userEntity.UserRepository,
 	bitcoinRepository bitcoinEntity.BTCRepository,
 ) *Server {
 	bitcoinRoutes := bitcoinHTTPHandlers.NewBitcoinHTTPHandlers(bitcoinService.NewBitcoinService(bitcoinRepository))
-	userRoutes := userHTTPHandlers.NewUserHTTPHandlers(userService.NewUserService(userRepository, bitcoinRepository))
+	userRoutes := userHTTPHandlers.NewUserHTTPHandlers(
+		userService.NewUserService(userRepository, bitcoinRepository),
+		getUserIDFromURL,
+	)
 
 	return &Server{
 		userRoutes:    userRoutes,

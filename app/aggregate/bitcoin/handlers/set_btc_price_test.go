@@ -56,12 +56,9 @@ func TestSetBTCPrice(t *testing.T) {
 				"/bitcoin",
 				SetBTCPriceRequest{Price: tc.newPrice},
 			)
+			handler.ServeHTTP(w, r)
 
-			tests.ProcessHandler(t,
-				handler,
-				w, r,
-				tc.expectedStatusCode,
-			)
+			tests.AssertStatus(t, w, r, tc.expectedStatusCode)
 			if tc.hasLocationHeader {
 				assert.Equal(t, w.Header().Get("Location"), "/bitcoin")
 			}

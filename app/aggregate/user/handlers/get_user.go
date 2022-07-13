@@ -37,7 +37,7 @@ func UserToResponse(user *entity.User) *UserResponse {
 }
 
 func (h *UserHTTPHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
-	id, err := getUserIDFromURL(r)
+	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
 		log.Error().Err(err).Send()
 		w.WriteHeader(http.StatusInternalServerError)

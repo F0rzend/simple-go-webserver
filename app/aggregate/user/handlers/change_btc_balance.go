@@ -28,7 +28,7 @@ func (r ChangeBTCBalanceRequest) Bind(_ *http.Request) error {
 func (h *UserHTTPHandlers) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
 	request := &ChangeBTCBalanceRequest{}
 
-	id, err := getUserIDFromURL(r)
+	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
 		log.Error().Err(err).Send()
 		w.WriteHeader(http.StatusInternalServerError)

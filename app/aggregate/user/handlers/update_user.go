@@ -36,7 +36,7 @@ func (r UpdateUserRequest) Bind(_ *http.Request) error {
 func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	request := &UpdateUserRequest{}
 
-	id, err := getUserIDFromURL(r)
+	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
 		log.Error().Err(err).Send()
 		w.WriteHeader(http.StatusInternalServerError)

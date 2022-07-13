@@ -5,6 +5,7 @@ import (
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
+//go:generate moq -out "mock.gen.go" . UserService:MockUserService
 type UserService interface {
 	CreateUser(cmd CreateUserCommand) (uint64, error)
 	GetUser(uint64) (*userEntity.User, error)

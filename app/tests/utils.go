@@ -12,9 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ProcessHandler(
+func AssertStatus(
 	t *testing.T,
-	handler http.Handler,
 	w http.ResponseWriter,
 	r *http.Request,
 	expectedStatus int,
@@ -25,13 +24,6 @@ func ProcessHandler(
 	if !ok {
 		t.Fatal("writer is not *httptest.ResponseRecorder")
 	}
-
-	handler.ServeHTTP(w, r)
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}()
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -44,7 +36,7 @@ func ProcessHandler(
 		errorMessage += fmt.Sprintf("\n\nURL: %s", r.URL.String())
 
 		if len(body) != 0 {
-			errorMessage += fmt.Sprintf("\nRequest: %#v", body)
+			errorMessage += fmt.Sprintf("\nRequest: %s", body)
 		}
 		if recorder.Body.Len() > 0 {
 			errorMessage += fmt.Sprintf("\nResponse: %s", recorder.Body.String())
