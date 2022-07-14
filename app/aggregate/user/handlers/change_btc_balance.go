@@ -25,10 +25,10 @@ func (r ChangeBTCBalanceRequest) Bind(_ *http.Request) error {
 	return nil
 }
 
-func (h *UserHTTPHandlers) changeBTCBalance(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
 	request := &ChangeBTCBalanceRequest{}
 
-	id, err := getUserIDFromURL(r)
+	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
 		log.Error().Err(err).Send()
 		w.WriteHeader(http.StatusInternalServerError)
@@ -46,7 +46,7 @@ func (h *UserHTTPHandlers) changeBTCBalance(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err = h.service.ChangeBTCBalance.Handle(userService.ChangeBTCBalance{
+	if err = h.service.ChangeBitcoinBalance(userService.ChangeBitcoinBalanceCommand{
 		UserID: id,
 		Action: request.Action,
 		Amount: request.Amount,

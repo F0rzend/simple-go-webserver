@@ -42,9 +42,9 @@ func NewUser(
 		return nil, ErrUsernameEmpty
 	}
 
-	addr, err := mail.ParseAddress(email)
+	addr, err := ParseEmail(email)
 	if err != nil {
-		return nil, ErrInvalidEmail
+		return nil, err
 	}
 
 	usdAmount, err := bitcoinEntity.NewUSD(usdBalance)
@@ -66,6 +66,14 @@ func NewUser(
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
+}
+
+func ParseEmail(email string) (*mail.Address, error) {
+	addr, err := mail.ParseAddress(email)
+	if err != nil {
+		return nil, ErrInvalidEmail
+	}
+	return addr, nil
 }
 
 func (u *User) ChangeUSDBalance(action bitcoinEntity.USDAction, amount bitcoinEntity.USD) error {

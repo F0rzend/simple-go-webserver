@@ -18,7 +18,7 @@ type UpdateUserRequest struct {
 	Email *string `json:"email,omitempty"`
 }
 
-var ErrEmptyUpdateUserRequest = errors.New("you must pass at least one field")
+var ErrEmptyUpdateUserRequest = errors.New("empty update user request")
 
 func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	if r.Name == nil && r.Email == nil {
@@ -33,10 +33,10 @@ func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	return nil
 }
 
-func (h *UserHTTPHandlers) updateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	request := &UpdateUserRequest{}
 
-	id, err := getUserIDFromURL(r)
+	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
 		log.Error().Err(err).Send()
 		w.WriteHeader(http.StatusInternalServerError)
@@ -54,10 +54,10 @@ func (h *UserHTTPHandlers) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.UpdateUser.Handle(service.UpdateUser{
-		ID:    id,
-		Name:  request.Name,
-		Email: request.Email,
+	if err := h.service.UpdateUser(service.UpdateUserCommand{
+		UserID: id,
+		Name:   request.Name,
+		Email:  request.Email,
 	}); err != nil {
 		common.RenderHTTPError(w, r, err)
 		return

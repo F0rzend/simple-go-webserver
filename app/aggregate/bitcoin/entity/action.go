@@ -1,6 +1,9 @@
 package entity
 
-import "errors"
+import (
+	"errors"
+	"sort"
+)
 
 var (
 	DepositUSDAction  = USDAction{"deposit"}
@@ -49,6 +52,7 @@ func GetUSDActions() (actions []string) {
 	for action := range usdActions {
 		actions = append(actions, action)
 	}
+	sort.Strings(actions)
 	return actions
 }
 
@@ -58,4 +62,12 @@ func NewBTCAction(action string) (BTCAction, error) {
 		return BTCAction{}, ErrInvalidAction
 	}
 	return btcAction, nil
+}
+
+func GetBTCActions() (actions []string) {
+	for action := range btcActions {
+		actions = append(actions, action)
+	}
+	sort.Strings(actions)
+	return actions
 }

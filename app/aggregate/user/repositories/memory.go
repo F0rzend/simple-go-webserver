@@ -14,17 +14,7 @@ func NewMemoryUserRepository() *MemoryUserRepository {
 	}
 }
 
-func (r *MemoryUserRepository) Create(user *entity.User) error {
-	if _, ok := r.users[user.ID]; ok {
-		return ErrUserAlreadyExists
-	}
-
-	for _, registeredUser := range r.users {
-		if registeredUser.Email == user.Email {
-			return ErrUserAlreadyExists
-		}
-	}
-
+func (r *MemoryUserRepository) Save(user *entity.User) error {
 	r.users[user.ID] = user
 	return nil
 }
@@ -35,25 +25,6 @@ func (r *MemoryUserRepository) Get(id uint64) (*entity.User, error) {
 		return nil, ErrUserNotFound
 	}
 	return user, nil
-}
-
-func (r *MemoryUserRepository) Update(
-	id uint64,
-	updFunc func(*entity.User) (*entity.User, error),
-) error {
-	currentUser, ok := r.users[id]
-
-	if !ok {
-		return ErrUserNotFound
-	}
-
-	updatedUser, err := updFunc(currentUser)
-	if err != nil {
-		return err
-	}
-	r.users[id] = updatedUser
-
-	return nil
 }
 
 func (r *MemoryUserRepository) Delete(id uint64) error {

@@ -1,32 +1,23 @@
 package handlers
 
 import (
-	"github.com/go-chi/chi/v5"
+	"net/http"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 )
 
 type UserHTTPHandlers struct {
-	service *service.UserService
+	service service.UserService
+
+	getUserIDFromRequest func(r *http.Request) (uint64, error)
 }
 
-func NewUserHTTPHandlers(userService *service.UserService) *UserHTTPHandlers {
+func NewUserHTTPHandlers(
+	userService service.UserService,
+	getUserIDFromRequest func(r *http.Request) (uint64, error),
+) *UserHTTPHandlers {
 	return &UserHTTPHandlers{
-		service: userService,
+		service:              userService,
+		getUserIDFromRequest: getUserIDFromRequest,
 	}
-}
-
-func (h *UserHTTPHandlers) SetRoutes(r chi.Router) {
-	r.Route("/users", func(r chi.Router) {
-		r.Post("/", h.createUser)
-
-		r.Route("/{id}", func(r chi.Router) {
-			r.Get("/", h.getUser)
-			r.Put("/", h.updateUser)
-			r.Get("/balance", h.getUserBalance)
-
-			r.Post("/bitcoin", h.changeBTCBalance)
-			r.Post("/usd", h.changeUSDBalance)
-		})
-	})
 }

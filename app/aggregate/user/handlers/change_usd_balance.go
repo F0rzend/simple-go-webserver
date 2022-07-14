@@ -38,10 +38,10 @@ func (r ChangeUSDBalanceRequest) Bind(_ *http.Request) error {
 	return nil
 }
 
-func (h *UserHTTPHandlers) changeUSDBalance(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
 	request := &ChangeUSDBalanceRequest{}
 
-	id, err := getUserIDFromURL(r)
+	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
 		log.Error().Err(err).Send()
 		w.WriteHeader(http.StatusInternalServerError)
@@ -59,7 +59,7 @@ func (h *UserHTTPHandlers) changeUSDBalance(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := h.service.ChangeUSDBalance.Handle(userService.ChangeUSDBalance{
+	if err := h.service.ChangeUserBalance(userService.ChangeUserBalanceCommand{
 		UserID: id,
 		Action: request.Action,
 		Amount: request.Amount,

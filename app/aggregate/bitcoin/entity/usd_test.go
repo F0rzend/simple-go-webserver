@@ -4,8 +4,46 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/shopspring/decimal"
+
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewUSD(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		input    float64
+		expected USD
+		err      error
+	}{
+		{
+			name:     "success",
+			input:    1,
+			expected: USD{decimal.NewFromFloat(1)},
+			err:      nil,
+		},
+		{
+			name:     "negative",
+			input:    -1,
+			expected: USD{},
+			err:      ErrNegativeCurrency,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual, err := NewUSD(tc.input)
+
+			assert.ErrorIs(t, err, tc.err)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
 
 func TestUSD_ToFloat(t *testing.T) {
 	t.Parallel()
@@ -161,6 +199,55 @@ func TestUSD_Sub(t *testing.T) {
 
 			assert.ErrorIs(t, err, tc.err)
 			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestUSDComparativeTransactions(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name          string
+		a             USD
+		b             USD
+		aLessThanB    bool
+		aEqualToB     bool
+		aGreaterThanB bool
+	}{
+		{
+			name:          "a less than b",
+			a:             MustNewUSD(1),
+			b:             MustNewUSD(2),
+			aLessThanB:    true,
+			aEqualToB:     false,
+			aGreaterThanB: false,
+		},
+		{
+			name:          "a equal to b",
+			a:             MustNewUSD(1),
+			b:             MustNewUSD(1),
+			aLessThanB:    false,
+			aEqualToB:     true,
+			aGreaterThanB: false,
+		},
+		{
+			name:          "a greater than b",
+			a:             MustNewUSD(2),
+			b:             MustNewUSD(1),
+			aLessThanB:    false,
+			aEqualToB:     false,
+			aGreaterThanB: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.aLessThanB, tc.a.LessThan(tc.b))
+			assert.Equal(t, tc.aEqualToB, tc.a.Equal(tc.b))
+			assert.Equal(t, tc.aGreaterThanB, tc.b.LessThan(tc.a))
 		})
 	}
 }

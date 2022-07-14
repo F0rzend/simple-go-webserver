@@ -89,14 +89,14 @@ func Test_GetUSDActions(t *testing.T) {
 	expected := []string{"deposit", "withdraw"}
 	actual := GetUSDActions()
 
-	assertEqualSlices(t, expected, actual)
+	assert.Equal(t, expected, actual)
 }
 
-func assertEqualSlices[T any, slice []T](t *testing.T, expected, actual slice) {
-	t.Helper()
+func Test_GetBTCActions(t *testing.T) {
+	t.Parallel()
 
-	assert.Len(t, actual, len(expected))
-	for _, action := range expected {
-		assert.Contains(t, actual, action)
-	}
+	expected := []string{"buy", "sell"}
+	actual := GetBTCActions()
+
+	assert.Equal(t, expected, actual)
 }

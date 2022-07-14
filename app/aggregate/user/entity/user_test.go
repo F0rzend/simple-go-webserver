@@ -326,3 +326,35 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 		})
 	}
 }
+
+func TestUser_ParseEmail(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name  string
+		email string
+		err   error
+	}{
+		{
+			name:  "success",
+			email: "test@mail.com",
+			err:   nil,
+		},
+		{
+			name:  "invalid mail",
+			email: "test",
+			err:   ErrInvalidEmail,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := ParseEmail(tc.email)
+
+			assert.ErrorIs(t, err, tc.err)
+		})
+	}
+}

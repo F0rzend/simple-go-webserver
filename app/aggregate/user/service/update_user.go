@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"net/mail"
 	"time"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
@@ -11,61 +10,55 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-type UpdateUser struct {
-	ID    uint64
-	Name  *string
-	Email *string
+type UpdateUserCommand struct {
+	UserID uint64
+	Name   *string
+	Email  *string
 }
 
-type UpdateUserHandler struct {
-	userRepository entity.UserRepository
-}
-
-func MustNewUpdateUserHandler(userRepository entity.UserRepository) UpdateUserHandler {
-	if userRepository == nil {
-		panic(ErrNilUserRepository)
-	}
-
-	return UpdateUserHandler{
-		userRepository: userRepository,
-	}
-}
-
-func (h *UpdateUserHandler) Handle(cmd UpdateUser) error {
-	switch err := h.userRepository.Update(
-		cmd.ID,
-		func(user *entity.User) (*entity.User, error) {
-			if cmd.Name != nil {
-				user.Name = *cmd.Name
-			}
-
-			if cmd.Email != nil {
-				addr, err := mail.ParseAddress(*cmd.Email)
-				if err != nil {
-					return nil, entity.ErrInvalidEmail
-				}
-				user.Email = addr
-			}
-
-			user.UpdatedAt = time.Now()
-
-			return user, nil
-		},
-	); err {
+func (us *UserServiceImpl) UpdateUser(cmd UpdateUserCommand) error {
+	user, err := us.userRepository.Get(cmd.UserID)
+	switch err {
+	case nil:
 	case repositories.ErrUserNotFound:
 		return common.NewServiceError(
 			http.StatusNotFound,
 			fmt.Sprintf(
 				"User with id %d not found",
-				cmd.ID,
+				cmd.UserID,
 			),
-		)
-	case entity.ErrInvalidEmail:
-		return common.NewServiceError(
-			http.StatusBadRequest,
-			"You must provide a valid email",
 		)
 	default:
 		return err
 	}
+
+	if cmd.Name == nil && cmd.Email == nil {
+		return common.NewServiceError(
+			http.StatusBadRequest,
+			"At least one field must be updated",
+		)
+	}
+
+	if cmd.Name != nil {
+		user.Name = *cmd.Name
+	}
+
+	if cmd.Email != nil {
+		newEmail, err := entity.ParseEmail(*cmd.Email)
+		if err != nil {
+			return common.NewServiceError(
+				http.StatusBadRequest,
+				"You must provide a valid email",
+			)
+		}
+		user.Email = newEmail
+	}
+
+	user.UpdatedAt = time.Now()
+
+	if err := us.userRepository.Save(user); err != nil {
+		return err
+	}
+
+	return nil
 }

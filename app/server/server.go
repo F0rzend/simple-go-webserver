@@ -2,17 +2,17 @@ package server
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	bitcoinHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
-	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 	bitcoinService "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 
+	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	userHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/user/handlers"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 )
 
@@ -21,20 +21,26 @@ type Server struct {
 	bitcoinRoutes *bitcoinHTTPHandlers.BitcoinHTTPHandlers
 }
 
-func NewServer() (*Server, error) {
-	bitcoinRepository, err := bitcoinRepositories.NewMemoryBTCRepository(bitcoinEntity.MustNewUSD(100))
-	if err != nil {
-		return nil, err
-	}
-	userRepository := userRepositories.NewMemoryUserRepository()
+func getUserIDFromURL(r *http.Request) (uint64, error) {
+	const userIDURLKey = "id"
 
+	return strconv.ParseUint(chi.URLParam(r, userIDURLKey), 10, 64)
+}
+
+func NewServer(
+	userRepository userEntity.UserRepository,
+	bitcoinRepository bitcoinEntity.BTCRepository,
+) *Server {
 	bitcoinRoutes := bitcoinHTTPHandlers.NewBitcoinHTTPHandlers(bitcoinService.NewBitcoinService(bitcoinRepository))
-	userRoutes := userHTTPHandlers.NewUserHTTPHandlers(userService.NewUserService(userRepository, bitcoinRepository))
+	userRoutes := userHTTPHandlers.NewUserHTTPHandlers(
+		userService.NewUserService(userRepository, bitcoinRepository),
+		getUserIDFromURL,
+	)
 
 	return &Server{
 		userRoutes:    userRoutes,
 		bitcoinRoutes: bitcoinRoutes,
-	}, nil
+	}
 }
 
 func (s *Server) GetHTTPHandler() http.Handler {
@@ -46,8 +52,22 @@ func (s *Server) GetHTTPHandler() http.Handler {
 		middleware.AllowContentType("application/json"),
 	)
 
-	s.userRoutes.SetRoutes(r)
-	s.bitcoinRoutes.SetRoutes(r)
+	r.Route("/users", func(r chi.Router) {
+		r.Post("/", s.userRoutes.CreateUser)
+
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/", s.userRoutes.GetUser)
+			r.Put("/", s.userRoutes.UpdateUser)
+			r.Get("/balance", s.userRoutes.GetUserBalance)
+
+			r.Post("/bitcoin", s.userRoutes.ChangeBTCBalance)
+			r.Post("/usd", s.userRoutes.ChangeUSDBalance)
+		})
+	})
+	r.Route("/bitcoin", func(r chi.Router) {
+		r.Get("/", s.bitcoinRoutes.GetBTCPrice)
+		r.Put("/", s.bitcoinRoutes.SetBTCPrice)
+	})
 
 	return r
 }
