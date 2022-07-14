@@ -18,7 +18,7 @@ type UpdateUserRequest struct {
 	Email *string `json:"email,omitempty"`
 }
 
-var ErrEmptyUpdateUserRequest = errors.New("you must pass at least one field")
+var ErrEmptyUpdateUserRequest = errors.New("empty update user request")
 
 func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	if r.Name == nil && r.Email == nil {

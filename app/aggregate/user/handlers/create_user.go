@@ -19,9 +19,21 @@ type CreateUserRequest struct {
 	Email    string `json:"email"`
 }
 
-var ErrInvalidEmail = errors.New("invalid email")
+var (
+	ErrInvalidName     = errors.New("invalid name")
+	ErrInvalidUsername = errors.New("invalid username")
+	ErrInvalidEmail    = errors.New("invalid email")
+)
 
 func (r CreateUserRequest) Bind(_ *http.Request) error {
+	if r.Name == "" {
+		return ErrInvalidName
+	}
+
+	if r.Username == "" {
+		return ErrInvalidUsername
+	}
+
 	if _, err := mail.ParseAddress(r.Email); err != nil {
 		return ErrInvalidEmail
 	}
@@ -33,7 +45,7 @@ func (h *UserHTTPHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if err := render.Bind(r, request); err != nil {
 		switch err {
-		case ErrInvalidEmail:
+		case ErrInvalidName, ErrInvalidUsername, ErrInvalidEmail:
 			w.WriteHeader(http.StatusBadRequest)
 		default:
 			log.Error().Err(err).Send()
