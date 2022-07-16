@@ -44,9 +44,9 @@ func TestUserService_UpdateUser(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 0,
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusNotFound,
-				"User with id 42 not found",
+				"User not found",
 			),
 		},
 		{
@@ -58,8 +58,8 @@ func TestUserService_UpdateUser(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 0,
-			err: common.NewServiceError(
-				http.StatusBadRequest,
+			err: common.NewApplicationError(
+				http.StatusNotModified,
 				"At least one field must be updated",
 			),
 		},
@@ -83,7 +83,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 0,
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
 				"You must provide a valid email",
 			),

@@ -1,10 +1,12 @@
 package repositories
 
 import (
-	"errors"
+	"net/http"
+
+	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserAlreadyExists = errors.New("user already exists")
+var ErrUserNotFound = common.NewApplicationError(
+	http.StatusNotFound,
+	"User not found",
 )

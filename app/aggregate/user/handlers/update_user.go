@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/mail"
@@ -18,7 +17,10 @@ type UpdateUserRequest struct {
 	Email *string `json:"email,omitempty"`
 }
 
-var ErrEmptyUpdateUserRequest = errors.New("empty update user request")
+var ErrEmptyUpdateUserRequest = common.NewApplicationError(
+	http.StatusNotModified,
+	"At least one field must be updated",
+)
 
 func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	if r.Name == nil && r.Email == nil {
@@ -43,14 +45,8 @@ func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch err := render.Bind(r, request); err {
-	case nil:
-	case ErrEmptyUpdateUserRequest, ErrInvalidEmail:
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	default:
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
+	if err := render.Bind(r, request); err != nil {
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

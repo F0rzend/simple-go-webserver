@@ -7,28 +7,31 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type ServiceError struct {
-	HTTPStatus   int    `json:"-"`
+type ApplicationError struct {
+	httpStatus   int
 	ErrorMessage string `json:"error"`
 }
 
-func NewServiceError(status int, message string) ServiceError {
-	return ServiceError{HTTPStatus: status, ErrorMessage: message}
-}
-
-func (e ServiceError) Error() string {
+func (e ApplicationError) Error() string {
 	return e.ErrorMessage
 }
 
-func (e ServiceError) Render(_ http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.HTTPStatus)
+func NewApplicationError(httpStatus int, message string) ApplicationError {
+	return ApplicationError{
+		httpStatus:   httpStatus,
+		ErrorMessage: message,
+	}
+}
+
+func (e ApplicationError) Render(_ http.ResponseWriter, r *http.Request) error {
+	render.Status(r, e.httpStatus)
 	return nil
 }
 
 func RenderHTTPError(w http.ResponseWriter, r *http.Request, err error) {
 	switch err := err.(type) {
 	case nil:
-	case ServiceError:
+	case ApplicationError:
 		logError(render.Render(w, r, err))
 		return
 	default:

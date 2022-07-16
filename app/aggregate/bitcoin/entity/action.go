@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"errors"
 	"sort"
 )
 
@@ -37,12 +36,10 @@ func (a action) String() string {
 	return a.a
 }
 
-var ErrInvalidAction = errors.New("invalid action")
-
 func NewUSDAction(action string) (USDAction, error) {
 	usdAction, ok := usdActions[action]
 	if !ok {
-		return USDAction{}, ErrInvalidAction
+		return USDAction{}, ErrInvalidUSDAction
 	}
 
 	return usdAction, nil
@@ -59,7 +56,7 @@ func GetUSDActions() (actions []string) {
 func NewBTCAction(action string) (BTCAction, error) {
 	btcAction, ok := btcActions[action]
 	if !ok {
-		return BTCAction{}, ErrInvalidAction
+		return BTCAction{}, ErrInvalidBTCAction
 	}
 	return btcAction, nil
 }

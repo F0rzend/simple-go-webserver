@@ -43,9 +43,9 @@ func TestUserService_GetUserBalance(t *testing.T) {
 		{
 			name:   "user not found",
 			userID: 0,
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusNotFound,
-				"User with id 0 not found",
+				"User not found",
 			),
 		},
 	}

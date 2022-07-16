@@ -51,7 +51,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				Action: "invalid",
 				Amount: 1,
 			},
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
 				"You must specify a valid action. Available actions: deposit, withdraw",
 			),
@@ -63,7 +63,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				Action: "deposit",
 				Amount: -1,
 			},
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
 				"The amount of currency cannot be negative. Please pass a number greater than 0",
 			),
@@ -76,9 +76,9 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				Amount: 1,
 			},
 			getUserCallsAmount: 1,
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusNotFound,
-				"User with id 42 not found",
+				"User not found",
 			),
 		},
 		{
@@ -89,9 +89,9 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				Amount: 1,
 			},
 			getUserCallsAmount: 1,
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
-				"The user does not have enough funds to withdraw USD",
+				"The user does not have enough funds",
 			),
 		},
 		{
