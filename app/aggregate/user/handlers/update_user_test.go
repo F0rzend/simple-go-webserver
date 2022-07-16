@@ -24,7 +24,7 @@ func TestUserHTTPHandlers_UpdateUser(t *testing.T) {
 			request:                     UpdateUserRequest{},
 			shouldContainLocationHeader: false,
 			updateUserCallsAmount:       0,
-			expectedStatus:              http.StatusBadRequest,
+			expectedStatus:              http.StatusNotModified,
 		},
 		{
 			name: "update name and email",

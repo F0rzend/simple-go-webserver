@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -19,8 +18,14 @@ type ChangeUSDBalanceRequest struct {
 }
 
 var (
-	ErrZeroAmount  = errors.New("amount can't be zero")
-	ErrEmptyAction = errors.New("you should pass an action")
+	ErrEmptyAction = common.NewApplicationError(
+		http.StatusBadRequest,
+		"Action cannot be empty",
+	)
+	ErrZeroAmount = common.NewApplicationError(
+		http.StatusBadRequest,
+		"Amount can't be zero",
+	)
 )
 
 func (r ChangeUSDBalanceRequest) Bind(_ *http.Request) error {
@@ -49,13 +54,7 @@ func (h *UserHTTPHandlers) ChangeUSDBalance(w http.ResponseWriter, r *http.Reque
 	}
 
 	if err := render.Bind(r, request); err != nil {
-		switch err {
-		case ErrZeroAmount, ErrEmptyAction, bitcoinEntity.ErrInvalidAction:
-			w.WriteHeader(http.StatusBadRequest)
-		default:
-			log.Error().Err(err).Send()
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

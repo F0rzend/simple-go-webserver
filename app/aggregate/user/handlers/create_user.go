@@ -1,16 +1,13 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/mail"
 
-	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
-
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/go-chi/render"
 )
 
 type CreateUserRequest struct {
@@ -20,9 +17,14 @@ type CreateUserRequest struct {
 }
 
 var (
-	ErrInvalidName     = errors.New("invalid name")
-	ErrInvalidUsername = errors.New("invalid username")
-	ErrInvalidEmail    = errors.New("invalid email")
+	ErrInvalidName = common.NewApplicationError(
+		http.StatusBadRequest,
+		"Name cannot be empty",
+	)
+	ErrInvalidUsername = common.NewApplicationError(
+		http.StatusBadRequest,
+		"Username cannot be empty",
+	)
 )
 
 func (r CreateUserRequest) Bind(_ *http.Request) error {
@@ -44,13 +46,7 @@ func (h *UserHTTPHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	request := &CreateUserRequest{}
 
 	if err := render.Bind(r, request); err != nil {
-		switch err {
-		case ErrInvalidName, ErrInvalidUsername, ErrInvalidEmail:
-			w.WriteHeader(http.StatusBadRequest)
-		default:
-			log.Error().Err(err).Send()
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

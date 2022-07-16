@@ -28,7 +28,7 @@ func TestBTCAction(t *testing.T) {
 		{
 			name:         "unknown action",
 			actionString: "unknown",
-			err:          ErrInvalidAction,
+			err:          ErrInvalidBTCAction,
 		},
 	}
 
@@ -66,7 +66,7 @@ func TestUSDAction(t *testing.T) {
 		{
 			name:         "unknown action",
 			actionString: "unknown",
-			err:          ErrInvalidAction,
+			err:          ErrInvalidUSDAction,
 		},
 	}
 

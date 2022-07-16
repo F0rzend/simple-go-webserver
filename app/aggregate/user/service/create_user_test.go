@@ -39,7 +39,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test@mail.com",
 			},
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
 				"Name cannot be empty",
 			),
@@ -51,7 +51,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				Username: "",
 				Email:    "test@mail.com",
 			},
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
 				"Username cannot be empty",
 			),
@@ -63,7 +63,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test",
 			},
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
 				"You must provide a valid email",
 			),
