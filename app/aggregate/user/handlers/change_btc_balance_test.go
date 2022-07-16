@@ -13,61 +13,26 @@ import (
 func TestUserHTTPHandlers_ChangeBTCBalance(t *testing.T) {
 	t.Parallel()
 
-	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
+	request := ChangeBTCBalanceRequest{
+		Action: "buy",
+		Amount: 1,
+	}
+	expectedStatus := http.StatusNoContent
+
+	service := &userService.MockUserService{
+		ChangeBitcoinBalanceFunc: func(_ userService.ChangeBitcoinBalanceCommand) error {
+			return nil
+		},
+	}
+
+	handler := http.HandlerFunc(NewUserHTTPHandlers(service, func(_ *http.Request) (uint64, error) {
 		return 1, nil
-	}
-	changeBitcoinBalanceFunc := func(_ userService.ChangeBitcoinBalanceCommand) error {
-		return nil
-	}
+	}).ChangeBTCBalance)
 
-	testCases := []struct {
-		name                            string
-		request                         ChangeBTCBalanceRequest
-		shouldContainLocationHeader     bool
-		changeBitcoinBalanceCallsAmount int
-		expectedStatus                  int
-	}{
-		{
-			name: "success",
-			request: ChangeBTCBalanceRequest{
-				Action: "buy",
-				Amount: 1,
-			},
-			shouldContainLocationHeader:     true,
-			changeBitcoinBalanceCallsAmount: 1,
-			expectedStatus:                  http.StatusNoContent,
-		},
-		{
-			name: "invalid action",
-			request: ChangeBTCBalanceRequest{
-				Action: "invalid",
-				Amount: 1,
-			},
-			shouldContainLocationHeader:     false,
-			changeBitcoinBalanceCallsAmount: 0,
-			expectedStatus:                  http.StatusBadRequest,
-		},
-	}
+	w, r := tests.PrepareHandlerArgs(t, http.MethodPost, "/users/1/bitcoin", request)
+	handler.ServeHTTP(w, r)
 
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			service := &userService.MockUserService{
-				ChangeBitcoinBalanceFunc: changeBitcoinBalanceFunc,
-			}
-
-			handler := http.HandlerFunc(NewUserHTTPHandlers(service, getUserIDFromURL).ChangeBTCBalance)
-
-			w, r := tests.PrepareHandlerArgs(t, http.MethodPost, "/users/1/bitcoin", tc.request)
-			handler.ServeHTTP(w, r)
-
-			tests.AssertStatus(t, w, r, tc.expectedStatus)
-			if tc.shouldContainLocationHeader {
-				assert.Equal(t, "/users/1", w.Header().Get("Location"))
-			}
-			assert.Len(t, service.ChangeBitcoinBalanceCalls(), tc.changeBitcoinBalanceCallsAmount)
-		})
-	}
+	tests.AssertStatus(t, w, r, expectedStatus)
+	assert.Equal(t, "/users/1", w.Header().Get("Location"))
+	assert.Len(t, service.ChangeBitcoinBalanceCalls(), 1)
 }

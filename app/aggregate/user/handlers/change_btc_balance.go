@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
@@ -18,10 +17,6 @@ type ChangeBTCBalanceRequest struct {
 }
 
 func (r ChangeBTCBalanceRequest) Bind(_ *http.Request) error {
-	if _, err := bitcoinEntity.NewBTCAction(r.Action); err != nil {
-		return err
-	}
-
 	return nil
 }
 

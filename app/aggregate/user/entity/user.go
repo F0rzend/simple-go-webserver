@@ -87,14 +87,14 @@ func ParseEmail(email string) (*mail.Address, error) {
 	return addr, nil
 }
 
-func (u *User) ChangeUSDBalance(action bitcoinEntity.USDAction, amount bitcoinEntity.USD) error {
+func (u *User) ChangeUSDBalance(action Action, amount bitcoinEntity.USD) error {
 	switch action {
-	case bitcoinEntity.DepositUSDAction:
+	case DepositUSDAction:
 		return u.deposit(amount)
-	case bitcoinEntity.WithdrawUSDAction:
+	case WithdrawUSDAction:
 		return u.withdraw(amount)
 	default:
-		return bitcoinEntity.ErrInvalidUSDAction
+		return ErrInvalidUSDAction
 	}
 }
 
@@ -118,14 +118,14 @@ func (u *User) withdraw(amount bitcoinEntity.USD) error {
 	return nil
 }
 
-func (u *User) ChangeBTCBalance(action bitcoinEntity.BTCAction, amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
+func (u *User) ChangeBTCBalance(action Action, amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
 	switch action {
-	case bitcoinEntity.BuyBTCAction:
+	case BuyBTCAction:
 		return u.buyBTC(amount, price)
-	case bitcoinEntity.SellBTCAction:
+	case SellBTCAction:
 		return u.sellBTC(amount, price)
 	default:
-		return bitcoinEntity.ErrInvalidBTCAction
+		return ErrInvalidBTCAction
 	}
 }
 

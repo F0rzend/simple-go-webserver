@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
@@ -34,10 +33,6 @@ func (r ChangeUSDBalanceRequest) Bind(_ *http.Request) error {
 	}
 	if r.Amount == 0 {
 		return ErrZeroAmount
-	}
-
-	if _, err := bitcoinEntity.NewUSDAction(r.Action); err != nil {
-		return err
 	}
 
 	return nil
