@@ -35,14 +35,8 @@ func (h *UserHTTPHandlers) ChangeBTCBalance(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	switch err := render.Bind(r, request); err {
-	case nil:
-	case bitcoinEntity.ErrInvalidAction:
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	default:
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
+	if err := render.Bind(r, request); err != nil {
+		common.RenderHTTPError(w, r, err)
 		return
 	}
 

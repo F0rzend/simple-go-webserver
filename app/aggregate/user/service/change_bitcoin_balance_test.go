@@ -59,7 +59,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			cmd: ChangeBitcoinBalanceCommand{
 				Action: "invalid",
 			},
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
 				"You must specify a valid action. Available actions: buy, sell",
 			),
@@ -71,9 +71,9 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Action: "buy",
 			},
 			getUserCallsAmount: 1,
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusNotFound,
-				"User with id 42 not found",
+				"User not found",
 			),
 		},
 		{
@@ -83,7 +83,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Action: "buy",
 				Amount: -1,
 			},
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
 				"The amount of currency cannot be negative. Please pass a number greater than 0",
 			),
@@ -96,9 +96,9 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Amount: 1,
 			},
 			getPriceCallsAmount: 1,
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
-				"The user does not have enough funds to buy BTC",
+				"The user does not have enough funds",
 			),
 		},
 		{
@@ -109,9 +109,9 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				Amount: 1,
 			},
 			getPriceCallsAmount: 1,
-			err: common.NewServiceError(
+			err: common.NewApplicationError(
 				http.StatusBadRequest,
-				"The user does not have enough funds to sell BTC",
+				"The user does not have enough funds",
 			),
 		},
 		{

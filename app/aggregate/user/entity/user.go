@@ -1,9 +1,11 @@
 package entity
 
 import (
-	"errors"
+	"net/http"
 	"net/mail"
 	"time"
+
+	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
@@ -19,9 +21,18 @@ type User struct {
 }
 
 var (
-	ErrNameEmpty     = errors.New("name is empty")
-	ErrUsernameEmpty = errors.New("username is empty")
-	ErrInvalidEmail  = errors.New("invalid email")
+	ErrNameEmpty = common.NewApplicationError(
+		http.StatusBadRequest,
+		"Name cannot be empty",
+	)
+	ErrUsernameEmpty = common.NewApplicationError(
+		http.StatusBadRequest,
+		"Username cannot be empty",
+	)
+	ErrInvalidEmail = common.NewApplicationError(
+		http.StatusBadRequest,
+		"You must provide a valid email",
+	)
 )
 
 func NewUser(
@@ -83,7 +94,7 @@ func (u *User) ChangeUSDBalance(action bitcoinEntity.USDAction, amount bitcoinEn
 	case bitcoinEntity.WithdrawUSDAction:
 		return u.withdraw(amount)
 	default:
-		return bitcoinEntity.ErrInvalidAction
+		return bitcoinEntity.ErrInvalidUSDAction
 	}
 }
 
@@ -114,7 +125,7 @@ func (u *User) ChangeBTCBalance(action bitcoinEntity.BTCAction, amount bitcoinEn
 	case bitcoinEntity.SellBTCAction:
 		return u.sellBTC(amount, price)
 	default:
-		return bitcoinEntity.ErrInvalidAction
+		return bitcoinEntity.ErrInvalidBTCAction
 	}
 }
 
