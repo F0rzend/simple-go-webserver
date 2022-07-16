@@ -2,6 +2,7 @@ package service
 
 import (
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
 type ChangeBitcoinBalanceCommand struct {
@@ -11,11 +12,6 @@ type ChangeBitcoinBalanceCommand struct {
 }
 
 func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand) error {
-	action, err := bitcoinEntity.NewBTCAction(cmd.Action)
-	if err != nil {
-		return err
-	}
-
 	btc, err := bitcoinEntity.NewBTC(cmd.Amount)
 	if err != nil {
 		return err
@@ -28,7 +24,7 @@ func (us *UserServiceImpl) ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand)
 
 	currentBitcoinPrice := us.bitcoinRepository.GetPrice()
 
-	if err := user.ChangeBTCBalance(action, btc, currentBitcoinPrice); err != nil {
+	if err := user.ChangeBTCBalance(entity.Action(cmd.Action), btc, currentBitcoinPrice); err != nil {
 		return err
 	}
 	return us.userRepository.Save(user)

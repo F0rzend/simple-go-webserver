@@ -51,9 +51,10 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				Action: "invalid",
 				Amount: 1,
 			},
+			getUserCallsAmount: 1,
 			err: common.NewApplicationError(
 				http.StatusBadRequest,
-				"You must specify a valid action. Available actions: deposit, withdraw",
+				"You must specify a valid action. Available actions: deposit and withdraw",
 			),
 		},
 		{
