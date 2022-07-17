@@ -14,25 +14,14 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/server"
 )
 
-func setupLogger() {
-	log.Logger = log.
-		With().Caller().Logger().
-		Output(zerolog.ConsoleWriter{Out: os.Stderr})
-}
-
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
-}
-
 func main() {
-	setupLogger()
+	logger := log.
+		Output(zerolog.ConsoleWriter{Out: os.Stderr}).
+		With().Caller().
+		Logger()
 
 	address := getEnv("ADDRESS", ":8080")
-	log.Info().Msgf("starting endpoints on %s", address)
+	logger.Info().Msgf("starting endpoints on %s", address)
 
 	userRepository := userRepositories.NewMemoryUserRepository()
 	bitcoinRepository, err := bitcoinRepositories.NewMemoryBTCRepository(bitcoinEntity.MustNewUSD(100))
@@ -44,8 +33,16 @@ func main() {
 
 	if err := http.ListenAndServe(
 		address,
-		apiServer.GetHTTPHandler(),
+		apiServer.GetHTTPHandler(logger),
 	); err != nil {
 		log.Error().Err(err).Send()
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }
