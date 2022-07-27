@@ -178,6 +178,45 @@ paths:
         500:
           description: Error on server side
 
+  /users/{id}/balance:
+    get:
+      tags:
+        - Finances
+      summary: Get user balance
+      description: User balance is amount in usd + amount of bitcoins converted to usd
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        200:
+          description: Total user's balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    format: float64
+                    example: 120.05
+
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
+
+        500:
+          description: Error on server side
+
   /users/{id}/usd:
     post:
       tags:
@@ -273,34 +312,6 @@ paths:
 
         404:
           description: User not found
-
-  /users/{id}/balance:
-    get:
-      tags:
-        - Finances
-      summary: Get user balance
-      description: user balance is amount in usd + amount of bitcoins converted to usd
-      parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: integer
-            format: uint64
-      responses:
-        200:
-          description: Total user's balance
-          content:
-            application/json:
-              schema:
-                type: number
-                format: float64
-                example: 120.05
-        404:
-          description: User not found
-        500:
-          description: Error on server side
 
   /bitcoin:
     get:
