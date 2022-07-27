@@ -50,20 +50,6 @@ func TestUserService_UpdateUser(t *testing.T) {
 			),
 		},
 		{
-			name: "empty fields",
-			cmd: UpdateUserCommand{
-				UserID: 1,
-				Name:   nil,
-				Email:  nil,
-			},
-			getUserCallsAmount:  1,
-			saveUserCallsAmount: 0,
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"At least one field must be updated",
-			),
-		},
-		{
 			name: "update name",
 			cmd: UpdateUserCommand{
 				UserID: 1,
