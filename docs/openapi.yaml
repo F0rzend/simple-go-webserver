@@ -422,11 +422,16 @@ paths:
                   type: number
                   format: float64
                   example: 100.00
+
       responses:
         204:
           description: Successfully updated bitcoin price
+
         400:
           description: Validation error
+
+        500:
+          description: Error on server side
 
 components:
   schemas:
