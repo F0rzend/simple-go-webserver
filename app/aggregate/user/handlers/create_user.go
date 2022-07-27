@@ -60,7 +60,7 @@ func (h *UserHTTPHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Status(r, http.StatusNoContent)
+	render.Status(r, http.StatusCreated)
 	w.Header().Set("Location", fmt.Sprintf("/users/%d", id))
 	render.Respond(w, r, nil)
 }

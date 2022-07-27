@@ -35,7 +35,7 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 			},
 			shouldContainLocationHeader: true,
 			createUserCallsAmount:       1,
-			expectedStatus:              http.StatusNoContent,
+			expectedStatus:              http.StatusCreated,
 		},
 		{
 			name: "empty name",

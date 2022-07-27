@@ -51,7 +51,7 @@ paths:
         required: true
 
       responses:
-        204:
+        201:
           description: Location of created user
           headers:
             Location:
@@ -60,9 +60,27 @@ paths:
                 format: uri
                 example: /users/1
         400:
-          description: Validation error
-        409:
-          description: User already exists
+          description: Wrong request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_name:
+                  summary: Empty name
+                  description: Name cannot be empty
+                  value:
+                    error: Name cannot be empty
+                empty_username:
+                  summary: Empty username
+                  description: Username cannot be empty
+                  value:
+                    error: Username cannot be empty
+                invalid_email:
+                  summary: Invalid email
+                  description: Email should be correct (mail@example.com)
+                  value:
+                    error: Email is not valid
         500:
           description: Error on server side
 
@@ -352,6 +370,13 @@ components:
           type: string
           format: date-time
           example: 2020-01-01T00:00:00Z
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error message
 
 externalDocs:
   description: Github repository of the project
