@@ -17,6 +17,13 @@ type ChangeBTCBalanceRequest struct {
 }
 
 func (r ChangeBTCBalanceRequest) Bind(_ *http.Request) error {
+	if r.Action == "" {
+		return ErrEmptyAction
+	}
+	if r.Amount == 0 {
+		return ErrZeroAmount
+	}
+
 	return nil
 }
 

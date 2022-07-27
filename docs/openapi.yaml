@@ -308,7 +308,7 @@ paths:
     post:
       tags:
         - Finances
-      summary: Buy or sell Bitcoins
+      summary: Bitcoin manipulations
       description: A user cannot withdraw bitcoins, only convert them to or from usd
       parameters:
         - name: id
@@ -348,10 +348,40 @@ paths:
                 example: /users/1
 
         400:
-          description: Validation error
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_action:
+                  summary: Empty action
+                  value:
+                    error: Action cannot be empty
+                zero_amount:
+                  summary: Zero amount
+                  value:
+                    error: Amount can't be zero
+                negative_amount:
+                  summary: Negative amount
+                  value:
+                    error: The amount of currency cannot be negative. Please pass a number greater than 0
+                invalid_action:
+                  summary: Invalid action
+                  value:
+                    error: "You must specify a valid action. Available actions: buy or sell"
 
         404:
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
+
+        500:
+          description: Error on server side
 
   /bitcoin:
     get:
