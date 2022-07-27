@@ -17,14 +17,14 @@ type UpdateUserRequest struct {
 	Email *string `json:"email,omitempty"`
 }
 
-var ErrEmptyUpdateUserRequest = common.NewApplicationError(
+var ErrNothingToUpdate = common.NewApplicationError(
 	http.StatusBadRequest,
 	"At least one field must be updated",
 )
 
 func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	if r.Name == nil && r.Email == nil {
-		return ErrEmptyUpdateUserRequest
+		return ErrNothingToUpdate
 	}
 
 	if r.Email != nil {

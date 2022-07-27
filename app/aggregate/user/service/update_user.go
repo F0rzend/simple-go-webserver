@@ -1,11 +1,9 @@
 package service
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 type UpdateUserCommand struct {
@@ -14,11 +12,6 @@ type UpdateUserCommand struct {
 	Email  *string
 }
 
-var NothingToUpdate = common.NewApplicationError(
-	http.StatusBadRequest,
-	"At least one field must be updated",
-)
-
 func (us *UserServiceImpl) UpdateUser(cmd UpdateUserCommand) error {
 	user, err := us.userRepository.Get(cmd.UserID)
 	if err != nil {
@@ -26,7 +19,7 @@ func (us *UserServiceImpl) UpdateUser(cmd UpdateUserCommand) error {
 	}
 
 	if cmd.Name == nil && cmd.Email == nil {
-		return NothingToUpdate
+		return nil
 	}
 
 	if cmd.Name != nil {
