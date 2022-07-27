@@ -59,7 +59,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 0,
 			err: common.NewApplicationError(
-				http.StatusNotModified,
+				http.StatusBadRequest,
 				"At least one field must be updated",
 			),
 		},

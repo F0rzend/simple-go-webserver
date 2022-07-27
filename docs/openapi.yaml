@@ -68,19 +68,16 @@ paths:
               examples:
                 empty_name:
                   summary: Empty name
-                  description: Name cannot be empty
                   value:
                     error: Name cannot be empty
                 empty_username:
                   summary: Empty username
-                  description: Username cannot be empty
                   value:
                     error: Username cannot be empty
                 invalid_email:
                   summary: Invalid email
-                  description: Email should be correct (mail@example.com)
                   value:
-                    error: Email is not valid
+                    error: You must provide a valid email
         500:
           description: Error on server side
 
@@ -141,7 +138,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: some@gmail.com
+                  example: user@example.com
         required: true
 
       responses:
@@ -154,9 +151,29 @@ paths:
                 format: uri
                 example: /users/1
         400:
-          description: Validation error
+          description: Wrong request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_request:
+                  summary: Nothing to update
+                  value:
+                    error: At least one field must be updated
+                invalid_email:
+                  summary: Invalid email
+                  value:
+                    error: You must provide a valid email
+
         404:
-          description: User to update not found
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
 
   /users/{id}/usd:
     post:
