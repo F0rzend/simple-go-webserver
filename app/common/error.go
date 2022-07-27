@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -29,20 +30,23 @@ func (e ApplicationError) Render(_ http.ResponseWriter, r *http.Request) error {
 }
 
 func RenderHTTPError(w http.ResponseWriter, r *http.Request, err error) {
+	ctx := r.Context()
+
 	switch err := err.(type) {
 	case nil:
 	case ApplicationError:
-		logError(render.Render(w, r, err))
+		logError(ctx, render.Render(w, r, err))
 		return
 	default:
-		logError(err)
+		logError(ctx, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
 
-func logError(err error) {
+func logError(ctx context.Context, err error) {
+	logger := log.Ctx(ctx)
 	if err != nil {
-		log.Error().Err(err).Send()
+		logger.Error().Err(err).Send()
 	}
 }

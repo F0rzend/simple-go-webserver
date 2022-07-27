@@ -3,9 +3,12 @@ package server
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/hlog"
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	bitcoinHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
@@ -43,13 +46,27 @@ func NewServer(
 	}
 }
 
-func (s *Server) GetHTTPHandler() http.Handler {
+func (s *Server) GetHTTPHandler(
+	logger zerolog.Logger,
+) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(
-		middleware.Logger,
 		middleware.Recoverer,
 		middleware.AllowContentType("application/json"),
+
+		hlog.NewHandler(logger),
+		hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
+			hlog.FromRequest(r).Info().
+				Str("method", r.Method).
+				Stringer("url", r.URL).
+				Int("status", status).
+				Int("size", size).
+				Dur("duration", duration).
+				Send()
+		}),
+		hlog.RemoteAddrHandler("ip"),
+		hlog.RequestIDHandler("req_id", "Request-Id"),
 	)
 
 	r.Route("/users", func(r chi.Router) {
