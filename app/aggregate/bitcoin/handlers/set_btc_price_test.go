@@ -16,21 +16,18 @@ func TestSetBTCPrice(t *testing.T) {
 	testCases := []struct {
 		name               string
 		newPrice           float64
-		hasLocationHeader  bool
 		serviceCallsAmount int
 		expectedStatusCode int
 	}{
 		{
 			name:               "success",
 			newPrice:           1.0,
-			hasLocationHeader:  true,
 			serviceCallsAmount: 1,
 			expectedStatusCode: http.StatusNoContent,
 		},
 		{
 			name:               "negative",
 			newPrice:           -1.0,
-			hasLocationHeader:  false,
 			serviceCallsAmount: 0,
 			expectedStatusCode: http.StatusBadRequest,
 		},
@@ -59,9 +56,6 @@ func TestSetBTCPrice(t *testing.T) {
 			handler.ServeHTTP(w, r)
 
 			tests.AssertStatus(t, w, r, tc.expectedStatusCode)
-			if tc.hasLocationHeader {
-				assert.Equal(t, w.Header().Get("Location"), "/bitcoin")
-			}
 			assert.Len(t, service.SetBTCPriceCalls(), tc.serviceCallsAmount)
 		})
 	}

@@ -16,17 +16,6 @@ type ChangeUSDBalanceRequest struct {
 	Amount float64 `json:"amount"`
 }
 
-var (
-	ErrEmptyAction = common.NewApplicationError(
-		http.StatusBadRequest,
-		"Action cannot be empty",
-	)
-	ErrZeroAmount = common.NewApplicationError(
-		http.StatusBadRequest,
-		"Amount can't be zero",
-	)
-)
-
 func (r ChangeUSDBalanceRequest) Bind(_ *http.Request) error {
 	if r.Action == "" {
 		return ErrEmptyAction

@@ -51,7 +51,7 @@ paths:
         required: true
 
       responses:
-        204:
+        201:
           description: Location of created user
           headers:
             Location:
@@ -60,9 +60,24 @@ paths:
                 format: uri
                 example: /users/1
         400:
-          description: Validation error
-        409:
-          description: User already exists
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_name:
+                  summary: Empty name
+                  value:
+                    error: Name cannot be empty
+                empty_username:
+                  summary: Empty username
+                  value:
+                    error: Username cannot be empty
+                invalid_email:
+                  summary: Invalid email
+                  value:
+                    error: You must provide a valid email
         500:
           description: Error on server side
 
@@ -89,6 +104,12 @@ paths:
                 $ref: '#/components/schemas/User'
         404:
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
         500:
           description: Error on server side
 
@@ -117,7 +138,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: some@gmail.com
+                  example: user@example.com
         required: true
 
       responses:
@@ -130,16 +151,78 @@ paths:
                 format: uri
                 example: /users/1
         400:
-          description: Validation error
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_request:
+                  summary: Nothing to update
+                  value:
+                    error: At least one field must be updated
+                invalid_email:
+                  summary: Invalid email
+                  value:
+                    error: You must provide a valid email
+
         404:
-          description: User to update not found
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
+
+        500:
+          description: Error on server side
+
+  /users/{id}/balance:
+    get:
+      tags:
+        - Finances
+      summary: Get user balance
+      description: User balance is amount in usd + amount of bitcoins converted to usd
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+            format: uint64
+      responses:
+        200:
+          description: Total user's balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    format: float64
+                    example: 120.05
+
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
+
+        500:
+          description: Error on server side
 
   /users/{id}/usd:
     post:
       tags:
         - Finances
-      summary: Deposit or withdraw US dollars
-      description: A user cannot withdraw more usd than in possession
+      summary: USD manipulations
+      description: Deposit or withdraw United States Dollars
       parameters:
         - name: id
           in: path
@@ -149,7 +232,7 @@ paths:
             type: integer
             format: uint64
       requestBody:
-        description: User USD deposit
+        description: Action (deposit or withdraw) and transaction amount
         content:
           application/json:
             schema:
@@ -160,11 +243,20 @@ paths:
                   enum:
                     - deposit
                     - withdraw
-                  example: deposit
                 amount:
                   type: number
                   format: float64
-                  example: 40.05
+            examples:
+              deposit:
+                summary: Deposit USD
+                value:
+                  action: deposit
+                  amount: 120.05
+              withdraw:
+                summary: Withdraw USD
+                value:
+                  action: withdraw
+                  amount: 120.05
         required: true
 
       responses:
@@ -177,15 +269,46 @@ paths:
                 format: uri
                 example: /users/1
         400:
-          description: Validation error
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_action:
+                  summary: Empty action
+                  value:
+                    error: Action cannot be empty
+                zero_amount:
+                  summary: Zero amount
+                  value:
+                    error: Amount can't be zero
+                negative_amount:
+                    summary: Negative amount
+                    value:
+                        error: The amount of currency cannot be negative. Please pass a number greater than 0
+                invalid_action:
+                  summary: Invalid action
+                  value:
+                    error: "You must specify a valid action. Available actions: deposit and withdraw"
+
         404:
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
+
+        500:
+          description: Error on server side
 
   /users/{id}/bitcoin:
     post:
       tags:
         - Finances
-      summary: Buy or sell Bitcoins
+      summary: Bitcoin manipulations
       description: A user cannot withdraw bitcoins, only convert them to or from usd
       parameters:
         - name: id
@@ -207,11 +330,20 @@ paths:
                   enum:
                     - buy
                     - sell
-                  example: buy
                 amount:
                   type: number
                   format: float64
-                  example: 0.05
+            examples:
+              deposit:
+                summary: Buy bitcoins
+                value:
+                  action: buy
+                  amount: 0.5
+              withdraw:
+                summary: Sell bitcoins
+                value:
+                  action: sell
+                  amount: 0.5
         required: true
 
       responses:
@@ -225,36 +357,38 @@ paths:
                 example: /users/1
 
         400:
-          description: Validation error
-
-        404:
-          description: User not found
-
-  /users/{id}/balance:
-    get:
-      tags:
-        - Finances
-      summary: Get user balance
-      description: user balance is amount in usd + amount of bitcoins converted to usd
-      parameters:
-        - name: id
-          in: path
-          description: User ID
-          required: true
-          schema:
-            type: integer
-            format: uint64
-      responses:
-        200:
-          description: Total user's balance
+          description: Invalid request
           content:
             application/json:
               schema:
-                type: number
-                format: float64
-                example: 120.05
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_action:
+                  summary: Empty action
+                  value:
+                    error: Action cannot be empty
+                zero_amount:
+                  summary: Zero amount
+                  value:
+                    error: Amount can't be zero
+                negative_amount:
+                  summary: Negative amount
+                  value:
+                    error: The amount of currency cannot be negative. Please pass a number greater than 0
+                invalid_action:
+                  summary: Invalid action
+                  value:
+                    error: "You must specify a valid action. Available actions: buy or sell"
+
         404:
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
+
         500:
           description: Error on server side
 
@@ -288,17 +422,16 @@ paths:
                   type: number
                   format: float64
                   example: 100.00
+
       responses:
         204:
-          description: Location to get updated bitcoin price
-          headers:
-            Location:
-              schema:
-                type: string
-                format: uri
-                example: /bitcoin
+          description: Successfully updated bitcoin price
+
         400:
           description: Validation error
+
+        500:
+          description: Error on server side
 
 components:
   schemas:
@@ -352,6 +485,13 @@ components:
           type: string
           format: date-time
           example: 2020-01-01T00:00:00Z
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error message
 
 externalDocs:
   description: Github repository of the project

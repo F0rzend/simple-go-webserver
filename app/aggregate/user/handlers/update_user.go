@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"net/mail"
 
+	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
@@ -18,7 +18,7 @@ type UpdateUserRequest struct {
 }
 
 var ErrEmptyUpdateUserRequest = common.NewApplicationError(
-	http.StatusNotModified,
+	http.StatusBadRequest,
 	"At least one field must be updated",
 )
 
@@ -28,8 +28,8 @@ func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	}
 
 	if r.Email != nil {
-		if _, err := mail.ParseAddress(*r.Email); err != nil {
-			return ErrInvalidEmail
+		if _, err := userEntity.ParseEmail(*r.Email); err != nil {
+			return err
 		}
 	}
 	return nil

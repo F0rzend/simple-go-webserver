@@ -15,7 +15,7 @@ type UpdateUserCommand struct {
 }
 
 var NothingToUpdate = common.NewApplicationError(
-	http.StatusNotModified,
+	http.StatusBadRequest,
 	"At least one field must be updated",
 )
 
