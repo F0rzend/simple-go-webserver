@@ -330,11 +330,20 @@ paths:
                   enum:
                     - buy
                     - sell
-                  example: buy
                 amount:
                   type: number
                   format: float64
-                  example: 0.05
+            examples:
+              deposit:
+                summary: Buy bitcoins
+                value:
+                  action: buy
+                  amount: 0.5
+              withdraw:
+                summary: Sell bitcoins
+                value:
+                  action: sell
+                  amount: 0.5
         required: true
 
       responses:
