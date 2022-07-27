@@ -175,6 +175,9 @@ paths:
               example:
                 error: User not found
 
+        500:
+          description: Error on server side
+
   /users/{id}/usd:
     post:
       tags:
