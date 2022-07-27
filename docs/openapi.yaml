@@ -60,7 +60,7 @@ paths:
                 format: uri
                 example: /users/1
         400:
-          description: Wrong request
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -151,7 +151,7 @@ paths:
                 format: uri
                 example: /users/1
         400:
-          description: Wrong request
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -221,8 +221,8 @@ paths:
     post:
       tags:
         - Finances
-      summary: Deposit or withdraw US dollars
-      description: A user cannot withdraw more usd than in possession
+      summary: USD manipulations
+      description: Deposit or withdraw United States Dollars
       parameters:
         - name: id
           in: path
@@ -232,7 +232,7 @@ paths:
             type: integer
             format: uint64
       requestBody:
-        description: User USD deposit
+        description: Action (deposit or withdraw) and transaction amount
         content:
           application/json:
             schema:
@@ -243,11 +243,20 @@ paths:
                   enum:
                     - deposit
                     - withdraw
-                  example: deposit
                 amount:
                   type: number
                   format: float64
-                  example: 40.05
+            examples:
+              deposit:
+                summary: Deposit USD
+                value:
+                  action: deposit
+                  amount: 120.05
+              withdraw:
+                summary: Withdraw USD
+                value:
+                  action: withdraw
+                  amount: 120.05
         required: true
 
       responses:
@@ -260,9 +269,40 @@ paths:
                 format: uri
                 example: /users/1
         400:
-          description: Validation error
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_action:
+                  summary: Empty action
+                  value:
+                    error: Action cannot be empty
+                zero_amount:
+                  summary: Zero amount
+                  value:
+                    error: Amount can't be zero
+                negative_amount:
+                    summary: Negative amount
+                    value:
+                        error: The amount of currency cannot be negative. Please pass a number greater than 0
+                invalid_action:
+                  summary: Invalid action
+                  value:
+                    error: "You must specify a valid action. Available actions: deposit and withdraw"
+
         404:
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
+
+        500:
+          description: Error on server side
 
   /users/{id}/bitcoin:
     post:
