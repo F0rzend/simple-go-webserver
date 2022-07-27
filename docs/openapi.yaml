@@ -424,13 +424,7 @@ paths:
                   example: 100.00
       responses:
         204:
-          description: Location to get updated bitcoin price
-          headers:
-            Location:
-              schema:
-                type: string
-                format: uri
-                example: /bitcoin
+          description: Successfully updated bitcoin price
         400:
           description: Validation error
 
