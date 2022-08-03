@@ -1,4 +1,4 @@
-package service
+package bitcoinservice
 
 import (
 	"testing"
@@ -6,20 +6,20 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 )
 
 func TestBitcoinService_GetBTCPrice(t *testing.T) {
 	t.Parallel()
 
-	priceInUSD, _ := bitcoinEntity.NewUSD(1)
-	bitcoinPrice := bitcoinEntity.NewBTCPrice(
+	priceInUSD, _ := bitcoinentity.NewUSD(1)
+	bitcoinPrice := bitcoinentity.NewBTCPrice(
 		priceInUSD,
 		time.Now(),
 	)
-	bitcoinRepository := &bitcoinRepositories.MockBTCRepository{
-		GetPriceFunc: func() bitcoinEntity.BTCPrice {
+	bitcoinRepository := &bitcoinrepositories.MockBTCRepository{
+		GetPriceFunc: func() bitcoinentity.BTCPrice {
 			return bitcoinPrice
 		},
 	}

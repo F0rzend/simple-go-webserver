@@ -1,14 +1,15 @@
-package service
+package userservice
 
 import (
 	"net/http"
 	"testing"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	userrepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 
-	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,17 +17,17 @@ import (
 func TestUserService_GetUserBalance(t *testing.T) {
 	t.Parallel()
 
-	getUserFunc := func(userID uint64) (*userEntity.User, error) {
+	getUserFunc := func(userID uint64) (*userentity.User, error) {
 		switch userID {
 		case 1:
-			return &userEntity.User{}, nil
+			return &userentity.User{}, nil
 		default:
-			return nil, userRepositories.ErrUserNotFound
+			return nil, userrepositories.ErrUserNotFound
 		}
 	}
 
-	getBitcoinPriceFunc := func() bitcoinEntity.BTCPrice {
-		return bitcoinEntity.BTCPrice{}
+	getBitcoinPriceFunc := func() bitcoinentity.BTCPrice {
+		return bitcoinentity.BTCPrice{}
 	}
 
 	testCases := []struct {
@@ -55,8 +56,8 @@ func TestUserService_GetUserBalance(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userRepositories.MockUserRepository{GetFunc: getUserFunc}
-			bitcoinRepository := &bitcoinRepositories.MockBTCRepository{GetPriceFunc: getBitcoinPriceFunc}
+			userRepository := &userrepositories.MockUserRepository{GetFunc: getUserFunc}
+			bitcoinRepository := &bitcoinrepositories.MockBTCRepository{GetPriceFunc: getBitcoinPriceFunc}
 
 			service := NewUserService(userRepository, bitcoinRepository)
 

@@ -1,9 +1,9 @@
-package handlers
+package bitcoinhandlers
 
 import (
 	"net/http"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
 	"github.com/go-chi/render"
@@ -14,7 +14,7 @@ type SetBTCPriceRequest struct {
 }
 
 func (r SetBTCPriceRequest) Bind(_ *http.Request) error {
-	_, err := bitcoinEntity.NewUSD(r.Price)
+	_, err := bitcoinentity.NewUSD(r.Price)
 	return err
 }
 

@@ -1,4 +1,4 @@
-package service
+package userservice
 
 import (
 	"time"
@@ -15,7 +15,7 @@ func getUserIDGenerator() func() uint64 {
 }
 
 func (us *UserService) CreateUser(name, username, email string) (uint64, error) {
-	user, err := entity.NewUser(
+	user, err := userentity.NewUser(
 		us.userIDGenerator(),
 		name,
 		username,

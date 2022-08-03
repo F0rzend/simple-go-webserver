@@ -1,4 +1,4 @@
-package service
+package userservice
 
 import (
 	"time"
@@ -21,7 +21,7 @@ func (us *UserService) UpdateUser(userID uint64, name, email *string) error {
 	}
 
 	if email != nil {
-		newEmail, err := entity.ParseEmail(*email)
+		newEmail, err := userentity.ParseEmail(*email)
 		if err != nil {
 			return err
 		}

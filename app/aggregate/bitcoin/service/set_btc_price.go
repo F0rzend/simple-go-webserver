@@ -1,11 +1,11 @@
-package service
+package bitcoinservice
 
 import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
 func (bs *BitcoinService) SetBTCPrice(newPrice float64) error {
-	price, err := entity.NewUSD(newPrice)
+	price, err := bitcoinentity.NewUSD(newPrice)
 	if err != nil {
 		return err
 	}

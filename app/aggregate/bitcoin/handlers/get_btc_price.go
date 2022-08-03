@@ -1,4 +1,4 @@
-package handlers
+package bitcoinhandlers
 
 import (
 	"math/big"
@@ -15,7 +15,7 @@ type BTCResponse struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 }
 
-func BTCToResponse(btc entity.BTCPrice) BTCResponse {
+func BTCToResponse(btc bitcoinentity.BTCPrice) BTCResponse {
 	return BTCResponse{
 		Price:     btc.GetPrice().ToFloat(),
 		UpdatedAt: btc.GetUpdatedAt(),

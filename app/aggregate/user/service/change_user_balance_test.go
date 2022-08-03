@@ -1,4 +1,4 @@
-package service
+package userservice
 
 import (
 	"net/http"
@@ -6,10 +6,10 @@ import (
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,23 +17,23 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 	t.Parallel()
 
 	var (
-		zeroBitcoin, _ = bitcoinEntity.NewBTC(0)
-		oneDollar, _   = bitcoinEntity.NewUSD(1)
+		zeroBitcoin, _ = bitcoinentity.NewBTC(0)
+		oneDollar, _   = bitcoinentity.NewUSD(1)
 	)
 
-	testUsers := map[uint64]userEntity.User{
+	testUsers := map[uint64]userentity.User{
 		0: {},
-		1: {Balance: userEntity.Balance{USD: oneDollar, BTC: zeroBitcoin}},
+		1: {Balance: userentity.Balance{USD: oneDollar, BTC: zeroBitcoin}},
 	}
 
-	getUserFunc := func(id uint64) (*userEntity.User, error) {
+	getUserFunc := func(id uint64) (*userentity.User, error) {
 		user, ok := testUsers[id]
 		if !ok {
-			return nil, userRepositories.ErrUserNotFound
+			return nil, userrepositories.ErrUserNotFound
 		}
 		return &user, nil
 	}
-	saveUserFunc := func(user *userEntity.User) error {
+	saveUserFunc := func(user *userentity.User) error {
 		return nil
 	}
 
@@ -128,8 +128,8 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userRepositories.MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
-			bitcoinRepository := &bitcoinRepositories.MockBTCRepository{}
+			userRepository := &userrepositories.MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
+			bitcoinRepository := &bitcoinrepositories.MockBTCRepository{}
 
 			service := NewUserService(userRepository, bitcoinRepository)
 

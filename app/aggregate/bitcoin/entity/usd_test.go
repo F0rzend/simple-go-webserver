@@ -1,4 +1,4 @@
-package entity
+package bitcoinentity
 
 import (
 	"math/big"

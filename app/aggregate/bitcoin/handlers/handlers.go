@@ -1,4 +1,4 @@
-package handlers
+package bitcoinhandlers
 
 import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
@@ -16,6 +16,6 @@ func NewBitcoinHTTPHandlers(bitcoinService BitcoinService) *BitcoinHTTPHandlers 
 
 //go:generate moq -out "mock_bitcoin_service.gen.go" . BitcoinService:MockBitcoinService
 type BitcoinService interface {
-	GetBTCPrice() entity.BTCPrice
+	GetBTCPrice() bitcoinentity.BTCPrice
 	SetBTCPrice(newPrice float64) error
 }

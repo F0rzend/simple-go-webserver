@@ -10,33 +10,33 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	bitcoinHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
-	bitcoinService "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	userHTTPHandlers "github.com/F0rzend/simple-go-webserver/app/aggregate/user/handlers"
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/handlers"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 )
 
 type Server struct {
-	userRoutes    *userHTTPHandlers.UserHTTPHandlers
-	bitcoinRoutes *bitcoinHTTPHandlers.BitcoinHTTPHandlers
+	userRoutes    *userhandlers.UserHTTPHandlers
+	bitcoinRoutes *bitcoinhandlers.BitcoinHTTPHandlers
 }
 
 func getUserIDFromURL(r *http.Request) (uint64, error) {
 	const userIDURLKey = "id"
 
-	return strconv.ParseUint(chi.URLParam(r, userIDURLKey), 10, 64)
+	return strconv.ParseUint(chi.URLParam(r, userIDURLKey), 10, 64) //nolint:gomnd
 }
 
 func NewServer(
-	userRepository userEntity.UserRepository,
-	bitcoinRepository bitcoinEntity.BTCRepository,
+	userRepository userentity.UserRepository,
+	bitcoinRepository bitcoinentity.BTCRepository,
 ) *Server {
-	bitcoinRoutes := bitcoinHTTPHandlers.NewBitcoinHTTPHandlers(bitcoinService.NewBitcoinService(bitcoinRepository))
-	userRoutes := userHTTPHandlers.NewUserHTTPHandlers(
-		userService.NewUserService(userRepository, bitcoinRepository),
+	bitcoinRoutes := bitcoinhandlers.NewBitcoinHTTPHandlers(bitcoinservice.NewBitcoinService(bitcoinRepository))
+	userRoutes := userhandlers.NewUserHTTPHandlers(
+		userservice.NewUserService(userRepository, bitcoinRepository),
 		getUserIDFromURL,
 	)
 
@@ -47,7 +47,7 @@ func NewServer(
 }
 
 func (s *Server) GetHTTPHandler(
-	logger zerolog.Logger,
+	logger *zerolog.Logger,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -55,7 +55,7 @@ func (s *Server) GetHTTPHandler(
 		middleware.Recoverer,
 		middleware.AllowContentType("application/json"),
 
-		hlog.NewHandler(logger),
+		hlog.NewHandler(*logger),
 		hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
 			hlog.FromRequest(r).Info().
 				Str("method", r.Method).

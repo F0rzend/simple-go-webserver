@@ -1,30 +1,31 @@
-package service
+package userservice
 
 import (
 	"net/http"
 	"testing"
 
+	userrepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+
 	"github.com/F0rzend/simple-go-webserver/app/common"
 
-	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 	"github.com/stretchr/testify/assert"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
 func TestUserService_UpdateUser(t *testing.T) {
 	t.Parallel()
 
-	getUserFunc := func(id uint64) (*userEntity.User, error) {
+	getUserFunc := func(id uint64) (*userentity.User, error) {
 		switch id {
 		case 1:
-			return &userEntity.User{}, nil
+			return &userentity.User{}, nil
 		default:
-			return nil, userRepositories.ErrUserNotFound
+			return nil, userrepositories.ErrUserNotFound
 		}
 	}
-	saveUserFunc := func(user *userEntity.User) error {
+	saveUserFunc := func(user *userentity.User) error {
 		return nil
 	}
 
@@ -109,8 +110,8 @@ func TestUserService_UpdateUser(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userRepositories.MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
-			bitcoinRepository := &bitcoinRepositories.MockBTCRepository{}
+			userRepository := &userrepositories.MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
+			bitcoinRepository := &bitcoinrepositories.MockBTCRepository{}
 
 			service := NewUserService(userRepository, bitcoinRepository)
 

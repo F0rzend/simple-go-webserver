@@ -1,13 +1,12 @@
-package entity
+package userentity
 
 import (
 	"net/http"
 	"net/mail"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
-
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
 type User struct {
@@ -58,12 +57,12 @@ func NewUser(
 		return nil, err
 	}
 
-	usdAmount, err := bitcoinEntity.NewUSD(usdBalance)
+	usdAmount, err := bitcoinentity.NewUSD(usdBalance)
 	if err != nil {
 		return nil, err
 	}
 
-	btcAmount, err := bitcoinEntity.NewBTC(btcBalance)
+	btcAmount, err := bitcoinentity.NewBTC(btcBalance)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +86,7 @@ func ParseEmail(email string) (*mail.Address, error) {
 	return addr, nil
 }
 
-func (u *User) ChangeUSDBalance(action Action, amount bitcoinEntity.USD) error {
+func (u *User) ChangeUSDBalance(action Action, amount bitcoinentity.USD) error {
 	switch action {
 	case DepositUSDAction:
 		return u.deposit(amount)
@@ -98,13 +97,13 @@ func (u *User) ChangeUSDBalance(action Action, amount bitcoinEntity.USD) error {
 	}
 }
 
-func (u *User) deposit(amount bitcoinEntity.USD) error {
+func (u *User) deposit(amount bitcoinentity.USD) error {
 	u.Balance.USD = u.Balance.USD.Add(amount)
 
 	return nil
 }
 
-func (u *User) withdraw(amount bitcoinEntity.USD) error {
+func (u *User) withdraw(amount bitcoinentity.USD) error {
 	if u.Balance.USD.LessThan(amount) {
 		return ErrInsufficientFunds
 	}
@@ -118,7 +117,7 @@ func (u *User) withdraw(amount bitcoinEntity.USD) error {
 	return nil
 }
 
-func (u *User) ChangeBTCBalance(action Action, amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
+func (u *User) ChangeBTCBalance(action Action, amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) error {
 	switch action {
 	case BuyBTCAction:
 		return u.buyBTC(amount, price)
@@ -129,7 +128,7 @@ func (u *User) ChangeBTCBalance(action Action, amount bitcoinEntity.BTC, price b
 	}
 }
 
-func (u *User) buyBTC(amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
+func (u *User) buyBTC(amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) error {
 	if u.Balance.USD.LessThan(price.GetPrice()) {
 		return ErrInsufficientFunds
 	}
@@ -145,7 +144,7 @@ func (u *User) buyBTC(amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) er
 	return nil
 }
 
-func (u *User) sellBTC(amount bitcoinEntity.BTC, price bitcoinEntity.BTCPrice) error {
+func (u *User) sellBTC(amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) error {
 	if u.Balance.BTC.LessThan(amount) {
 		return ErrInsufficientFunds
 	}

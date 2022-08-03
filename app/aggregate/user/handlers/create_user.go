@@ -1,10 +1,10 @@
-package handlers
+package userhandlers
 
 import (
 	"fmt"
 	"net/http"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 	"github.com/go-chi/render"
 )
@@ -35,7 +35,7 @@ func (r CreateUserRequest) Bind(_ *http.Request) error {
 		return ErrInvalidUsername
 	}
 
-	if _, err := userEntity.ParseEmail(r.Email); err != nil {
+	if _, err := userentity.ParseEmail(r.Email); err != nil {
 		return err
 	}
 	return nil

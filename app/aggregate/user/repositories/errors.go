@@ -1,4 +1,4 @@
-package repositories
+package userrepositories
 
 import (
 	"net/http"

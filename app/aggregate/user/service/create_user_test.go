@@ -1,16 +1,17 @@
-package service
+package userservice
 
 import (
 	"net/http"
 	"testing"
 
+	userrepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+
 	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/stretchr/testify/assert"
 
-	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
 func TestUserService_CreateUser(t *testing.T) {
@@ -81,12 +82,12 @@ func TestUserService_CreateUser(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userRepositories.MockUserRepository{
-				SaveFunc: func(_ *userEntity.User) error {
+			userRepository := &userrepositories.MockUserRepository{
+				SaveFunc: func(_ *userentity.User) error {
 					return nil
 				},
 			}
-			bitcoinRepository := &bitcoinRepositories.MockBTCRepository{}
+			bitcoinRepository := &bitcoinrepositories.MockBTCRepository{}
 
 			service := NewUserService(userRepository, bitcoinRepository)
 

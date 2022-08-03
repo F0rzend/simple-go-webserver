@@ -1,12 +1,12 @@
-package service
+package userservice
 
 import (
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
 func (us *UserService) ChangeUserBalance(userID uint64, action string, amount float64) error {
-	usd, err := bitcoinEntity.NewUSD(amount)
+	usd, err := bitcoinentity.NewUSD(amount)
 	if err != nil {
 		return err
 	}
@@ -16,7 +16,7 @@ func (us *UserService) ChangeUserBalance(userID uint64, action string, amount fl
 		return err
 	}
 
-	if err := user.ChangeUSDBalance(entity.Action(action), usd); err != nil {
+	if err := user.ChangeUSDBalance(userentity.Action(action), usd); err != nil {
 		return err
 	}
 

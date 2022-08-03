@@ -1,4 +1,4 @@
-package repositories
+package bitcoinrepositories
 
 import (
 	"time"
@@ -7,23 +7,23 @@ import (
 )
 
 type MemoryBTCRepository struct {
-	bitcoin entity.BTCPrice
+	bitcoin bitcoinentity.BTCPrice
 }
 
-func NewMemoryBTCRepository(initialPrice entity.USD) (*MemoryBTCRepository, error) {
-	btcPrice := entity.NewBTCPrice(initialPrice, time.Now())
+func NewMemoryBTCRepository(initialPrice bitcoinentity.USD) (*MemoryBTCRepository, error) {
+	btcPrice := bitcoinentity.NewBTCPrice(initialPrice, time.Now())
 
 	return &MemoryBTCRepository{
 		bitcoin: btcPrice,
 	}, nil
 }
 
-func (r *MemoryBTCRepository) GetPrice() entity.BTCPrice {
+func (r *MemoryBTCRepository) GetPrice() bitcoinentity.BTCPrice {
 	return r.bitcoin
 }
 
-func (r *MemoryBTCRepository) SetPrice(price entity.USD) error {
-	btcPrice := entity.NewBTCPrice(price, time.Now())
+func (r *MemoryBTCRepository) SetPrice(price bitcoinentity.USD) error {
+	btcPrice := bitcoinentity.NewBTCPrice(price, time.Now())
 
 	r.bitcoin = btcPrice
 	return nil

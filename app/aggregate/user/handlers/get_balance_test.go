@@ -1,10 +1,10 @@
-package handlers
+package userhandlers
 
 import (
 	"net/http"
 	"testing"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
@@ -18,8 +18,8 @@ func TestUserHTTPHandlers_GetUserBalance(t *testing.T) {
 	}
 
 	service := &MockUserService{
-		GetUserBalanceFunc: func(_ uint64) (bitcoinEntity.USD, error) {
-			return bitcoinEntity.USD{}, nil
+		GetUserBalanceFunc: func(_ uint64) (bitcoinentity.USD, error) {
+			return bitcoinentity.USD{}, nil
 		},
 	}
 

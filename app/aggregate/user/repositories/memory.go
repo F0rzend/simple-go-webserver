@@ -1,25 +1,25 @@
-package repositories
+package userrepositories
 
 import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
 type MemoryUserRepository struct {
-	users map[uint64]*entity.User
+	users map[uint64]*userentity.User
 }
 
 func NewMemoryUserRepository() *MemoryUserRepository {
 	return &MemoryUserRepository{
-		users: make(map[uint64]*entity.User),
+		users: make(map[uint64]*userentity.User),
 	}
 }
 
-func (r *MemoryUserRepository) Save(user *entity.User) error {
+func (r *MemoryUserRepository) Save(user *userentity.User) error {
 	r.users[user.ID] = user
 	return nil
 }
 
-func (r *MemoryUserRepository) Get(id uint64) (*entity.User, error) {
+func (r *MemoryUserRepository) Get(id uint64) (*userentity.User, error) {
 	user, ok := r.users[id]
 	if !ok {
 		return nil, ErrUserNotFound

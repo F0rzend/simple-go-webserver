@@ -1,4 +1,4 @@
-package entity
+package userentity
 
 import (
 	"net/mail"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
 func TestNewUser(t *testing.T) {
@@ -47,7 +47,7 @@ func TestNewUser(t *testing.T) {
 				Name:      "John Doe",
 				Username:  "johndoe",
 				Email:     &mail.Address{Name: "", Address: "johndoe@gmail.com"},
-				Balance:   Balance{USD: bitcoinEntity.MustNewUSD(0), BTC: bitcoinEntity.MustNewBTC(0)},
+				Balance:   Balance{USD: bitcoinentity.MustNewUSD(0), BTC: bitcoinentity.MustNewBTC(0)},
 				CreatedAt: now,
 				UpdatedAt: now,
 			},
@@ -111,7 +111,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      bitcoinEntity.ErrNegativeCurrency,
+			err:      bitcoinentity.ErrNegativeCurrency,
 		},
 		{
 			testName: "small usd amount",
@@ -126,7 +126,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      bitcoinEntity.ErrNegativeCurrency,
+			err:      bitcoinentity.ErrNegativeCurrency,
 		},
 	}
 
@@ -159,7 +159,7 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 		name     string
 		user     User
 		action   Action
-		amount   bitcoinEntity.USD
+		amount   bitcoinentity.USD
 		expected Balance
 		err      error
 	}{
@@ -167,15 +167,15 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 			name: "success deposit",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinEntity.MustNewUSD(0),
-					BTC: bitcoinEntity.MustNewBTC(0),
+					USD: bitcoinentity.MustNewUSD(0),
+					BTC: bitcoinentity.MustNewBTC(0),
 				},
 			},
 			action: DepositUSDAction,
-			amount: bitcoinEntity.MustNewUSD(1),
+			amount: bitcoinentity.MustNewUSD(1),
 			expected: Balance{
-				USD: bitcoinEntity.MustNewUSD(1),
-				BTC: bitcoinEntity.MustNewBTC(0),
+				USD: bitcoinentity.MustNewUSD(1),
+				BTC: bitcoinentity.MustNewBTC(0),
 			},
 			err: nil,
 		},
@@ -183,15 +183,15 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 			name: "success withdraw",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinEntity.MustNewUSD(1),
-					BTC: bitcoinEntity.MustNewBTC(0),
+					USD: bitcoinentity.MustNewUSD(1),
+					BTC: bitcoinentity.MustNewBTC(0),
 				},
 			},
 			action: WithdrawUSDAction,
-			amount: bitcoinEntity.MustNewUSD(1),
+			amount: bitcoinentity.MustNewUSD(1),
 			expected: Balance{
-				USD: bitcoinEntity.MustNewUSD(0),
-				BTC: bitcoinEntity.MustNewBTC(0),
+				USD: bitcoinentity.MustNewUSD(0),
+				BTC: bitcoinentity.MustNewBTC(0),
 			},
 			err: nil,
 		},
@@ -199,15 +199,15 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 			name: "insufficient funds",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinEntity.MustNewUSD(0),
-					BTC: bitcoinEntity.MustNewBTC(0),
+					USD: bitcoinentity.MustNewUSD(0),
+					BTC: bitcoinentity.MustNewBTC(0),
 				},
 			},
 			action: WithdrawUSDAction,
-			amount: bitcoinEntity.MustNewUSD(1),
+			amount: bitcoinentity.MustNewUSD(1),
 			expected: Balance{
-				USD: bitcoinEntity.MustNewUSD(0),
-				BTC: bitcoinEntity.MustNewBTC(0),
+				USD: bitcoinentity.MustNewUSD(0),
+				BTC: bitcoinentity.MustNewBTC(0),
 			},
 			err: ErrInsufficientFunds,
 		},
@@ -237,8 +237,8 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 		name     string
 		user     User
 		action   Action
-		amount   bitcoinEntity.BTC
-		btcPrice bitcoinEntity.BTCPrice
+		amount   bitcoinentity.BTC
+		btcPrice bitcoinentity.BTCPrice
 		expected Balance
 		err      error
 	}{
@@ -246,16 +246,16 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			name: "success buy",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinEntity.MustNewUSD(1),
-					BTC: bitcoinEntity.MustNewBTC(0),
+					USD: bitcoinentity.MustNewUSD(1),
+					BTC: bitcoinentity.MustNewBTC(0),
 				},
 			},
 			action:   BuyBTCAction,
-			amount:   bitcoinEntity.MustNewBTC(1),
-			btcPrice: bitcoinEntity.NewBTCPrice(bitcoinEntity.MustNewUSD(1), now),
+			amount:   bitcoinentity.MustNewBTC(1),
+			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
 			expected: Balance{
-				USD: bitcoinEntity.MustNewUSD(0),
-				BTC: bitcoinEntity.MustNewBTC(1),
+				USD: bitcoinentity.MustNewUSD(0),
+				BTC: bitcoinentity.MustNewBTC(1),
 			},
 			err: nil,
 		},
@@ -263,16 +263,16 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			name: "success sale",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinEntity.MustNewUSD(0),
-					BTC: bitcoinEntity.MustNewBTC(1),
+					USD: bitcoinentity.MustNewUSD(0),
+					BTC: bitcoinentity.MustNewBTC(1),
 				},
 			},
 			action:   SellBTCAction,
-			amount:   bitcoinEntity.MustNewBTC(1),
-			btcPrice: bitcoinEntity.NewBTCPrice(bitcoinEntity.MustNewUSD(1), now),
+			amount:   bitcoinentity.MustNewBTC(1),
+			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
 			expected: Balance{
-				USD: bitcoinEntity.MustNewUSD(1),
-				BTC: bitcoinEntity.MustNewBTC(0),
+				USD: bitcoinentity.MustNewUSD(1),
+				BTC: bitcoinentity.MustNewBTC(0),
 			},
 			err: nil,
 		},
@@ -280,16 +280,16 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			name: "insufficient funds on buy",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinEntity.MustNewUSD(0),
-					BTC: bitcoinEntity.MustNewBTC(0),
+					USD: bitcoinentity.MustNewUSD(0),
+					BTC: bitcoinentity.MustNewBTC(0),
 				},
 			},
 			action:   BuyBTCAction,
-			amount:   bitcoinEntity.MustNewBTC(1),
-			btcPrice: bitcoinEntity.NewBTCPrice(bitcoinEntity.MustNewUSD(1), now),
+			amount:   bitcoinentity.MustNewBTC(1),
+			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
 			expected: Balance{
-				USD: bitcoinEntity.MustNewUSD(0),
-				BTC: bitcoinEntity.MustNewBTC(0),
+				USD: bitcoinentity.MustNewUSD(0),
+				BTC: bitcoinentity.MustNewBTC(0),
 			},
 			err: ErrInsufficientFunds,
 		},
@@ -297,16 +297,16 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			name: "insufficient funds on sell",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinEntity.MustNewUSD(0),
-					BTC: bitcoinEntity.MustNewBTC(0),
+					USD: bitcoinentity.MustNewUSD(0),
+					BTC: bitcoinentity.MustNewBTC(0),
 				},
 			},
 			action:   SellBTCAction,
-			amount:   bitcoinEntity.MustNewBTC(1),
-			btcPrice: bitcoinEntity.NewBTCPrice(bitcoinEntity.MustNewUSD(1), now),
+			amount:   bitcoinentity.MustNewBTC(1),
+			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
 			expected: Balance{
-				USD: bitcoinEntity.MustNewUSD(0),
-				BTC: bitcoinEntity.MustNewBTC(0),
+				USD: bitcoinentity.MustNewUSD(0),
+				BTC: bitcoinentity.MustNewBTC(0),
 			},
 			err: ErrInsufficientFunds,
 		},

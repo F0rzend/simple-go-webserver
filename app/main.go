@@ -4,13 +4,12 @@ import (
 	"net/http"
 	"os"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	bitcoinRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
-	userRepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
-
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/server"
 )
 
@@ -23,8 +22,8 @@ func main() {
 	address := getEnv("ADDRESS", ":8080")
 	logger.Info().Msgf("starting endpoints on %s", address)
 
-	userRepository := userRepositories.NewMemoryUserRepository()
-	bitcoinRepository, err := bitcoinRepositories.NewMemoryBTCRepository(bitcoinEntity.MustNewUSD(100))
+	userRepository := userrepositories.NewMemoryUserRepository()
+	bitcoinRepository, err := bitcoinrepositories.NewMemoryBTCRepository(bitcoinentity.MustNewUSD(100))
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
@@ -33,7 +32,7 @@ func main() {
 
 	if err := http.ListenAndServe(
 		address,
-		apiServer.GetHTTPHandler(logger),
+		apiServer.GetHTTPHandler(&logger),
 	); err != nil {
 		log.Error().Err(err).Send()
 	}

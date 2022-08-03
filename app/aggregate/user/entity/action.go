@@ -1,4 +1,4 @@
-package entity
+package userentity
 
 type Action string
 

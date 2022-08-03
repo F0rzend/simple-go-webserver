@@ -1,10 +1,10 @@
-package handlers
+package userhandlers
 
 import (
 	"fmt"
 	"net/http"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
@@ -27,7 +27,7 @@ func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	}
 
 	if r.Email != nil {
-		if _, err := userEntity.ParseEmail(*r.Email); err != nil {
+		if _, err := userentity.ParseEmail(*r.Email); err != nil {
 			return err
 		}
 	}

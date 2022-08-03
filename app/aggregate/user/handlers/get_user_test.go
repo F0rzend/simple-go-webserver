@@ -1,11 +1,11 @@
-package handlers
+package userhandlers
 
 import (
 	"net/http"
 	"net/mail"
 	"testing"
 
-	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
@@ -19,8 +19,8 @@ func TestUserHTTPHandlers_GetUser(t *testing.T) {
 	}
 
 	service := &MockUserService{
-		GetUserFunc: func(_ uint64) (*userEntity.User, error) {
-			return &userEntity.User{
+		GetUserFunc: func(_ uint64) (*userentity.User, error) {
+			return &userentity.User{
 				Email: &mail.Address{Address: "test@mail.com"},
 			}, nil
 		},

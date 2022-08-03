@@ -1,4 +1,4 @@
-package handlers
+package userhandlers
 
 import (
 	"math/big"
@@ -23,7 +23,7 @@ type UserResponse struct {
 	UpdatedAt  string     `json:"updated_at"`
 }
 
-func UserToResponse(user *entity.User) *UserResponse {
+func UserToResponse(user *userentity.User) *UserResponse {
 	return &UserResponse{
 		ID:         user.ID,
 		Name:       user.Name,

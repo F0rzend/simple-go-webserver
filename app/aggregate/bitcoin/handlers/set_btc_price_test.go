@@ -1,4 +1,4 @@
-package handlers
+package bitcoinhandlers
 
 import (
 	"net/http"

@@ -1,4 +1,4 @@
-package entity
+package userentity
 
 import (
 	"testing"
@@ -16,38 +16,38 @@ func TestBalance_Total(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		usd      entity.USD
-		btc      entity.BTC
-		btcPrice entity.BTCPrice
-		expected entity.USD
+		usd      bitcoinentity.USD
+		btc      bitcoinentity.BTC
+		btcPrice bitcoinentity.BTCPrice
+		expected bitcoinentity.USD
 	}{
 		{
 			name:     "empty",
-			usd:      entity.MustNewUSD(0),
-			btc:      entity.MustNewBTC(0),
-			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(0), now),
-			expected: entity.MustNewUSD(0),
+			usd:      bitcoinentity.MustNewUSD(0),
+			btc:      bitcoinentity.MustNewBTC(0),
+			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(0), now),
+			expected: bitcoinentity.MustNewUSD(0),
 		},
 		{
 			name:     "usd only",
-			usd:      entity.MustNewUSD(1),
-			btc:      entity.MustNewBTC(0),
-			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1), now),
-			expected: entity.MustNewUSD(1),
+			usd:      bitcoinentity.MustNewUSD(1),
+			btc:      bitcoinentity.MustNewBTC(0),
+			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
+			expected: bitcoinentity.MustNewUSD(1),
 		},
 		{
 			name:     "btc only",
-			usd:      entity.MustNewUSD(0),
-			btc:      entity.MustNewBTC(1),
-			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1), now),
-			expected: entity.MustNewUSD(1),
+			usd:      bitcoinentity.MustNewUSD(0),
+			btc:      bitcoinentity.MustNewBTC(1),
+			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
+			expected: bitcoinentity.MustNewUSD(1),
 		},
 		{
 			name:     "usd and btc",
-			usd:      entity.MustNewUSD(1),
-			btc:      entity.MustNewBTC(1),
-			btcPrice: entity.NewBTCPrice(entity.MustNewUSD(1), now),
-			expected: entity.MustNewUSD(2),
+			usd:      bitcoinentity.MustNewUSD(1),
+			btc:      bitcoinentity.MustNewBTC(1),
+			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
+			expected: bitcoinentity.MustNewUSD(2),
 		},
 	}
 

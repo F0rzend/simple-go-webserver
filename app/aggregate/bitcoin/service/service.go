@@ -1,15 +1,15 @@
-package service
+package bitcoinservice
 
 import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
 type BitcoinService struct {
-	bitcoinRepository entity.BTCRepository
+	bitcoinRepository bitcoinentity.BTCRepository
 }
 
 func NewBitcoinService(
-	bitcoinRepository entity.BTCRepository,
+	bitcoinRepository bitcoinentity.BTCRepository,
 ) *BitcoinService {
 	return &BitcoinService{
 		bitcoinRepository: bitcoinRepository,

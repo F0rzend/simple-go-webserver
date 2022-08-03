@@ -1,4 +1,4 @@
-package handlers
+package bitcoinhandlers
 
 import (
 	"net/http"
@@ -9,16 +9,16 @@ import (
 
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 
-	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
 func TestGetBTCPrice(t *testing.T) {
 	t.Parallel()
 
 	service := &MockBitcoinService{
-		GetBTCPriceFunc: func() bitcoinEntity.BTCPrice {
-			btcPrice, _ := bitcoinEntity.NewUSD(1)
-			return bitcoinEntity.NewBTCPrice(
+		GetBTCPriceFunc: func() bitcoinentity.BTCPrice {
+			btcPrice, _ := bitcoinentity.NewUSD(1)
+			return bitcoinentity.NewBTCPrice(
 				btcPrice,
 				time.Now(),
 			)
