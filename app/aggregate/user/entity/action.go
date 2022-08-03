@@ -2,7 +2,7 @@ package entity
 
 type Action string
 
-var (
+const (
 	DepositUSDAction  Action = "deposit"
 	WithdrawUSDAction Action = "withdraw"
 
