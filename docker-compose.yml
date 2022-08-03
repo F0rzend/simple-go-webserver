@@ -4,7 +4,5 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - GO_VERSION=1.18
     ports:
       - "127.0.0.1:8080:8080"
