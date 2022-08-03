@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"testing"
 
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -68,7 +67,7 @@ func TestUserHTTPHandlers_UpdateUser(t *testing.T) {
 	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
 		return 1, nil
 	}
-	updateUserFunc := func(cmd userService.UpdateUserCommand) error {
+	updateUserFunc := func(_ uint64, _, _ *string) error {
 		return nil
 	}
 
@@ -76,7 +75,7 @@ func TestUserHTTPHandlers_UpdateUser(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			service := &userService.MockUserService{UpdateUserFunc: updateUserFunc}
+			service := &MockUserService{UpdateUserFunc: updateUserFunc}
 
 			handler := http.HandlerFunc(NewUserHTTPHandlers(service, getUserIDFromURL).UpdateUser)
 

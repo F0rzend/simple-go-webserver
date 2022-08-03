@@ -5,18 +5,7 @@ import (
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
-//go:generate moq -out "mock.gen.go" . UserService:MockUserService
-type UserService interface {
-	CreateUser(cmd CreateUserCommand) (uint64, error)
-	GetUser(uint64) (*userEntity.User, error)
-	UpdateUser(cmd UpdateUserCommand) error
-
-	GetUserBalance(userID uint64) (bitcoinEntity.USD, error)
-	ChangeBitcoinBalance(cmd ChangeBitcoinBalanceCommand) error
-	ChangeUserBalance(cmd ChangeUserBalanceCommand) error
-}
-
-type UserServiceImpl struct {
+type UserService struct {
 	userRepository    userEntity.UserRepository
 	bitcoinRepository bitcoinEntity.BTCRepository
 
@@ -26,8 +15,8 @@ type UserServiceImpl struct {
 func NewUserService(
 	userRepository userEntity.UserRepository,
 	bitcoinRepository bitcoinEntity.BTCRepository,
-) UserService {
-	return &UserServiceImpl{
+) *UserService {
+	return &UserService{
 		userRepository:    userRepository,
 		bitcoinRepository: bitcoinRepository,
 

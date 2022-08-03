@@ -6,12 +6,6 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
-type CreateUserCommand struct {
-	Name     string
-	Username string
-	Email    string
-}
-
 func getUserIDGenerator() func() uint64 {
 	var id uint64
 	return func() uint64 {
@@ -20,12 +14,12 @@ func getUserIDGenerator() func() uint64 {
 	}
 }
 
-func (us *UserServiceImpl) CreateUser(cmd CreateUserCommand) (uint64, error) {
+func (us *UserService) CreateUser(name, username, email string) (uint64, error) {
 	user, err := entity.NewUser(
 		us.userIDGenerator(),
-		cmd.Name,
-		cmd.Username,
-		cmd.Email,
+		name,
+		username,
+		email,
 		0,
 		0,
 		time.Now(),

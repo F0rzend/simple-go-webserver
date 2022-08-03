@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 	"github.com/go-chi/render"
 )
@@ -50,11 +49,7 @@ func (h *UserHTTPHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.service.CreateUser(service.CreateUserCommand{
-		Name:     request.Name,
-		Username: request.Username,
-		Email:    request.Email,
-	})
+	id, err := h.service.CreateUser(request.Name, request.Username, request.Email)
 	if err != nil {
 		common.RenderHTTPError(w, r, err)
 		return

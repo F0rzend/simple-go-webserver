@@ -28,19 +28,25 @@ func TestUserService_UpdateUser(t *testing.T) {
 		return nil
 	}
 
+	type command struct {
+		userID uint64
+		name   *string
+		email  *string
+	}
+
 	testCases := []struct {
 		name                string
-		cmd                 UpdateUserCommand
+		cmd                 command
 		getUserCallsAmount  int
 		saveUserCallsAmount int
 		err                 error
 	}{
 		{
 			name: "user not found",
-			cmd: UpdateUserCommand{
-				UserID: 42,
-				Name:   nil,
-				Email:  nil,
+			cmd: command{
+				userID: 42,
+				name:   nil,
+				email:  nil,
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 0,
@@ -51,10 +57,10 @@ func TestUserService_UpdateUser(t *testing.T) {
 		},
 		{
 			name: "update name",
-			cmd: UpdateUserCommand{
-				UserID: 1,
-				Name:   strPointer("new name"),
-				Email:  nil,
+			cmd: command{
+				userID: 1,
+				name:   strPointer("new name"),
+				email:  nil,
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
@@ -62,10 +68,10 @@ func TestUserService_UpdateUser(t *testing.T) {
 		},
 		{
 			name: "invalid email",
-			cmd: UpdateUserCommand{
-				UserID: 1,
-				Name:   nil,
-				Email:  strPointer("invalid email"),
+			cmd: command{
+				userID: 1,
+				name:   nil,
+				email:  strPointer("invalid email"),
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 0,
@@ -76,10 +82,10 @@ func TestUserService_UpdateUser(t *testing.T) {
 		},
 		{
 			name: "update email",
-			cmd: UpdateUserCommand{
-				UserID: 1,
-				Name:   nil,
-				Email:  strPointer("test@mail.com"),
+			cmd: command{
+				userID: 1,
+				name:   nil,
+				email:  strPointer("test@mail.com"),
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
@@ -87,10 +93,10 @@ func TestUserService_UpdateUser(t *testing.T) {
 		},
 		{
 			name: "update name and email",
-			cmd: UpdateUserCommand{
-				UserID: 1,
-				Name:   strPointer("new name"),
-				Email:  strPointer("test@mail.com"),
+			cmd: command{
+				userID: 1,
+				name:   strPointer("new name"),
+				email:  strPointer("test@mail.com"),
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
@@ -108,7 +114,11 @@ func TestUserService_UpdateUser(t *testing.T) {
 
 			service := NewUserService(userRepository, bitcoinRepository)
 
-			err := service.UpdateUser(tc.cmd)
+			err := service.UpdateUser(
+				tc.cmd.userID,
+				tc.cmd.name,
+				tc.cmd.email,
+			)
 
 			assert.Equal(t, tc.err, err)
 			assert.Len(t, userRepository.GetCalls(), tc.getUserCallsAmount)
