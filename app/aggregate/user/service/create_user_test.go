@@ -16,28 +16,34 @@ import (
 func TestUserService_CreateUser(t *testing.T) {
 	t.Parallel()
 
+	type command struct {
+		name     string
+		username string
+		email    string
+	}
+
 	testCases := []struct {
 		name            string
-		cmd             CreateUserCommand
+		cmd             command
 		saveCallsAmount int
 		err             error
 	}{
 		{
 			name: "success",
-			cmd: CreateUserCommand{
-				Name:     "test",
-				Username: "test",
-				Email:    "test@mail.com",
+			cmd: command{
+				name:     "test",
+				username: "test",
+				email:    "test@mail.com",
 			},
 			saveCallsAmount: 1,
 			err:             nil,
 		},
 		{
 			name: "empty name",
-			cmd: CreateUserCommand{
-				Name:     "",
-				Username: "test",
-				Email:    "test@mail.com",
+			cmd: command{
+				name:     "",
+				username: "test",
+				email:    "test@mail.com",
 			},
 			err: common.NewApplicationError(
 				http.StatusBadRequest,
@@ -46,10 +52,10 @@ func TestUserService_CreateUser(t *testing.T) {
 		},
 		{
 			name: "empty username",
-			cmd: CreateUserCommand{
-				Name:     "test",
-				Username: "",
-				Email:    "test@mail.com",
+			cmd: command{
+				name:     "test",
+				username: "",
+				email:    "test@mail.com",
 			},
 			err: common.NewApplicationError(
 				http.StatusBadRequest,
@@ -58,10 +64,10 @@ func TestUserService_CreateUser(t *testing.T) {
 		},
 		{
 			name: "invalid email",
-			cmd: CreateUserCommand{
-				Name:     "test",
-				Username: "test",
-				Email:    "test",
+			cmd: command{
+				name:     "test",
+				username: "test",
+				email:    "test",
 			},
 			err: common.NewApplicationError(
 				http.StatusBadRequest,
@@ -84,7 +90,11 @@ func TestUserService_CreateUser(t *testing.T) {
 
 			service := NewUserService(userRepository, bitcoinRepository)
 
-			_, err := service.CreateUser(tc.cmd)
+			_, err := service.CreateUser(
+				tc.cmd.name,
+				tc.cmd.username,
+				tc.cmd.email,
+			)
 
 			assert.Equal(t, tc.err, err)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveCallsAmount)

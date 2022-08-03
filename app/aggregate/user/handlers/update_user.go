@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
@@ -50,11 +49,7 @@ func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.UpdateUser(service.UpdateUserCommand{
-		UserID: id,
-		Name:   request.Name,
-		Email:  request.Email,
-	}); err != nil {
+	if err := h.service.UpdateUser(id, request.Name, request.Email); err != nil {
 		common.RenderHTTPError(w, r, err)
 		return
 	}

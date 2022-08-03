@@ -46,9 +46,15 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		return bitcoinEntity.NewBTCPrice(price, time.Now())
 	}
 
+	type command struct {
+		userID uint64
+		action string
+		amount float64
+	}
+
 	testCases := []struct {
 		name                string
-		cmd                 ChangeBitcoinBalanceCommand
+		cmd                 command
 		getUserCallsAmount  int
 		saveUserCallsAmount int
 		getPriceCallsAmount int
@@ -56,8 +62,8 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 	}{
 		{
 			name: "invalid action",
-			cmd: ChangeBitcoinBalanceCommand{
-				Action: "invalid",
+			cmd: command{
+				action: "invalid",
 			},
 			getUserCallsAmount:  1,
 			getPriceCallsAmount: 1,
@@ -68,9 +74,9 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		},
 		{
 			name: "user not found",
-			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 42,
-				Action: "buy",
+			cmd: command{
+				userID: 42,
+				action: "buy",
 			},
 			getUserCallsAmount: 1,
 			err: common.NewApplicationError(
@@ -80,10 +86,10 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		},
 		{
 			name: "negative currency",
-			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 0,
-				Action: "buy",
-				Amount: -1,
+			cmd: command{
+				userID: 0,
+				action: "buy",
+				amount: -1,
 			},
 			err: common.NewApplicationError(
 				http.StatusBadRequest,
@@ -92,10 +98,10 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		},
 		{
 			name: "user has not enough funds to buy btc",
-			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 0,
-				Action: "buy",
-				Amount: 1,
+			cmd: command{
+				userID: 0,
+				action: "buy",
+				amount: 1,
 			},
 			getPriceCallsAmount: 1,
 			err: common.NewApplicationError(
@@ -105,10 +111,10 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		},
 		{
 			name: "user has not enough funds to sell btc",
-			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 0,
-				Action: "sell",
-				Amount: 1,
+			cmd: command{
+				userID: 0,
+				action: "sell",
+				amount: 1,
 			},
 			getPriceCallsAmount: 1,
 			err: common.NewApplicationError(
@@ -118,10 +124,10 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		},
 		{
 			name: "user has enough funds to buy btc",
-			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 1,
-				Action: "buy",
-				Amount: 1,
+			cmd: command{
+				userID: 1,
+				action: "buy",
+				amount: 1,
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
@@ -129,10 +135,10 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		},
 		{
 			name: "user has enough funds to sell btc",
-			cmd: ChangeBitcoinBalanceCommand{
-				UserID: 2,
-				Action: "sell",
-				Amount: 1,
+			cmd: command{
+				userID: 2,
+				action: "sell",
+				amount: 1,
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
@@ -150,7 +156,11 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 
 			service := NewUserService(userRepository, bitcoinRepository)
 
-			err := service.ChangeBitcoinBalance(tc.cmd)
+			err := service.ChangeBitcoinBalance(
+				tc.cmd.userID,
+				tc.cmd.action,
+				tc.cmd.amount,
+			)
 
 			assert.Equal(t, tc.err, err)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)

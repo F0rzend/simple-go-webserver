@@ -6,28 +6,22 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
-type UpdateUserCommand struct {
-	UserID uint64
-	Name   *string
-	Email  *string
-}
-
-func (us *UserServiceImpl) UpdateUser(cmd UpdateUserCommand) error {
-	user, err := us.userRepository.Get(cmd.UserID)
+func (us *UserService) UpdateUser(userID uint64, name, email *string) error {
+	user, err := us.userRepository.Get(userID)
 	if err != nil {
 		return err
 	}
 
-	if cmd.Name == nil && cmd.Email == nil {
+	if name == nil && email == nil {
 		return nil
 	}
 
-	if cmd.Name != nil {
-		user.Name = *cmd.Name
+	if name != nil {
+		user.Name = *name
 	}
 
-	if cmd.Email != nil {
-		newEmail, err := entity.ParseEmail(*cmd.Email)
+	if email != nil {
+		newEmail, err := entity.ParseEmail(*email)
 		if err != nil {
 			return err
 		}

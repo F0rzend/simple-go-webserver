@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
 
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
@@ -42,11 +41,7 @@ func (h *UserHTTPHandlers) ChangeUSDBalance(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := h.service.ChangeUserBalance(userService.ChangeUserBalanceCommand{
-		UserID: id,
-		Action: request.Action,
-		Amount: request.Amount,
-	}); err != nil {
+	if err := h.service.ChangeUserBalance(id, request.Action, request.Amount); err != nil {
 		common.RenderHTTPError(w, r, err)
 		return
 	}

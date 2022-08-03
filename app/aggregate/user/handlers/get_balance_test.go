@@ -6,7 +6,6 @@ import (
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +17,7 @@ func TestUserHTTPHandlers_GetUserBalance(t *testing.T) {
 		return 1, nil
 	}
 
-	service := &userService.MockUserService{
+	service := &MockUserService{
 		GetUserBalanceFunc: func(_ uint64) (bitcoinEntity.USD, error) {
 			return bitcoinEntity.USD{}, nil
 		},

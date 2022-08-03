@@ -37,19 +37,25 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		return nil
 	}
 
+	type command struct {
+		userID uint64
+		action string
+		amount float64
+	}
+
 	testCases := []struct {
 		name                string
-		cmd                 ChangeUserBalanceCommand
+		cmd                 command
 		getUserCallsAmount  int
 		saveUserCallsAmount int
 		err                 error
 	}{
 		{
 			name: "invalid action",
-			cmd: ChangeUserBalanceCommand{
-				UserID: 0,
-				Action: "invalid",
-				Amount: 1,
+			cmd: command{
+				userID: 0,
+				action: "invalid",
+				amount: 1,
 			},
 			getUserCallsAmount: 1,
 			err: common.NewApplicationError(
@@ -59,10 +65,10 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		},
 		{
 			name: "negative currency",
-			cmd: ChangeUserBalanceCommand{
-				UserID: 0,
-				Action: "deposit",
-				Amount: -1,
+			cmd: command{
+				userID: 0,
+				action: "deposit",
+				amount: -1,
 			},
 			err: common.NewApplicationError(
 				http.StatusBadRequest,
@@ -71,10 +77,10 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		},
 		{
 			name: "user not found",
-			cmd: ChangeUserBalanceCommand{
-				UserID: 42,
-				Action: "deposit",
-				Amount: 1,
+			cmd: command{
+				userID: 42,
+				action: "deposit",
+				amount: 1,
 			},
 			getUserCallsAmount: 1,
 			err: common.NewApplicationError(
@@ -84,10 +90,10 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		},
 		{
 			name: "user has not enough money to withdraw",
-			cmd: ChangeUserBalanceCommand{
-				UserID: 0,
-				Action: "withdraw",
-				Amount: 1,
+			cmd: command{
+				userID: 0,
+				action: "withdraw",
+				amount: 1,
 			},
 			getUserCallsAmount: 1,
 			err: common.NewApplicationError(
@@ -97,20 +103,20 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		},
 		{
 			name: "success withdraw",
-			cmd: ChangeUserBalanceCommand{
-				UserID: 1,
-				Action: "withdraw",
-				Amount: 1,
+			cmd: command{
+				userID: 1,
+				action: "withdraw",
+				amount: 1,
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
 		},
 		{
 			name: "success deposit",
-			cmd: ChangeUserBalanceCommand{
-				UserID: 0,
-				Action: "deposit",
-				Amount: 1,
+			cmd: command{
+				userID: 0,
+				action: "deposit",
+				amount: 1,
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
@@ -127,7 +133,11 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 
 			service := NewUserService(userRepository, bitcoinRepository)
 
-			err := service.ChangeUserBalance(tc.cmd)
+			err := service.ChangeUserBalance(
+				tc.cmd.userID,
+				tc.cmd.action,
+				tc.cmd.amount,
+			)
 
 			assert.Equal(t, tc.err, err)
 			assert.Len(t, userRepository.GetCalls(), tc.getUserCallsAmount)

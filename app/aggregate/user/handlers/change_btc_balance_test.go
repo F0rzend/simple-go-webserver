@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 
@@ -19,8 +18,8 @@ func TestUserHTTPHandlers_ChangeBTCBalance(t *testing.T) {
 	}
 	expectedStatus := http.StatusNoContent
 
-	service := &userService.MockUserService{
-		ChangeBitcoinBalanceFunc: func(_ userService.ChangeBitcoinBalanceCommand) error {
+	service := &MockUserService{
+		ChangeBitcoinBalanceFunc: func(_ uint64, _ string, _ float64) error {
 			return nil
 		},
 	}

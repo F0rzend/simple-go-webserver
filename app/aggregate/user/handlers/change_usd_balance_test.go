@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"testing"
 
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,8 +17,8 @@ func TestUserHTTPHandlers_ChangeUSDBalance(t *testing.T) {
 	}
 	expectedStatus := http.StatusNoContent
 
-	service := &userService.MockUserService{
-		ChangeUserBalanceFunc: func(_ userService.ChangeUserBalanceCommand) error {
+	service := &MockUserService{
+		ChangeUserBalanceFunc: func(_ uint64, _ string, _ float64) error {
 			return nil
 		},
 	}

@@ -10,13 +10,12 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	bitcoinEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	bitcoinService "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 )
 
 func TestGetBTCPrice(t *testing.T) {
 	t.Parallel()
 
-	service := &bitcoinService.MockBitcoinService{
+	service := &MockBitcoinService{
 		GetBTCPriceFunc: func() bitcoinEntity.BTCPrice {
 			btcPrice, _ := bitcoinEntity.NewUSD(1)
 			return bitcoinEntity.NewBTCPrice(

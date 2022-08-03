@@ -5,24 +5,18 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 )
 
-type ChangeUserBalanceCommand struct {
-	UserID uint64
-	Action string
-	Amount float64
-}
-
-func (us *UserServiceImpl) ChangeUserBalance(cmd ChangeUserBalanceCommand) error {
-	usd, err := bitcoinEntity.NewUSD(cmd.Amount)
+func (us *UserService) ChangeUserBalance(userID uint64, action string, amount float64) error {
+	usd, err := bitcoinEntity.NewUSD(amount)
 	if err != nil {
 		return err
 	}
 
-	user, err := us.userRepository.Get(cmd.UserID)
+	user, err := us.userRepository.Get(userID)
 	if err != nil {
 		return err
 	}
 
-	if err := user.ChangeUSDBalance(entity.Action(cmd.Action), usd); err != nil {
+	if err := user.ChangeUSDBalance(entity.Action(action), usd); err != nil {
 		return err
 	}
 

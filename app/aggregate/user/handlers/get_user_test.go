@@ -7,7 +7,6 @@ import (
 
 	userEntity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 
-	userService "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,7 +18,7 @@ func TestUserHTTPHandlers_GetUser(t *testing.T) {
 		return 1, nil
 	}
 
-	service := &userService.MockUserService{
+	service := &MockUserService{
 		GetUserFunc: func(_ uint64) (*userEntity.User, error) {
 			return &userEntity.User{
 				Email: &mail.Address{Address: "test@mail.com"},
