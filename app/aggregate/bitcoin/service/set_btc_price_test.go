@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 )
 
 func TestBitcoinService_SetBTCPrice(t *testing.T) {
@@ -40,7 +39,7 @@ func TestBitcoinService_SetBTCPrice(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			bitcoinRepository := &bitcoinrepositories.MockBTCRepository{
+			bitcoinRepository := &MockBTCRepository{
 				SetPriceFunc: func(price bitcoinentity.USD) error {
 					return nil
 				},

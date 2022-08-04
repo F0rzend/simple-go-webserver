@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
@@ -152,10 +151,10 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userrepositories.MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
-			bitcoinRepository := &bitcoinrepositories.MockBTCRepository{GetPriceFunc: getBitcoinPriceFunc}
+			userRepository := &MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
+			btcPriceGetter := &MockBTCPriceGetter{GetPriceFunc: getBitcoinPriceFunc}
 
-			service := NewUserService(userRepository, bitcoinRepository)
+			service := NewUserService(userRepository, btcPriceGetter)
 
 			err := service.ChangeBitcoinBalance(
 				tc.cmd.userID,
@@ -165,7 +164,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 
 			assert.Equal(t, tc.err, err)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
-			assert.Len(t, bitcoinRepository.GetPriceCalls(), tc.getPriceCallsAmount)
+			assert.Len(t, btcPriceGetter.GetPriceCalls(), tc.getPriceCallsAmount)
 		})
 	}
 }

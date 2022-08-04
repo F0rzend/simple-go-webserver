@@ -13,16 +13,6 @@ type UserHTTPHandlers struct {
 	getUserIDFromRequest func(r *http.Request) (uint64, error)
 }
 
-func NewUserHTTPHandlers(
-	userService UserService,
-	getUserIDFromRequest func(r *http.Request) (uint64, error),
-) *UserHTTPHandlers {
-	return &UserHTTPHandlers{
-		service:              userService,
-		getUserIDFromRequest: getUserIDFromRequest,
-	}
-}
-
 //go:generate moq -out "mock_user_service.gen.go" . UserService:MockUserService
 type UserService interface {
 	CreateUser(name, username, email string) (uint64, error)
@@ -32,4 +22,14 @@ type UserService interface {
 	GetUserBalance(userID uint64) (bitcoinentity.USD, error)
 	ChangeBitcoinBalance(userID uint64, action string, amount float64) error
 	ChangeUserBalance(userID uint64, action string, amount float64) error
+}
+
+func NewUserHTTPHandlers(
+	userService UserService,
+	getUserIDFromRequest func(r *http.Request) (uint64, error),
+) *UserHTTPHandlers {
+	return &UserHTTPHandlers{
+		service:              userService,
+		getUserIDFromRequest: getUserIDFromRequest,
+	}
 }

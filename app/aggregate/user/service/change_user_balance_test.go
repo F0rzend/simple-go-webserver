@@ -7,7 +7,6 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/stretchr/testify/assert"
@@ -128,10 +127,10 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userrepositories.MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
-			bitcoinRepository := &bitcoinrepositories.MockBTCRepository{}
+			userRepository := &MockUserRepository{SaveFunc: saveUserFunc, GetFunc: getUserFunc}
+			btcPriceGetter := &MockBTCPriceGetter{}
 
-			service := NewUserService(userRepository, bitcoinRepository)
+			service := NewUserService(userRepository, btcPriceGetter)
 
 			err := service.ChangeUserBalance(
 				tc.cmd.userID,

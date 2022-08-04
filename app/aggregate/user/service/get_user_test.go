@@ -8,8 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
-
 	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
@@ -51,10 +49,10 @@ func TestUserService_GetUser(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			userRepository := &userrepositories.MockUserRepository{GetFunc: getUserFunc}
-			bitcoinRepository := &bitcoinrepositories.MockBTCRepository{}
+			userRepository := &MockUserRepository{GetFunc: getUserFunc}
+			btcPriceGetter := &MockBTCPriceGetter{}
 
-			service := NewUserService(userRepository, bitcoinRepository)
+			service := NewUserService(userRepository, btcPriceGetter)
 
 			_, err := service.GetUser(tc.userID)
 

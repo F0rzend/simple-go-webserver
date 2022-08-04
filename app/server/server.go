@@ -10,11 +10,9 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/handlers"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
 )
@@ -31,12 +29,13 @@ func getUserIDFromURL(r *http.Request) (uint64, error) {
 }
 
 func NewServer(
-	userRepository userentity.UserRepository,
-	bitcoinRepository bitcoinentity.BTCRepository,
+	userRepository userservice.UserRepository,
+	btcPriceGetter userservice.BTCPriceGetter,
+	bitcoinRepository bitcoinservice.BTCRepository,
 ) *Server {
 	bitcoinRoutes := bitcoinhandlers.NewBitcoinHTTPHandlers(bitcoinservice.NewBitcoinService(bitcoinRepository))
 	userRoutes := userhandlers.NewUserHTTPHandlers(
-		userservice.NewUserService(userRepository, bitcoinRepository),
+		userservice.NewUserService(userRepository, btcPriceGetter),
 		getUserIDFromURL,
 	)
 

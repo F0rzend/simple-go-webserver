@@ -9,5 +9,5 @@ func (us *UserService) GetUserBalance(userID uint64) (bitcoinentity.USD, error) 
 	if err != nil {
 		return bitcoinentity.USD{}, err
 	}
-	return user.Balance.Total(us.bitcoinRepository.GetPrice()), nil
+	return user.Balance.Total(us.priceGetter.GetPrice()), nil
 }

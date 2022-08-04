@@ -28,7 +28,7 @@ func main() {
 		log.Fatal().Err(err).Send()
 	}
 
-	apiServer := server.NewServer(userRepository, bitcoinRepository)
+	apiServer := server.NewServer(userRepository, bitcoinRepository, bitcoinRepository)
 
 	if err := http.ListenAndServe(
 		address,

@@ -16,7 +16,7 @@ func (us *UserService) ChangeBitcoinBalance(userID uint64, action string, amount
 		return err
 	}
 
-	currentBitcoinPrice := us.bitcoinRepository.GetPrice()
+	currentBitcoinPrice := us.priceGetter.GetPrice()
 
 	if err := user.ChangeBTCBalance(userentity.Action(action), btc, currentBitcoinPrice); err != nil {
 		return err
