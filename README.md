@@ -3,7 +3,7 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/F0rzend/SimpleGoWebserver?display_name=tag)
 ![GitHub top language](https://img.shields.io/github/languages/top/F0rzend/SimpleGoWebserver)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/F0rzend/SimpleGoWebserver)
-![Swagger Validator](https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2FF0rzend%2FSimpleGoWebserver%2Fmaster%2Fdocs%2Fopenapi.yaml)
+[![Swagger Validator](https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2FF0rzend%2FSimpleGoWebserver%2Fmaster%2Fdocs%2Fopenapi.yaml)](https://validator.swagger.io/?url=https://raw.githubusercontent.com/F0rzend/SimpleGoWebserver/master/docs/openapi.yaml)
 
 There is a simple webserver written in Go.
 
@@ -11,9 +11,7 @@ We use DDD (Domain Driven Design) to separate the domain logic from the applicat
 
 ## Features
 
- * The project uses the structure proposed in the book
-[Go with domain](https://threedots.tech/go-with-the-domain/)
- * [moq](https://github.com/matryer/moq) for adapters mocking
+ * [moq](https://github.com/matryer/moq) for mocking
  * [Swagger](https://swagger.io)
  * [OpenAPI](https://openapi.io)
  * [chi router](https://go-chi.io/)
