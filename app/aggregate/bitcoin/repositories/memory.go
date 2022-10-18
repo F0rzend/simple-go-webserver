@@ -6,16 +6,18 @@ import (
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
 
+const minimalPrice = 1e-2
+
 type MemoryBTCRepository struct {
 	bitcoin bitcoinentity.BTCPrice
 }
 
-func NewMemoryBTCRepository(initialPrice bitcoinentity.USD) (*MemoryBTCRepository, error) {
-	btcPrice := bitcoinentity.NewBTCPrice(initialPrice, time.Now())
+func NewMemoryBTCRepository() *MemoryBTCRepository {
+	btcPrice := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(minimalPrice), time.Now())
 
 	return &MemoryBTCRepository{
 		bitcoin: btcPrice,
-	}, nil
+	}
 }
 
 func (r *MemoryBTCRepository) GetPrice() bitcoinentity.BTCPrice {
@@ -23,8 +25,7 @@ func (r *MemoryBTCRepository) GetPrice() bitcoinentity.BTCPrice {
 }
 
 func (r *MemoryBTCRepository) SetPrice(price bitcoinentity.USD) error {
-	btcPrice := bitcoinentity.NewBTCPrice(price, time.Now())
+	r.bitcoin = bitcoinentity.NewBTCPrice(price, time.Now())
 
-	r.bitcoin = btcPrice
 	return nil
 }

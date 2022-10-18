@@ -1,7 +1,6 @@
 package bitcoinentity
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -11,48 +10,27 @@ import (
 
 const (
 	SatoshiInBitcoin = 100_000_000
-
-	BTCSuffix = "BTC"
+	BTCSuffix        = "BTC"
 )
 
 type BTC struct {
 	amount decimal.Decimal
 }
 
-func NewBTC(amount float64) (BTC, error) {
-	if amount < 0 {
-		return BTC{}, ErrNegativeCurrency
-	}
-	return BTC{decimal.NewFromFloat(amount)}, nil
-}
-
-func MustNewBTC(amount float64) BTC {
-	btc, err := NewBTC(amount)
-	if err != nil {
-		panic(err)
-	}
-	return btc
+func NewBTC(amount float64) BTC {
+	return BTC{decimal.NewFromFloat(amount)}
 }
 
 func (btc BTC) ToFloat() *big.Float {
 	return btc.amount.BigFloat()
 }
 
-func (btc BTC) ToFloat64() float64 {
-	amount, _ := btc.amount.Float64()
-	return amount
-}
-
 func (btc BTC) ToUSD(price BTCPrice) USD {
 	return USD{btc.amount.Mul(price.GetPrice().amount)}
 }
 
-func (btc BTC) IsZero() bool {
-	return btc.amount.IsZero()
-}
-
 func (btc BTC) String() string {
-	if btc.IsZero() {
+	if btc.amount.IsZero() {
 		return fmt.Sprintf("0 %s", BTCSuffix)
 	}
 	if btc.amount.IsInteger() {
@@ -61,21 +39,15 @@ func (btc BTC) String() string {
 
 	precision := MustCountPrecision(SatoshiInBitcoin)
 	format := fmt.Sprintf("%%.%df %s", precision, BTCSuffix)
-	return fmt.Sprintf(format, btc.ToFloat())
+	return fmt.Sprintf(format, btc.amount.BigFloat())
 }
 
 func (btc BTC) Add(toAdd BTC) BTC {
 	return BTC{btc.amount.Add(toAdd.amount)}
 }
 
-// TODO remove sub error
-var ErrSubtractMoreBTCThanHave = errors.New("can't subtract more btc than available")
-
-func (btc BTC) Sub(toSubtract BTC) (BTC, error) {
-	if toSubtract.amount.GreaterThan(btc.amount) {
-		return BTC{}, ErrSubtractMoreBTCThanHave
-	}
-	return BTC{btc.amount.Sub(toSubtract.amount)}, nil
+func (btc BTC) Sub(toSubtract BTC) BTC {
+	return BTC{btc.amount.Sub(toSubtract.amount)}
 }
 
 func (btc BTC) LessThan(other BTC) bool {

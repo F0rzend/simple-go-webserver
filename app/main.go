@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"os"
 
+	bitcoinentity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/server"
@@ -23,9 +24,10 @@ func main() {
 	logger.Info().Msgf("starting endpoints on %s", address)
 
 	userRepository := userrepositories.NewMemoryUserRepository()
-	bitcoinRepository, err := bitcoinrepositories.NewMemoryBTCRepository(bitcoinentity.MustNewUSD(100))
+	bitcoinRepository := bitcoinrepositories.NewMemoryBTCRepository()
+	err := bitcoinRepository.SetPrice(bitcoinentity.NewUSD(100))
 	if err != nil {
-		log.Fatal().Err(err).Send()
+		logger.Fatal().Err(err).Msg("failed to set bitcoin price")
 	}
 
 	apiServer := server.NewServer(userRepository, bitcoinRepository, bitcoinRepository)

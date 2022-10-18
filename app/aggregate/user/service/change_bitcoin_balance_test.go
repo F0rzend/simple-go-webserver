@@ -5,24 +5,25 @@ import (
 	"testing"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/tests"
+
 	userrepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 	t.Parallel()
 
 	var (
-		zeroDollar, _  = bitcoinentity.NewUSD(0)
-		zeroBitcoin, _ = bitcoinentity.NewBTC(0)
+		zeroDollar  = bitcoinentity.NewUSD(0)
+		zeroBitcoin = bitcoinentity.NewBTC(0)
 
-		oneDollar, _  = bitcoinentity.NewUSD(1)
-		oneBitcoin, _ = bitcoinentity.NewBTC(1)
+		oneDollar  = bitcoinentity.NewUSD(1)
+		oneBitcoin = bitcoinentity.NewBTC(1)
 	)
 
 	testUsers := map[uint64]*userentity.User{
@@ -42,7 +43,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		return nil
 	}
 	getBitcoinPriceFunc := func() bitcoinentity.BTCPrice {
-		price, _ := bitcoinentity.NewUSD(1)
+		price := bitcoinentity.NewUSD(1)
 		return bitcoinentity.NewBTCPrice(price, time.Now())
 	}
 
@@ -58,7 +59,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		getUserCallsAmount  int
 		saveUserCallsAmount int
 		getPriceCallsAmount int
-		err                 error
+		expectedErrorStatus int
 	}{
 		{
 			name: "invalid action",
@@ -67,10 +68,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			getPriceCallsAmount: 1,
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"You must specify a valid action. Available actions: buy and sell",
-			),
+			expectedErrorStatus: http.StatusBadRequest,
 		},
 		{
 			name: "user not found",
@@ -78,11 +76,8 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				userID: 42,
 				action: "buy",
 			},
-			getUserCallsAmount: 1,
-			err: common.NewApplicationError(
-				http.StatusNotFound,
-				"User not found",
-			),
+			getUserCallsAmount:  1,
+			expectedErrorStatus: http.StatusNotFound,
 		},
 		{
 			name: "negative currency",
@@ -91,10 +86,8 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				action: "buy",
 				amount: -1,
 			},
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"The amount of currency cannot be negative. Please pass a number greater than 0",
-			),
+			getPriceCallsAmount: 1,
+			expectedErrorStatus: http.StatusBadRequest,
 		},
 		{
 			name: "user has not enough funds to buy btc",
@@ -104,10 +97,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				amount: 1,
 			},
 			getPriceCallsAmount: 1,
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"The user does not have enough funds",
-			),
+			expectedErrorStatus: http.StatusBadRequest,
 		},
 		{
 			name: "user has not enough funds to sell btc",
@@ -117,10 +107,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				amount: 1,
 			},
 			getPriceCallsAmount: 1,
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"The user does not have enough funds",
-			),
+			expectedErrorStatus: http.StatusBadRequest,
 		},
 		{
 			name: "user has enough funds to buy btc",
@@ -132,6 +119,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
 			getPriceCallsAmount: 1,
+			expectedErrorStatus: 0,
 		},
 		{
 			name: "user has enough funds to sell btc",
@@ -143,6 +131,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
 			getPriceCallsAmount: 1,
+			expectedErrorStatus: 0,
 		},
 	}
 
@@ -162,7 +151,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				tc.cmd.amount,
 			)
 
-			assert.Equal(t, tc.err, err)
+			tests.ExpectApplicationError(t, tc.expectedErrorStatus, err)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 			assert.Len(t, btcPriceGetter.GetPriceCalls(), tc.getPriceCallsAmount)
 		})

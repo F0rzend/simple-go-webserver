@@ -13,7 +13,6 @@ type UserHTTPHandlers struct {
 	getUserIDFromRequest func(r *http.Request) (uint64, error)
 }
 
-//go:generate moq -out "mock_user_service.gen.go" . UserService:MockUserService
 type UserService interface {
 	CreateUser(name, username, email string) (uint64, error)
 	GetUser(uint64) (*userentity.User, error)

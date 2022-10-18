@@ -4,8 +4,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
+
+	userentity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+
+	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
+	userservice "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 
 func TestUserHTTPHandlers_CreateUser(t *testing.T) {
@@ -14,16 +20,13 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
 		return 1, nil
 	}
-	createUserFunc := func(_, _, _ string) (uint64, error) {
-		return 1, nil
-	}
 
 	testCases := []struct {
-		name                        string
-		request                     CreateUserRequest
-		shouldContainLocationHeader bool
-		createUserCallsAmount       int
-		expectedStatus              int
+		name                string
+		request             CreateUserRequest
+		locationHeader      string
+		saveUserCallsAmount int
+		expectedStatus      int
 	}{
 		{
 			name: "success",
@@ -32,9 +35,9 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test@mail.com",
 			},
-			shouldContainLocationHeader: true,
-			createUserCallsAmount:       1,
-			expectedStatus:              http.StatusCreated,
+			locationHeader:      "/users/1",
+			saveUserCallsAmount: 1,
+			expectedStatus:      http.StatusCreated,
 		},
 		{
 			name: "empty name",
@@ -43,9 +46,9 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test@mail.com",
 			},
-			shouldContainLocationHeader: false,
-			createUserCallsAmount:       0,
-			expectedStatus:              http.StatusBadRequest,
+			locationHeader:      "",
+			saveUserCallsAmount: 0,
+			expectedStatus:      http.StatusBadRequest,
 		},
 		{
 			name: "empty username",
@@ -54,9 +57,9 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "",
 				Email:    "test@mail.com",
 			},
-			shouldContainLocationHeader: false,
-			createUserCallsAmount:       0,
-			expectedStatus:              http.StatusBadRequest,
+			locationHeader:      "",
+			saveUserCallsAmount: 0,
+			expectedStatus:      http.StatusBadRequest,
 		},
 		{
 			name: "invalid email",
@@ -65,9 +68,9 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test",
 			},
-			shouldContainLocationHeader: false,
-			createUserCallsAmount:       0,
-			expectedStatus:              http.StatusBadRequest,
+			locationHeader:      "",
+			saveUserCallsAmount: 0,
+			expectedStatus:      http.StatusBadRequest,
 		},
 	}
 
@@ -76,18 +79,26 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			service := &MockUserService{CreateUserFunc: createUserFunc}
-
-			handler := http.HandlerFunc(NewUserHTTPHandlers(service, getUserIDFromURL).CreateUser)
-
-			w, r := tests.PrepareHandlerArgs(t, http.MethodPost, "/users/", tc.request)
-			handler.ServeHTTP(w, r)
-
-			tests.AssertStatus(t, w, r, tc.expectedStatus)
-			if tc.shouldContainLocationHeader {
-				assert.Equal(t, "/users/1", w.Header().Get("Location"))
+			userRepository := &userservice.MockUserRepository{
+				SaveFunc: func(_ *userentity.User) error {
+					return nil
+				},
 			}
-			assert.Len(t, service.CreateUserCalls(), tc.createUserCallsAmount)
+			bitcoinRepository := &bitcoinservice.MockBTCRepository{}
+
+			service := userservice.NewUserService(userRepository, bitcoinRepository)
+
+			sut := NewUserHTTPHandlers(service, getUserIDFromURL).CreateUser
+
+			tests.HTTPExpect(t, sut).
+				POST("/users/").
+				WithJSON(tc.request).
+				Expect().
+				Status(tc.expectedStatus).
+				ContentType("application/json", "utf-8").
+				Header("Location")
+
+			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 		})
 	}
 }

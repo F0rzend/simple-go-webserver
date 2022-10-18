@@ -12,9 +12,8 @@ import (
 func TestBitcoinService_GetBTCPrice(t *testing.T) {
 	t.Parallel()
 
-	priceInUSD, _ := bitcoinentity.NewUSD(1)
 	bitcoinPrice := bitcoinentity.NewBTCPrice(
-		priceInUSD,
+		bitcoinentity.NewUSD(1),
 		time.Now(),
 	)
 	bitcoinRepository := &MockBTCRepository{

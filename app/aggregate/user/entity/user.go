@@ -57,22 +57,12 @@ func NewUser(
 		return nil, err
 	}
 
-	usdAmount, err := bitcoinentity.NewUSD(usdBalance)
-	if err != nil {
-		return nil, err
-	}
-
-	btcAmount, err := bitcoinentity.NewBTC(btcBalance)
-	if err != nil {
-		return nil, err
-	}
-
 	return &User{
 		ID:        id,
 		Name:      name,
 		Username:  username,
 		Email:     addr,
-		Balance:   NewBalance(usdAmount, btcAmount),
+		Balance:   NewBalance(bitcoinentity.NewUSD(usdBalance), bitcoinentity.NewBTC(btcBalance)),
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
@@ -87,7 +77,7 @@ func ParseEmail(email string) (*mail.Address, error) {
 }
 
 func (u *User) ChangeUSDBalance(action Action, amount bitcoinentity.USD) error {
-	switch action {
+	switch action { //nolint:exhaustive
 	case DepositUSDAction:
 		return u.deposit(amount)
 	case WithdrawUSDAction:
@@ -108,17 +98,13 @@ func (u *User) withdraw(amount bitcoinentity.USD) error {
 		return ErrInsufficientFunds
 	}
 
-	updatedUSD, err := u.Balance.USD.Sub(amount)
-	if err != nil {
-		return err
-	}
-	u.Balance.USD = updatedUSD
+	u.Balance.USD = u.Balance.USD.Sub(amount)
 
 	return nil
 }
 
 func (u *User) ChangeBTCBalance(action Action, amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) error {
-	switch action {
+	switch action { //nolint:exhaustive
 	case BuyBTCAction:
 		return u.buyBTC(amount, price)
 	case SellBTCAction:
@@ -133,12 +119,7 @@ func (u *User) buyBTC(amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) er
 		return ErrInsufficientFunds
 	}
 
-	updatedUSD, err := u.Balance.USD.Sub(amount.ToUSD(price))
-	if err != nil {
-		return err
-	}
-
-	u.Balance.USD = updatedUSD
+	u.Balance.USD = u.Balance.USD.Sub(amount.ToUSD(price))
 	u.Balance.BTC = u.Balance.BTC.Add(amount)
 
 	return nil
@@ -149,12 +130,7 @@ func (u *User) sellBTC(amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) e
 		return ErrInsufficientFunds
 	}
 
-	updatedBTC, err := u.Balance.BTC.Sub(amount)
-	if err != nil {
-		return err
-	}
-
-	u.Balance.BTC = updatedBTC
+	u.Balance.BTC = u.Balance.BTC.Sub(amount)
 	u.Balance.USD = u.Balance.USD.Add(amount.ToUSD(price))
 
 	return nil

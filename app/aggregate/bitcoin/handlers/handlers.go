@@ -14,7 +14,6 @@ func NewBitcoinHTTPHandlers(bitcoinService BitcoinService) *BitcoinHTTPHandlers 
 	}
 }
 
-//go:generate moq -out "mock_bitcoin_service.gen.go" . BitcoinService:MockBitcoinService
 type BitcoinService interface {
 	GetBTCPrice() bitcoinentity.BTCPrice
 	SetBTCPrice(newPrice float64) error

@@ -3,8 +3,6 @@ package bitcoinhandlers
 import (
 	"net/http"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-
 	"github.com/F0rzend/simple-go-webserver/app/common"
 	"github.com/go-chi/render"
 )
@@ -13,10 +11,7 @@ type SetBTCPriceRequest struct {
 	Price float64 `json:"price"`
 }
 
-func (r SetBTCPriceRequest) Bind(_ *http.Request) error {
-	_, err := bitcoinentity.NewUSD(r.Price)
-	return err
-}
+func (r SetBTCPriceRequest) Bind(_ *http.Request) error { return nil }
 
 func (h *BitcoinHTTPHandlers) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
 	request := &SetBTCPriceRequest{}

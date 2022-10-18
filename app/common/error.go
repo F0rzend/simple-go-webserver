@@ -9,7 +9,7 @@ import (
 )
 
 type ApplicationError struct {
-	httpStatus   int
+	HTTPStatus   int    `json:"-"`
 	ErrorMessage string `json:"error"`
 }
 
@@ -19,13 +19,13 @@ func (e ApplicationError) Error() string {
 
 func NewApplicationError(httpStatus int, message string) ApplicationError {
 	return ApplicationError{
-		httpStatus:   httpStatus,
+		HTTPStatus:   httpStatus,
 		ErrorMessage: message,
 	}
 }
 
 func (e ApplicationError) Render(_ http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.httpStatus)
+	render.Status(r, e.HTTPStatus)
 	return nil
 }
 

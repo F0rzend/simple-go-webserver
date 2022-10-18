@@ -4,9 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
-
-	"github.com/stretchr/testify/assert"
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 )
@@ -15,41 +13,37 @@ func TestBitcoinService_SetBTCPrice(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name  string
-		price float64
-		err   error
+		name                string
+		price               float64
+		expectedErrorStatus int
 	}{
 		{
-			name:  "success",
-			price: 1.0,
-			err:   nil,
+			name:                "success",
+			price:               1.0,
+			expectedErrorStatus: 0,
 		},
 		{
-			name:  "negative price",
-			price: -1.0,
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"The amount of currency cannot be negative. Please pass a number greater than 0",
-			),
+			name:                "negative",
+			price:               -1.0,
+			expectedErrorStatus: http.StatusBadRequest,
 		},
 	}
 
+	bitcoinRepository := &MockBTCRepository{
+		SetPriceFunc: func(_ bitcoinentity.USD) error { return nil },
+	}
+
+	sut := NewBitcoinService(bitcoinRepository)
+
 	for _, tc := range testCases {
 		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			bitcoinRepository := &MockBTCRepository{
-				SetPriceFunc: func(price bitcoinentity.USD) error {
-					return nil
-				},
-			}
+			err := sut.SetBTCPrice(tc.price)
 
-			service := NewBitcoinService(bitcoinRepository)
-
-			err := service.SetBTCPrice(tc.price)
-
-			assert.Equal(t, tc.err, err)
+			tests.ExpectApplicationError(t, tc.expectedErrorStatus, err)
 		})
 	}
 }

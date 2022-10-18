@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
@@ -15,14 +15,9 @@ import (
 func TestUserService_ChangeUserBalance(t *testing.T) {
 	t.Parallel()
 
-	var (
-		zeroBitcoin, _ = bitcoinentity.NewBTC(0)
-		oneDollar, _   = bitcoinentity.NewUSD(1)
-	)
-
 	testUsers := map[uint64]userentity.User{
 		0: {},
-		1: {Balance: userentity.Balance{USD: oneDollar, BTC: zeroBitcoin}},
+		1: {Balance: userentity.Balance{USD: bitcoinentity.NewUSD(1), BTC: bitcoinentity.NewBTC(0)}},
 	}
 
 	getUserFunc := func(id uint64) (*userentity.User, error) {
@@ -47,7 +42,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		cmd                 command
 		getUserCallsAmount  int
 		saveUserCallsAmount int
-		err                 error
+		expectedErrorStatus int
 	}{
 		{
 			name: "invalid action",
@@ -56,11 +51,8 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				action: "invalid",
 				amount: 1,
 			},
-			getUserCallsAmount: 1,
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"You must specify a valid action. Available actions: deposit and withdraw",
-			),
+			getUserCallsAmount:  1,
+			expectedErrorStatus: http.StatusBadRequest,
 		},
 		{
 			name: "negative currency",
@@ -69,10 +61,9 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				action: "deposit",
 				amount: -1,
 			},
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"The amount of currency cannot be negative. Please pass a number greater than 0",
-			),
+			getUserCallsAmount:  1,
+			saveUserCallsAmount: 1,
+			expectedErrorStatus: 0,
 		},
 		{
 			name: "user not found",
@@ -81,11 +72,8 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				action: "deposit",
 				amount: 1,
 			},
-			getUserCallsAmount: 1,
-			err: common.NewApplicationError(
-				http.StatusNotFound,
-				"User not found",
-			),
+			getUserCallsAmount:  1,
+			expectedErrorStatus: http.StatusNotFound,
 		},
 		{
 			name: "user has not enough money to withdraw",
@@ -94,11 +82,8 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				action: "withdraw",
 				amount: 1,
 			},
-			getUserCallsAmount: 1,
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"The user does not have enough funds",
-			),
+			getUserCallsAmount:  1,
+			expectedErrorStatus: http.StatusBadRequest,
 		},
 		{
 			name: "success withdraw",
@@ -138,7 +123,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				tc.cmd.amount,
 			)
 
-			assert.Equal(t, tc.err, err)
+			tests.ExpectApplicationError(t, tc.expectedErrorStatus, err)
 			assert.Len(t, userRepository.GetCalls(), tc.getUserCallsAmount)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 		})

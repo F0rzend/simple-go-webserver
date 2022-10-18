@@ -3,31 +3,58 @@ package userhandlers
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 
-	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
+
+	userentity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+
+	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
+	userservice "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 
 func TestUserHTTPHandlers_GetUserBalance(t *testing.T) {
 	t.Parallel()
 
+	const expectedStatus = http.StatusOK
+
 	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
 		return 1, nil
 	}
 
-	service := &MockUserService{
-		GetUserBalanceFunc: func(_ uint64) (bitcoinentity.USD, error) {
-			return bitcoinentity.USD{}, nil
+	userRepository := &userservice.MockUserRepository{
+		GetFunc: func(id uint64) (*userentity.User, error) {
+			return userentity.NewUser(
+				id,
+				"John",
+				"john",
+				"john@mail.com",
+				0,
+				100,
+				time.Now(),
+				time.Now(),
+			)
+		},
+	}
+	bitcoinRepository := &bitcoinservice.MockBTCRepository{
+		GetPriceFunc: func() bitcoinentity.BTCPrice {
+			return bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), time.Now())
 		},
 	}
 
-	handler := http.HandlerFunc(NewUserHTTPHandlers(service, getUserIDFromURL).GetUserBalance)
+	service := userservice.NewUserService(userRepository, bitcoinRepository)
 
-	w, r := tests.PrepareHandlerArgs(t, http.MethodPost, "/users/1/balance", nil)
-	handler.ServeHTTP(w, r)
+	sut := NewUserHTTPHandlers(service, getUserIDFromURL).GetUserBalance
 
-	tests.AssertStatus(t, w, r, http.StatusOK)
-	assert.Len(t, service.GetUserBalanceCalls(), 1)
+	tests.HTTPExpect(t, sut).
+		POST("/users/1/balance").
+		Expect().
+		ContentType("application/json", "utf-8").
+		Status(expectedStatus)
+
+	assert.Len(t, userRepository.GetCalls(), 1)
 }
