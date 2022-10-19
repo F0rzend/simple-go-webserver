@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 
 	userentity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 
@@ -53,8 +53,9 @@ func TestUserHTTPHandlers_GetUserBalance(t *testing.T) {
 	tests.HTTPExpect(t, sut).
 		POST("/users/1/balance").
 		Expect().
+		Status(expectedStatus).
 		ContentType("application/json", "utf-8").
-		Status(expectedStatus)
+		JSON().Object().ValueEqual("balance", "100")
 
 	assert.Len(t, userRepository.GetCalls(), 1)
 }

@@ -19,8 +19,8 @@ type UserResponse struct {
 	Email      string     `json:"email"`
 	BTCBalance *big.Float `json:"btc_balance"`
 	USDBalance *big.Float `json:"usd_balance"`
-	CreatedAt  string     `json:"created_at"`
-	UpdatedAt  string     `json:"updated_at"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
 }
 
 func UserToResponse(user *userentity.User) *UserResponse {
@@ -31,8 +31,8 @@ func UserToResponse(user *userentity.User) *UserResponse {
 		Email:      user.Email.Address,
 		BTCBalance: user.Balance.BTC.ToFloat(),
 		USDBalance: user.Balance.USD.ToFloat(),
-		CreatedAt:  user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:  user.UpdatedAt.Format(time.RFC3339),
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
 	}
 }
 

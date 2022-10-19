@@ -18,9 +18,11 @@ func TestGetBTCPrice(t *testing.T) {
 
 	const expectedStatus = http.StatusOK
 
+	now := time.Now()
+
 	repository := &bitcoinservice.MockBTCRepository{
 		GetPriceFunc: func() bitcoinentity.BTCPrice {
-			return bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), time.Now())
+			return bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now)
 		},
 	}
 	service := bitcoinservice.NewBitcoinService(repository)
@@ -31,7 +33,10 @@ func TestGetBTCPrice(t *testing.T) {
 		GET("/bitcoin").
 		Expect().
 		Status(expectedStatus).
-		ContentType("application/json", "utf-8")
+		ContentType("application/json", "utf-8").
+		JSON().Object().Value("btc").Object().
+		ValueEqual("price", "1").
+		ValueEqual("updated_at", now)
 
 	assert.Len(t, repository.GetPriceCalls(), 1)
 }

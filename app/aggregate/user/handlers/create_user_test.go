@@ -96,7 +96,7 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Expect().
 				Status(tc.expectedStatus).
 				ContentType("application/json", "utf-8").
-				Header("Location")
+				Header("Location").Equal(tc.locationHeader)
 
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 		})

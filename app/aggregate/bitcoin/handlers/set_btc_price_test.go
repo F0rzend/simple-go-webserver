@@ -4,12 +4,13 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	bitcoinentity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 
 	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 
 	"github.com/F0rzend/simple-go-webserver/app/tests"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSetBTCPrice(t *testing.T) {
