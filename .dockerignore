@@ -1,4 +1,7 @@
+# Docker
 .dockerignore
+Dockerfile
+docker-compose.yml
 
 # Jetbrains IDEA
 .idea
@@ -11,4 +14,6 @@ README.md
 
 # Project
 docs
+tests
+Makefile
 .golangci.yml

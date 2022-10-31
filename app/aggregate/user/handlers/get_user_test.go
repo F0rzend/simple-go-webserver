@@ -22,32 +22,31 @@ func TestUserHTTPHandlers_GetUser(t *testing.T) {
 	now := time.Now()
 	const expectedStatus = http.StatusOK
 
+	getUserFunc := func(id uint64) (*userentity.User, error) {
+		return userentity.NewUser(
+			1,
+			"John",
+			"john",
+			"john@mail.com",
+			0,
+			0,
+			now,
+			now,
+		)
+	}
 	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
 		return 1, nil
 	}
 
 	userRepository := &userservice.MockUserRepository{
-		GetFunc: func(id uint64) (*userentity.User, error) {
-			return userentity.NewUser(
-				1,
-				"John",
-				"john",
-				"john@mail.com",
-				0,
-				0,
-				now,
-				now,
-			)
-		},
+		GetFunc: getUserFunc,
 	}
 	bitcoinRepository := &bitcoinservice.MockBTCRepository{}
-
 	service := userservice.NewUserService(userRepository, bitcoinRepository)
-
 	sut := NewUserHTTPHandlers(service, getUserIDFromURL).GetUser
 
 	tests.HTTPExpect(t, sut).
-		GET("/users/1").
+		GET("/").
 		Expect().
 		Status(expectedStatus).
 		ContentType("application/json", "utf-8").

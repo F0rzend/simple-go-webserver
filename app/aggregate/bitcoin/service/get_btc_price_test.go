@@ -12,7 +12,7 @@ import (
 func TestBitcoinService_GetBTCPrice(t *testing.T) {
 	t.Parallel()
 
-	bitcoinPrice := bitcoinentity.NewBTCPrice(
+	bitcoinPrice, _ := bitcoinentity.NewBTCPrice(
 		bitcoinentity.NewUSD(1),
 		time.Now(),
 	)
@@ -21,10 +21,9 @@ func TestBitcoinService_GetBTCPrice(t *testing.T) {
 			return bitcoinPrice
 		},
 	}
+	sut := NewBitcoinService(bitcoinRepository)
 
-	service := NewBitcoinService(bitcoinRepository)
-
-	actual := service.GetBTCPrice()
+	actual := sut.GetBTCPrice()
 
 	assert.Equal(t, bitcoinPrice, actual)
 	assert.Len(t, bitcoinRepository.GetPriceCalls(), 1)

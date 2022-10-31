@@ -18,19 +18,24 @@ import (
 func TestUserHTTPHandlers_UpdateUser(t *testing.T) {
 	t.Parallel()
 
+	type response struct {
+		status   int
+		location string
+	}
+
 	testCases := []struct {
 		name                string
 		request             UpdateUserRequest
-		locationHeader      string
 		saveUserCallsAmount int
-		expectedStatus      int
+		response            response
 	}{
 		{
 			name:                "empty request",
 			request:             UpdateUserRequest{},
-			locationHeader:      "",
 			saveUserCallsAmount: 0,
-			expectedStatus:      http.StatusBadRequest,
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
 		{
 			name: "update name and email",
@@ -38,39 +43,61 @@ func TestUserHTTPHandlers_UpdateUser(t *testing.T) {
 				Name:  strPointer("test"),
 				Email: strPointer("test@mail.com"),
 			},
-			locationHeader:      "/users/1",
 			saveUserCallsAmount: 1,
-			expectedStatus:      http.StatusNoContent,
+			response: response{
+				status:   http.StatusNoContent,
+				location: "/users/1",
+			},
 		},
 		{
 			name: "correct email",
 			request: UpdateUserRequest{
 				Email: strPointer("test@mail.com"),
 			},
-			locationHeader:      "/users/1",
 			saveUserCallsAmount: 1,
-			expectedStatus:      http.StatusNoContent,
+			response: response{
+				status:   http.StatusNoContent,
+				location: "/users/1",
+			},
 		},
 		{
 			name: "incorrect email",
 			request: UpdateUserRequest{
 				Email: strPointer("test"),
 			},
-			locationHeader:      "",
 			saveUserCallsAmount: 0,
-			expectedStatus:      http.StatusBadRequest,
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
 		{
 			name: "update name",
 			request: UpdateUserRequest{
 				Name: strPointer("test"),
 			},
-			locationHeader:      "/users/1",
 			saveUserCallsAmount: 1,
-			expectedStatus:      http.StatusNoContent,
+			response: response{
+				status:   http.StatusNoContent,
+				location: "/users/1",
+			},
 		},
 	}
 
+	getUserFunc := func(id uint64) (*userentity.User, error) {
+		return userentity.NewUser(
+			id,
+			"John",
+			"john",
+			"john@mail.com",
+			0,
+			100,
+			time.Now(),
+			time.Now(),
+		)
+	}
+	saveUserFunc := func(_ *userentity.User) error {
+		return nil
+	}
 	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
 		return 1, nil
 	}
@@ -81,35 +108,20 @@ func TestUserHTTPHandlers_UpdateUser(t *testing.T) {
 			t.Parallel()
 
 			userRepository := &userservice.MockUserRepository{
-				GetFunc: func(id uint64) (*userentity.User, error) {
-					return userentity.NewUser(
-						id,
-						"John",
-						"john",
-						"john@mail.com",
-						0,
-						100,
-						time.Now(),
-						time.Now(),
-					)
-				},
-				SaveFunc: func(_ *userentity.User) error {
-					return nil
-				},
+				GetFunc:  getUserFunc,
+				SaveFunc: saveUserFunc,
 			}
 			bitcoinRepository := &bitcoinservice.MockBTCRepository{}
-
 			service := userservice.NewUserService(userRepository, bitcoinRepository)
-
 			sut := NewUserHTTPHandlers(service, getUserIDFromURL).UpdateUser
 
 			tests.HTTPExpect(t, sut).
-				POST("/users/1").
+				POST("/").
 				WithJSON(tc.request).
 				Expect().
-				Status(tc.expectedStatus).
+				Status(tc.response.status).
 				ContentType("application/json", "utf-8").
-				Header("Location").Equal(tc.locationHeader)
+				Header("Location").Equal(tc.response.location)
 
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 		})

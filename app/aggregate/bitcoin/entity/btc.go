@@ -3,7 +3,10 @@ package bitcoinentity
 import (
 	"fmt"
 	"math/big"
+	"net/http"
 	"time"
+
+	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/shopspring/decimal"
 )
@@ -63,11 +66,20 @@ type BTCPrice struct {
 	updatedAt time.Time
 }
 
-func NewBTCPrice(price USD, updatedAt time.Time) BTCPrice {
+var ErrNegativePrice = common.NewApplicationError(
+	http.StatusBadRequest,
+	"The price cannot be negative. Please pass a number greater than 0",
+)
+
+func NewBTCPrice(price USD, updatedAt time.Time) (BTCPrice, error) {
+	if price.LessThan(NewUSD(0)) {
+		return BTCPrice{}, ErrNegativePrice
+	}
+
 	return BTCPrice{
 		price:     price,
 		updatedAt: updatedAt,
-	}
+	}, nil
 }
 
 func (btcPrice BTCPrice) GetPrice() USD {

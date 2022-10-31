@@ -2,6 +2,7 @@ package bitcoinrepositories
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -14,9 +15,10 @@ func TestMemoryBTCRepositories(t *testing.T) {
 	sut := NewMemoryBTCRepository()
 
 	defaultPrice := sut.GetPrice()
-	assert.True(t, defaultPrice.GetPrice().Equal(bitcoinentity.NewUSD(minimalPrice)))
+	assert.True(t, defaultPrice.GetPrice().Equal(bitcoinentity.NewUSD(1e-2)))
 
-	err := sut.SetPrice(bitcoinentity.NewUSD(100.0))
+	price, _ := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(100.0), time.Now())
+	err := sut.SetPrice(price)
 	assert.NoError(t, err)
 
 	actualPrice := sut.GetPrice()

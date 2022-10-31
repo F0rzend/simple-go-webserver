@@ -17,16 +17,16 @@ import (
 func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 	t.Parallel()
 
-	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
-		return 1, nil
+	type response struct {
+		status   int
+		location string
 	}
 
 	testCases := []struct {
 		name                string
 		request             CreateUserRequest
-		locationHeader      string
 		saveUserCallsAmount int
-		expectedStatus      int
+		response            response
 	}{
 		{
 			name: "success",
@@ -35,9 +35,11 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test@mail.com",
 			},
-			locationHeader:      "/users/1",
 			saveUserCallsAmount: 1,
-			expectedStatus:      http.StatusCreated,
+			response: response{
+				status:   http.StatusCreated,
+				location: "/users/1",
+			},
 		},
 		{
 			name: "empty name",
@@ -46,9 +48,10 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test@mail.com",
 			},
-			locationHeader:      "",
 			saveUserCallsAmount: 0,
-			expectedStatus:      http.StatusBadRequest,
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
 		{
 			name: "empty username",
@@ -57,9 +60,10 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "",
 				Email:    "test@mail.com",
 			},
-			locationHeader:      "",
 			saveUserCallsAmount: 0,
-			expectedStatus:      http.StatusBadRequest,
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
 		{
 			name: "invalid email",
@@ -68,10 +72,18 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test",
 			},
-			locationHeader:      "",
 			saveUserCallsAmount: 0,
-			expectedStatus:      http.StatusBadRequest,
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
+	}
+
+	saveUserFunc := func(_ *userentity.User) error {
+		return nil
+	}
+	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
+		return 1, nil
 	}
 
 	for _, tc := range testCases {
@@ -80,23 +92,19 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 			t.Parallel()
 
 			userRepository := &userservice.MockUserRepository{
-				SaveFunc: func(_ *userentity.User) error {
-					return nil
-				},
+				SaveFunc: saveUserFunc,
 			}
 			bitcoinRepository := &bitcoinservice.MockBTCRepository{}
-
 			service := userservice.NewUserService(userRepository, bitcoinRepository)
-
 			sut := NewUserHTTPHandlers(service, getUserIDFromURL).CreateUser
 
 			tests.HTTPExpect(t, sut).
-				POST("/users/").
+				POST("/").
 				WithJSON(tc.request).
 				Expect().
-				Status(tc.expectedStatus).
+				Status(tc.response.status).
 				ContentType("application/json", "utf-8").
-				Header("Location").Equal(tc.locationHeader)
+				Header("Location").Equal(tc.response.location)
 
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 		})

@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	userrepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
@@ -43,8 +45,10 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		return nil
 	}
 	getBitcoinPriceFunc := func() bitcoinentity.BTCPrice {
-		price := bitcoinentity.NewUSD(1)
-		return bitcoinentity.NewBTCPrice(price, time.Now())
+		price, err := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), time.Now())
+		require.NoError(t, err)
+
+		return price
 	}
 
 	type command struct {

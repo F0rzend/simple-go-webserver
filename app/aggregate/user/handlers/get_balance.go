@@ -1,7 +1,6 @@
 package userhandlers
 
 import (
-	"math/big"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -25,5 +24,5 @@ func (h *UserHTTPHandlers) GetUserBalance(w http.ResponseWriter, r *http.Request
 	}
 
 	render.Status(r, http.StatusOK)
-	render.Respond(w, r, map[string]*big.Float{"balance": balance.ToFloat()})
+	render.Respond(w, r, map[string]any{"balance": balance.ToFloat()})
 }

@@ -2,6 +2,7 @@ package bitcoinentity
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -182,6 +183,44 @@ func TestBTCComparativeTransactions(t *testing.T) {
 			assert.Equal(t, tc.aLessThanB, tc.a.LessThan(tc.b))
 			assert.Equal(t, tc.aEqualToB, tc.a.Equal(tc.b))
 			assert.Equal(t, tc.aGreaterThanB, tc.b.LessThan(tc.a))
+		})
+	}
+}
+
+func TestNewBTCPrice(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name          string
+		price         USD
+		expectedPrice USD
+		err           error
+	}{
+		{
+			name:          "success",
+			price:         NewUSD(100.0),
+			expectedPrice: NewUSD(100),
+			err:           nil,
+		},
+		{
+			name:          "negative price",
+			price:         NewUSD(-1.0),
+			expectedPrice: USD{},
+			err:           ErrNegativePrice,
+		},
+	}
+
+	now := time.Now()
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			price, err := NewBTCPrice(tc.price, now)
+
+			assert.ErrorIs(t, tc.err, err)
+			assert.Equal(t, tc.expectedPrice, price.GetPrice())
 		})
 	}
 }

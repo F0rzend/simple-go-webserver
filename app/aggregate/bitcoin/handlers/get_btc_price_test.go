@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
@@ -22,7 +24,9 @@ func TestGetBTCPrice(t *testing.T) {
 
 	repository := &bitcoinservice.MockBTCRepository{
 		GetPriceFunc: func() bitcoinentity.BTCPrice {
-			return bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now)
+			price, err := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now)
+			require.NoError(t, err)
+			return price
 		},
 	}
 	service := bitcoinservice.NewBitcoinService(repository)

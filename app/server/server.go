@@ -77,9 +77,10 @@ func (s *Server) GetHTTPHandler(
 			r.Get("/balance", s.userRoutes.GetUserBalance)
 
 			r.Post("/usd", s.userRoutes.ChangeUSDBalance)
-			r.Post("/bitcoin", s.userRoutes.ChangeBTCBalance)
+			r.Post("/btc", s.userRoutes.ChangeBTCBalance)
 		})
 	})
+
 	r.Route("/bitcoin", func(r chi.Router) {
 		r.Get("/", s.bitcoinRoutes.GetBTCPrice)
 		r.Put("/", s.bitcoinRoutes.SetBTCPrice)

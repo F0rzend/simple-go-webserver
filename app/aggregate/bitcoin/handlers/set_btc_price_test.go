@@ -4,34 +4,55 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	bitcoinentity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-
 	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
-
 	"github.com/F0rzend/simple-go-webserver/app/tests"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSetBTCPrice(t *testing.T) {
 	t.Parallel()
 
-	request := SetBTCPriceRequest{Price: 1}
-	const expectedStatus = http.StatusNoContent
-
-	repository := &bitcoinservice.MockBTCRepository{
-		SetPriceFunc: func(_ bitcoinentity.USD) error { return nil },
+	testCases := []struct {
+		name                          string
+		price                         float64
+		expectedStatus                int
+		repositorySetPriceCallsAmount int
+	}{
+		{
+			name:                          "success",
+			price:                         100.0,
+			expectedStatus:                http.StatusNoContent,
+			repositorySetPriceCallsAmount: 1,
+		},
+		{
+			name:                          "empty price",
+			price:                         0.0,
+			expectedStatus:                http.StatusBadRequest,
+			repositorySetPriceCallsAmount: 0,
+		},
 	}
-	service := bitcoinservice.NewBitcoinService(repository)
 
-	sut := NewBitcoinHTTPHandlers(service).SetBTCPrice
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	tests.HTTPExpect(t, sut).
-		POST("/bitcoin").
-		WithJSON(request).
-		Expect().
-		Status(expectedStatus).
-		ContentType("application/json", "utf-8")
+			repository := &bitcoinservice.MockBTCRepository{
+				SetPriceFunc: func(_ bitcoinentity.BTCPrice) error { return nil },
+			}
+			service := bitcoinservice.NewBitcoinService(repository)
 
-	assert.Len(t, repository.SetPriceCalls(), 1)
+			sut := NewBitcoinHTTPHandlers(service).SetBTCPrice
+
+			tests.HTTPExpect(t, sut).
+				POST("/bitcoin").
+				WithJSON(SetBTCPriceRequest{Price: tc.price}).
+				Expect().
+				Status(tc.expectedStatus).
+				ContentType("application/json", "utf-8")
+
+			assert.Len(t, repository.SetPriceCalls(), tc.repositorySetPriceCallsAmount)
+		})
+	}
 }

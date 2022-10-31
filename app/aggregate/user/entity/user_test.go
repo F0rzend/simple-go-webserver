@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
@@ -254,7 +256,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 		user     User
 		action   Action
 		amount   bitcoinentity.BTC
-		btcPrice bitcoinentity.BTCPrice
+		btcPrice bitcoinentity.USD
 		expected Balance
 		err      error
 	}{
@@ -268,7 +270,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			},
 			action:   BuyBTCAction,
 			amount:   bitcoinentity.NewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: Balance{
 				USD: bitcoinentity.NewUSD(0),
 				BTC: bitcoinentity.NewBTC(1),
@@ -285,7 +287,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			},
 			action:   SellBTCAction,
 			amount:   bitcoinentity.NewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: Balance{
 				USD: bitcoinentity.NewUSD(1),
 				BTC: bitcoinentity.NewBTC(0),
@@ -302,7 +304,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			},
 			action:   BuyBTCAction,
 			amount:   bitcoinentity.NewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: Balance{
 				USD: bitcoinentity.NewUSD(0),
 				BTC: bitcoinentity.NewBTC(0),
@@ -319,7 +321,7 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			},
 			action:   SellBTCAction,
 			amount:   bitcoinentity.NewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: Balance{
 				USD: bitcoinentity.NewUSD(0),
 				BTC: bitcoinentity.NewBTC(0),
@@ -334,7 +336,10 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			t.Parallel()
 
 			user := &tc.user
-			err := user.ChangeBTCBalance(tc.action, tc.amount, tc.btcPrice)
+			price, err := bitcoinentity.NewBTCPrice(tc.btcPrice, now)
+			require.NoError(t, err)
+
+			err = user.ChangeBTCBalance(tc.action, tc.amount, price)
 
 			assert.ErrorIs(t, err, tc.err)
 			assert.True(t, tc.expected.BTC.Equal(user.Balance.BTC))

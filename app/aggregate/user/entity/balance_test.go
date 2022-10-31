@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
@@ -18,35 +20,35 @@ func TestBalance_Total(t *testing.T) {
 		name     string
 		usd      bitcoinentity.USD
 		btc      bitcoinentity.BTC
-		btcPrice bitcoinentity.BTCPrice
+		btcPrice bitcoinentity.USD
 		expected bitcoinentity.USD
 	}{
 		{
 			name:     "empty",
 			usd:      bitcoinentity.NewUSD(0),
 			btc:      bitcoinentity.NewBTC(0),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(0), now),
+			btcPrice: bitcoinentity.NewUSD(0),
 			expected: bitcoinentity.NewUSD(0),
 		},
 		{
 			name:     "usd only",
 			usd:      bitcoinentity.NewUSD(1),
 			btc:      bitcoinentity.NewBTC(0),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: bitcoinentity.NewUSD(1),
 		},
 		{
 			name:     "btc only",
 			usd:      bitcoinentity.NewUSD(0),
 			btc:      bitcoinentity.NewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: bitcoinentity.NewUSD(1),
 		},
 		{
 			name:     "usd and btc",
 			usd:      bitcoinentity.NewUSD(1),
 			btc:      bitcoinentity.NewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: bitcoinentity.NewUSD(2),
 		},
 	}
@@ -56,9 +58,11 @@ func TestBalance_Total(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			price, err := bitcoinentity.NewBTCPrice(tc.btcPrice, now)
+			require.NoError(t, err)
 			balance := NewBalance(tc.usd, tc.btc)
 
-			actual := balance.Total(tc.btcPrice)
+			actual := balance.Total(price)
 
 			assert.Equal(t, tc.expected, actual)
 		})

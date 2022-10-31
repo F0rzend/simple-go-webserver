@@ -16,4 +16,3 @@ FROM gcr.io/distroless/base:latest
 COPY --from=builder /build/binary /app
 
 CMD ["/app"]
-

@@ -11,7 +11,7 @@ type BitcoinService struct {
 //go:generate moq -out "mock_btc_repository.gen.go" . BTCRepository:MockBTCRepository
 type BTCRepository interface {
 	GetPrice() bitcoinentity.BTCPrice
-	SetPrice(price bitcoinentity.USD) error
+	SetPrice(price bitcoinentity.BTCPrice) error
 }
 
 func NewBitcoinService(

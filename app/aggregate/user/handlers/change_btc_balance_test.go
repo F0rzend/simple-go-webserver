@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 
 	"github.com/stretchr/testify/assert"
@@ -20,48 +22,125 @@ import (
 func TestUserHTTPHandlers_ChangeBTCBalance(t *testing.T) {
 	t.Parallel()
 
-	request := ChangeBTCBalanceRequest{
-		Action: "buy",
-		Amount: 1,
+	type calls struct {
+		getUser  int
+		saveUser int
+		getPrice int
 	}
-	const expectedStatus = http.StatusNoContent
 
-	userRepository := &userservice.MockUserRepository{
-		GetFunc: func(id uint64) (*userentity.User, error) {
-			return userentity.NewUser(
-				id,
-				"John",
-				"john",
-				"john@mail.com",
-				0,
-				100,
-				time.Now(),
-				time.Now(),
-			)
+	type response struct {
+		status   int
+		location string
+	}
+
+	testCases := []struct {
+		name     string
+		request  ChangeBTCBalanceRequest
+		response response
+		calls    calls
+	}{
+		{
+			name: "success buying",
+			request: ChangeBTCBalanceRequest{
+				Action: "buy",
+				Amount: 10.0,
+			},
+			response: response{
+				status:   http.StatusNoContent,
+				location: "/users/1",
+			},
+			calls: calls{
+				getUser:  1,
+				saveUser: 1,
+				getPrice: 1,
+			},
 		},
-		SaveFunc: func(_ *userentity.User) error {
-			return nil
+		{
+			name: "success selling",
+			request: ChangeBTCBalanceRequest{
+				Action: "sell",
+				Amount: 10.0,
+			},
+			response: response{
+				status:   http.StatusNoContent,
+				location: "/users/1",
+			},
+			calls: calls{
+				getUser:  1,
+				saveUser: 1,
+				getPrice: 1,
+			},
+		},
+		{
+			name: "empty amount",
+			request: ChangeBTCBalanceRequest{
+				Action: "buy",
+			},
+			response: response{
+				status: http.StatusBadRequest,
+			},
+		},
+		{
+			name: "empty action",
+			request: ChangeBTCBalanceRequest{
+				Amount: 10.0,
+			},
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
 	}
-	bitcoinRepository := &bitcoinservice.MockBTCRepository{GetPriceFunc: func() bitcoinentity.BTCPrice {
-		return bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(0), time.Now())
-	}}
 
-	service := userservice.NewUserService(userRepository, bitcoinRepository)
+	getUserFunc := func(id uint64) (*userentity.User, error) {
+		return userentity.NewUser(
+			id,
+			"John",
+			"john",
+			"john@mail.com",
+			10,
+			10,
+			time.Now(),
+			time.Now(),
+		)
+	}
+	getPriceFunc := func() bitcoinentity.BTCPrice {
+		price, err := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), time.Now())
+		require.NoError(t, err)
 
-	sut := NewUserHTTPHandlers(service, func(r *http.Request) (uint64, error) {
-		return 1, nil
-	}).ChangeBTCBalance
+		return price
+	}
+	saveUserFunc := func(_ *userentity.User) error {
+		return nil
+	}
 
-	tests.HTTPExpect(t, sut).
-		POST("/users/{id}/bitcoin", 1).
-		WithJSON(request).
-		Expect().
-		Status(expectedStatus).
-		ContentType("application/json", "utf-8").
-		Header("Location").Equal("/users/1")
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	assert.Len(t, userRepository.GetCalls(), 1)
-	assert.Len(t, bitcoinRepository.GetPriceCalls(), 1)
-	assert.Len(t, userRepository.SaveCalls(), 1)
+			userRepository := &userservice.MockUserRepository{
+				GetFunc:  getUserFunc,
+				SaveFunc: saveUserFunc,
+			}
+			bitcoinRepository := &bitcoinservice.MockBTCRepository{GetPriceFunc: getPriceFunc}
+
+			service := userservice.NewUserService(userRepository, bitcoinRepository)
+
+			sut := NewUserHTTPHandlers(service, func(r *http.Request) (uint64, error) {
+				return 1, nil
+			}).ChangeBTCBalance
+
+			tests.HTTPExpect(t, sut).
+				POST("/").
+				WithJSON(tc.request).
+				Expect().
+				Status(tc.response.status).
+				ContentType("application/json", "utf-8").
+				Header("Location").Equal(tc.response.location)
+
+			assert.Len(t, userRepository.GetCalls(), tc.calls.getUser)
+			assert.Len(t, bitcoinRepository.GetPriceCalls(), tc.calls.getPrice)
+			assert.Len(t, userRepository.SaveCalls(), tc.calls.saveUser)
+		})
+	}
 }

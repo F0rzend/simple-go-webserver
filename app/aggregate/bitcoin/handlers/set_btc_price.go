@@ -11,7 +11,13 @@ type SetBTCPriceRequest struct {
 	Price float64 `json:"price"`
 }
 
-func (r SetBTCPriceRequest) Bind(_ *http.Request) error { return nil }
+func (r SetBTCPriceRequest) Bind(_ *http.Request) error {
+	if r.Price == 0 {
+		return common.NewApplicationError(http.StatusBadRequest, "field 'price' is required")
+	}
+
+	return nil
+}
 
 func (h *BitcoinHTTPHandlers) SetBTCPrice(w http.ResponseWriter, r *http.Request) {
 	request := &SetBTCPriceRequest{}
