@@ -15,7 +15,7 @@ func TestMemoryBTCRepositories(t *testing.T) {
 	sut := NewMemoryBTCRepository()
 
 	defaultPrice := sut.GetPrice()
-	assert.True(t, defaultPrice.GetPrice().Equal(bitcoinentity.NewUSD(1e-2)))
+	assert.True(t, defaultPrice.GetPrice().Equal(bitcoinentity.NewUSD(100.0)))
 
 	price, _ := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(100.0), time.Now())
 	err := sut.SetPrice(price)

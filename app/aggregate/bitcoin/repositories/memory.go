@@ -11,7 +11,7 @@ type MemoryBTCRepository struct {
 }
 
 func NewMemoryBTCRepository() *MemoryBTCRepository {
-	const defaultPrice = 1e-2
+	const defaultPrice = 100
 
 	btcPrice, _ := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(defaultPrice), time.Now())
 

@@ -109,6 +109,14 @@ func (s *TestSuite) TestUserBTCManipulation() {
 		"email":    "john1234@mail.com",
 	}
 
+	s.e().PUT("/bitcoin").
+		WithJSON(JSON{
+			"price": 100,
+		}).
+		Expect().
+		Status(http.StatusNoContent).
+		ContentType(ContentType, Encoding)
+
 	userLocation := s.e().POST("/users").
 		WithJSON(user).
 		Expect().
@@ -119,50 +127,54 @@ func (s *TestSuite) TestUserBTCManipulation() {
 	usdPath := fmt.Sprintf("%s/%s", userLocation, "usd")
 	btcPath := fmt.Sprintf("%s/%s", userLocation, "btc")
 
-	s.Run("buy 1 BTC", func() {
-		s.e().POST(usdPath).
-			WithJSON(JSON{
-				"action": "deposit",
-				"amount": 100,
-			}).
-			Expect().
-			Status(http.StatusNoContent).
-			ContentType(ContentType, Encoding)
+	s.e().POST(usdPath).
+		WithJSON(JSON{
+			"action": "deposit",
+			"amount": 100,
+		}).
+		Expect().
+		Status(http.StatusNoContent).
+		ContentType(ContentType, Encoding)
 
-		s.e().POST(btcPath).
-			WithJSON(JSON{
-				"action": "buy",
-				"amount": 1,
-			}).
-			Expect().
-			Status(http.StatusNoContent).
-			ContentType(ContentType, Encoding)
+	s.e().POST(btcPath).
+		WithJSON(JSON{
+			"action": "buy",
+			"amount": 1,
+		}).
+		Expect().
+		Status(http.StatusNoContent).
+		ContentType(ContentType, Encoding)
 
-		s.e().GET(userLocation).
-			Expect().
-			Status(http.StatusOK).
-			ContentType(ContentType, Encoding).
-			JSON().Object().
-			ValueEqual(btcBalanceKey, "1").
-			ValueEqual(usdBalanceKey, "0")
-	})
+	s.e().GET(userLocation).
+		Expect().
+		Status(http.StatusOK).
+		ContentType(ContentType, Encoding).
+		JSON().Object().
+		ValueEqual(btcBalanceKey, "1").
+		ValueEqual(usdBalanceKey, "0")
 
-	s.Run("sell 1 BTC", func() {
-		s.e().POST(btcPath).
-			WithJSON(JSON{
-				"action": "sell",
-				"amount": 1,
-			}).
-			Expect().
-			Status(http.StatusNoContent).
-			ContentType(ContentType, Encoding)
+	s.e().PUT("/bitcoin").
+		WithJSON(JSON{
+			"price": 200,
+		}).
+		Expect().
+		Status(http.StatusNoContent).
+		ContentType(ContentType, Encoding)
 
-		s.e().GET(userLocation).
-			Expect().
-			Status(http.StatusOK).
-			ContentType(ContentType, Encoding).
-			JSON().Object().
-			ValueEqual(btcBalanceKey, "0").
-			ValueEqual(usdBalanceKey, "100")
-	})
+	s.e().POST(btcPath).
+		WithJSON(JSON{
+			"action": "sell",
+			"amount": 0.5,
+		}).
+		Expect().
+		Status(http.StatusNoContent).
+		ContentType(ContentType, Encoding)
+
+	s.e().GET(userLocation).
+		Expect().
+		Status(http.StatusOK).
+		ContentType(ContentType, Encoding).
+		JSON().Object().
+		ValueEqual(btcBalanceKey, "0.5").
+		ValueEqual(usdBalanceKey, "100")
 }

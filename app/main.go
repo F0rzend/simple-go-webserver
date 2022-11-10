@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	bitcoinentity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
-
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -26,24 +24,15 @@ func main() {
 
 	userRepository := userrepositories.NewMemoryUserRepository()
 	bitcoinRepository := bitcoinrepositories.NewMemoryBTCRepository()
-	err := bitcoinRepository.SetPrice(getDefaultBTCPrice())
-	if err != nil {
-		logger.Fatal().Err(err).Msg("failed to set bitcoin price")
-	}
 
 	apiServer := server.NewServer(userRepository, bitcoinRepository, bitcoinRepository)
 
-	if err := http.ListenAndServe(
-		address,
-		apiServer.GetHTTPHandler(&logger),
-	); err != nil {
-		log.Error().Err(err).Send()
+	srv := &http.Server{
+		Addr:              address,
+		Handler:           apiServer.GetHTTPHandler(&logger),
+		ReadHeaderTimeout: 1 * time.Second,
 	}
-}
-
-func getDefaultBTCPrice() bitcoinentity.BTCPrice {
-	price, _ := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(100), time.Now())
-	return price
+	log.Error().Err(srv.ListenAndServe()).Send()
 }
 
 func getEnv(key, defaultValue string) string {
