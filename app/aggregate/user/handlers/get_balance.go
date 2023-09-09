@@ -3,16 +3,19 @@ package userhandlers
 import (
 	"net/http"
 
+	"github.com/F0rzend/simple-go-webserver/pkg/hlog"
+
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
 func (h *UserHTTPHandlers) GetUserBalance(w http.ResponseWriter, r *http.Request) {
+	logger := hlog.GetLoggerFromContext(r.Context())
+
 	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
-		log.Error().Err(err).Send()
+		logger.Error("failed to get user id from request", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

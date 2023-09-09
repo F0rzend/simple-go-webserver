@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/F0rzend/simple-go-webserver/pkg/hlog"
+
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
 )
 
 type ApplicationError struct {
@@ -50,10 +51,8 @@ func RenderHTTPError(w http.ResponseWriter, r *http.Request, err error) {
 }
 
 func logError(ctx context.Context, err error) {
-	logger := log.Ctx(ctx)
-	if err != nil {
-		logger.Error().Err(err).Send()
-	}
+	logger := hlog.GetLoggerFromContext(ctx)
+	logger.Error("error", err)
 }
 
 func MarshalError(err *json.UnmarshalTypeError) render.Renderer {

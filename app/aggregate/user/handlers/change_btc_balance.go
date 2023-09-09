@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/F0rzend/simple-go-webserver/pkg/hlog"
 )
 
 type ChangeBTCBalanceRequest struct {
@@ -27,11 +27,13 @@ func (r ChangeBTCBalanceRequest) Bind(_ *http.Request) error {
 }
 
 func (h *UserHTTPHandlers) ChangeBTCBalance(w http.ResponseWriter, r *http.Request) {
+	logger := hlog.GetLoggerFromContext(r.Context())
+
 	request := &ChangeBTCBalanceRequest{}
 
 	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
-		log.Error().Err(err).Send()
+		logger.Error("failed to get user id from request", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

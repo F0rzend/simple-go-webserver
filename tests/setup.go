@@ -32,7 +32,7 @@ func setupTestEnvironment(ctx context.Context) (*applicationContainer, error) {
 					PrintBuildLog: true,
 				},
 				ExposedPorts: []string{"8080"},
-				WaitingFor:   wait.ForLog("starting endpoints on :8080"),
+				WaitingFor:   wait.ForLog("run api"),
 				Name:         ContainerName,
 			},
 			Started: true,

@@ -1,20 +1,17 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/hlog"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
-
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/handlers"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/pkg/hlog"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type Server struct {
@@ -46,7 +43,7 @@ func NewServer(
 }
 
 func (s *Server) GetHTTPHandler(
-	logger *zerolog.Logger,
+	logger *slog.Logger,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -54,18 +51,9 @@ func (s *Server) GetHTTPHandler(
 		middleware.Recoverer,
 		middleware.AllowContentType("application/json"),
 
-		hlog.NewHandler(*logger),
-		hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
-			hlog.FromRequest(r).Info().
-				Str("method", r.Method).
-				Stringer("url", r.URL).
-				Int("status", status).
-				Int("size", size).
-				Dur("duration", duration).
-				Send()
-		}),
-		hlog.RemoteAddrHandler("ip"),
-		hlog.RequestIDHandler("req_id", "Request-Id"),
+		hlog.LoggerInjectionMiddleware(logger),
+		hlog.RequestID,
+		hlog.RequestMiddleware,
 	)
 
 	r.Route("/users", func(r chi.Router) {

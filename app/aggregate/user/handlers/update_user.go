@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
+	"github.com/F0rzend/simple-go-webserver/pkg/hlog"
 
+	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/go-chi/render"
 )
 
 type UpdateUserRequest struct {
@@ -35,11 +35,13 @@ func (r UpdateUserRequest) Bind(_ *http.Request) error {
 }
 
 func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	logger := hlog.GetLoggerFromContext(r.Context())
+
 	request := &UpdateUserRequest{}
 
 	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
-		log.Error().Err(err).Send()
+		logger.Error("Error while getting user id from request", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

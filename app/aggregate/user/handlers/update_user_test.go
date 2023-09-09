@@ -5,13 +5,11 @@ import (
 	"testing"
 	"time"
 
-	userentity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-
 	"github.com/stretchr/testify/assert"
 
 	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
+	userentity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	userservice "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
-
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 

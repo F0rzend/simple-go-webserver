@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/pkg/hlog"
+
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
@@ -37,9 +38,11 @@ func UserToResponse(user *userentity.User) *UserResponse {
 }
 
 func (h *UserHTTPHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
+	logger := hlog.GetLoggerFromContext(r.Context())
+
 	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
-		log.Error().Err(err).Send()
+		logger.Error("error getting user id from request", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
