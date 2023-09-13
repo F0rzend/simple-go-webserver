@@ -5,6 +5,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
+	"github.com/F0rzend/simple-go-webserver/app/tests"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
@@ -28,7 +34,7 @@ func TestNewUser(t *testing.T) {
 		updatedAt     time.Time
 
 		expected *User
-		err      error
+		checkErr tests.ErrorChecker
 	}{
 		{
 			testName: "success",
@@ -47,11 +53,11 @@ func TestNewUser(t *testing.T) {
 				Name:      "John Doe",
 				Username:  "johndoe",
 				Email:     &mail.Address{Name: "", Address: "johndoe@gmail.com"},
-				Balance:   Balance{USD: bitcoinentity.MustNewUSD(0), BTC: bitcoinentity.MustNewBTC(0)},
+				Balance:   Balance{USD: bitcoinentity.NewUSD(0), BTC: bitcoinentity.NewBTC(0)},
 				CreatedAt: now,
 				UpdatedAt: now,
 			},
-			err: nil,
+			checkErr: assert.NoError,
 		},
 		{
 			testName: "wrong email",
@@ -66,7 +72,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      ErrInvalidEmail,
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			testName: "empty name",
@@ -81,7 +87,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      ErrNameEmpty,
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			testName: "empty username",
@@ -96,7 +102,7 @@ func TestNewUser(t *testing.T) {
 			updatedAt:     now,
 
 			expected: nil,
-			err:      ErrUsernameEmpty,
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			testName: "small btc amount",
@@ -110,8 +116,16 @@ func TestNewUser(t *testing.T) {
 			createdAt:     now,
 			updatedAt:     now,
 
-			expected: nil,
-			err:      bitcoinentity.ErrNegativeCurrency,
+			expected: &User{
+				ID:        1,
+				Name:      "John Doe",
+				Username:  "johndoe",
+				Email:     &mail.Address{Name: "", Address: "johndoe@gmail.com"},
+				Balance:   Balance{USD: bitcoinentity.NewUSD(0), BTC: bitcoinentity.NewBTC(-1)},
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			checkErr: assert.NoError,
 		},
 		{
 			testName: "small usd amount",
@@ -125,8 +139,16 @@ func TestNewUser(t *testing.T) {
 			createdAt:     now,
 			updatedAt:     now,
 
-			expected: nil,
-			err:      bitcoinentity.ErrNegativeCurrency,
+			expected: &User{
+				ID:        1,
+				Name:      "John Doe",
+				Username:  "johndoe",
+				Email:     &mail.Address{Name: "", Address: "johndoe@gmail.com"},
+				Balance:   Balance{USD: bitcoinentity.NewUSD(-1), BTC: bitcoinentity.NewBTC(0)},
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			checkErr: assert.NoError,
 		},
 	}
 
@@ -146,7 +168,7 @@ func TestNewUser(t *testing.T) {
 				tc.updatedAt,
 			)
 
-			assert.Equal(t, err, tc.err)
+			tc.checkErr(t, err)
 			assert.Equal(t, tc.expected, user)
 		})
 	}
@@ -161,55 +183,55 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 		action   Action
 		amount   bitcoinentity.USD
 		expected Balance
-		err      error
+		checkErr tests.ErrorChecker
 	}{
 		{
 			name: "success deposit",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinentity.MustNewUSD(0),
-					BTC: bitcoinentity.MustNewBTC(0),
+					USD: bitcoinentity.NewUSD(0),
+					BTC: bitcoinentity.NewBTC(0),
 				},
 			},
 			action: DepositUSDAction,
-			amount: bitcoinentity.MustNewUSD(1),
+			amount: bitcoinentity.NewUSD(1),
 			expected: Balance{
-				USD: bitcoinentity.MustNewUSD(1),
-				BTC: bitcoinentity.MustNewBTC(0),
+				USD: bitcoinentity.NewUSD(1),
+				BTC: bitcoinentity.NewBTC(0),
 			},
-			err: nil,
+			checkErr: assert.NoError,
 		},
 		{
 			name: "success withdraw",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinentity.MustNewUSD(1),
-					BTC: bitcoinentity.MustNewBTC(0),
+					USD: bitcoinentity.NewUSD(1),
+					BTC: bitcoinentity.NewBTC(0),
 				},
 			},
 			action: WithdrawUSDAction,
-			amount: bitcoinentity.MustNewUSD(1),
+			amount: bitcoinentity.NewUSD(1),
 			expected: Balance{
-				USD: bitcoinentity.MustNewUSD(0),
-				BTC: bitcoinentity.MustNewBTC(0),
+				USD: bitcoinentity.NewUSD(0),
+				BTC: bitcoinentity.NewBTC(0),
 			},
-			err: nil,
+			checkErr: assert.NoError,
 		},
 		{
 			name: "insufficient funds",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinentity.MustNewUSD(0),
-					BTC: bitcoinentity.MustNewBTC(0),
+					USD: bitcoinentity.NewUSD(0),
+					BTC: bitcoinentity.NewBTC(0),
 				},
 			},
 			action: WithdrawUSDAction,
-			amount: bitcoinentity.MustNewUSD(1),
+			amount: bitcoinentity.NewUSD(1),
 			expected: Balance{
-				USD: bitcoinentity.MustNewUSD(0),
-				BTC: bitcoinentity.MustNewBTC(0),
+				USD: bitcoinentity.NewUSD(0),
+				BTC: bitcoinentity.NewBTC(0),
 			},
-			err: ErrInsufficientFunds,
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 	}
 
@@ -221,7 +243,7 @@ func TestUser_ChangeUSDBalance(t *testing.T) {
 			user := &tc.user
 			err := user.ChangeUSDBalance(tc.action, tc.amount)
 
-			assert.ErrorIs(t, err, tc.err)
+			tc.checkErr(t, err)
 			assert.True(t, tc.expected.BTC.Equal(user.Balance.BTC))
 			assert.True(t, tc.expected.USD.Equal(user.Balance.USD))
 		})
@@ -238,77 +260,77 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 		user     User
 		action   Action
 		amount   bitcoinentity.BTC
-		btcPrice bitcoinentity.BTCPrice
+		btcPrice bitcoinentity.USD
 		expected Balance
-		err      error
+		checkErr tests.ErrorChecker
 	}{
 		{
 			name: "success buy",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinentity.MustNewUSD(1),
-					BTC: bitcoinentity.MustNewBTC(0),
+					USD: bitcoinentity.NewUSD(1),
+					BTC: bitcoinentity.NewBTC(0),
 				},
 			},
 			action:   BuyBTCAction,
-			amount:   bitcoinentity.MustNewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
+			amount:   bitcoinentity.NewBTC(1),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: Balance{
-				USD: bitcoinentity.MustNewUSD(0),
-				BTC: bitcoinentity.MustNewBTC(1),
+				USD: bitcoinentity.NewUSD(0),
+				BTC: bitcoinentity.NewBTC(1),
 			},
-			err: nil,
+			checkErr: assert.NoError,
 		},
 		{
 			name: "success sale",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinentity.MustNewUSD(0),
-					BTC: bitcoinentity.MustNewBTC(1),
+					USD: bitcoinentity.NewUSD(0),
+					BTC: bitcoinentity.NewBTC(1),
 				},
 			},
 			action:   SellBTCAction,
-			amount:   bitcoinentity.MustNewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
+			amount:   bitcoinentity.NewBTC(1),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: Balance{
-				USD: bitcoinentity.MustNewUSD(1),
-				BTC: bitcoinentity.MustNewBTC(0),
+				USD: bitcoinentity.NewUSD(1),
+				BTC: bitcoinentity.NewBTC(0),
 			},
-			err: nil,
+			checkErr: assert.NoError,
 		},
 		{
 			name: "insufficient funds on buy",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinentity.MustNewUSD(0),
-					BTC: bitcoinentity.MustNewBTC(0),
+					USD: bitcoinentity.NewUSD(0),
+					BTC: bitcoinentity.NewBTC(0),
 				},
 			},
 			action:   BuyBTCAction,
-			amount:   bitcoinentity.MustNewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
+			amount:   bitcoinentity.NewBTC(1),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: Balance{
-				USD: bitcoinentity.MustNewUSD(0),
-				BTC: bitcoinentity.MustNewBTC(0),
+				USD: bitcoinentity.NewUSD(0),
+				BTC: bitcoinentity.NewBTC(0),
 			},
-			err: ErrInsufficientFunds,
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "insufficient funds on sell",
 			user: User{
 				Balance: Balance{
-					USD: bitcoinentity.MustNewUSD(0),
-					BTC: bitcoinentity.MustNewBTC(0),
+					USD: bitcoinentity.NewUSD(0),
+					BTC: bitcoinentity.NewBTC(0),
 				},
 			},
 			action:   SellBTCAction,
-			amount:   bitcoinentity.MustNewBTC(1),
-			btcPrice: bitcoinentity.NewBTCPrice(bitcoinentity.MustNewUSD(1), now),
+			amount:   bitcoinentity.NewBTC(1),
+			btcPrice: bitcoinentity.NewUSD(1),
 			expected: Balance{
-				USD: bitcoinentity.MustNewUSD(0),
-				BTC: bitcoinentity.MustNewBTC(0),
+				USD: bitcoinentity.NewUSD(0),
+				BTC: bitcoinentity.NewBTC(0),
 			},
-			err: ErrInsufficientFunds,
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 	}
 
@@ -318,9 +340,12 @@ func TestUser_ChangeBTCBalance(t *testing.T) {
 			t.Parallel()
 
 			user := &tc.user
-			err := user.ChangeBTCBalance(tc.action, tc.amount, tc.btcPrice)
+			price, err := bitcoinentity.NewBTCPrice(tc.btcPrice, now)
+			require.NoError(t, err)
 
-			assert.ErrorIs(t, err, tc.err)
+			err = user.ChangeBTCBalance(tc.action, tc.amount, price)
+
+			tc.checkErr(t, err)
 			assert.True(t, tc.expected.BTC.Equal(user.Balance.BTC))
 			assert.True(t, tc.expected.USD.Equal(user.Balance.USD))
 		})
@@ -331,19 +356,19 @@ func TestUser_ParseEmail(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name  string
-		email string
-		err   error
+		name     string
+		email    string
+		checkErr tests.ErrorChecker
 	}{
 		{
-			name:  "success",
-			email: "test@mail.com",
-			err:   nil,
+			name:     "success",
+			email:    "test@mail.com",
+			checkErr: assert.NoError,
 		},
 		{
-			name:  "invalid mail",
-			email: "test",
-			err:   ErrInvalidEmail,
+			name:     "invalid mail",
+			email:    "test",
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 	}
 
@@ -354,7 +379,7 @@ func TestUser_ParseEmail(t *testing.T) {
 
 			_, err := ParseEmail(tc.email)
 
-			assert.ErrorIs(t, err, tc.err)
+			tc.checkErr(t, err)
 		})
 	}
 }

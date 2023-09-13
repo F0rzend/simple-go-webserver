@@ -1,41 +1,35 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"github.com/lmittmann/tint"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/F0rzend/simple-go-webserver/app/server"
 )
 
 func main() {
-	logger := log.
-		Output(zerolog.ConsoleWriter{Out: os.Stderr}).
-		With().Caller().
-		Logger()
+	logger := slog.New(tint.NewHandler(os.Stderr, nil))
 
 	address := getEnv("ADDRESS", ":8080")
-	logger.Info().Msgf("starting endpoints on %s", address)
+	logger.Info("run api", slog.String("address", address))
 
 	userRepository := userrepositories.NewMemoryUserRepository()
-	bitcoinRepository, err := bitcoinrepositories.NewMemoryBTCRepository(bitcoinentity.MustNewUSD(100))
-	if err != nil {
-		log.Fatal().Err(err).Send()
-	}
+	bitcoinRepository := bitcoinrepositories.NewMemoryBTCRepository()
 
 	apiServer := server.NewServer(userRepository, bitcoinRepository, bitcoinRepository)
 
-	if err := http.ListenAndServe(
-		address,
-		apiServer.GetHTTPHandler(&logger),
-	); err != nil {
-		log.Error().Err(err).Send()
+	srv := &http.Server{
+		Addr:              address,
+		Handler:           apiServer.GetHTTPHandler(logger),
+		ReadHeaderTimeout: 1 * time.Second,
 	}
+	logger.Error("server stopped", srv.ListenAndServe())
 }
 
 func getEnv(key, defaultValue string) string {

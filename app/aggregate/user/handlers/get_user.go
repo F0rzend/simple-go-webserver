@@ -1,12 +1,12 @@
 package userhandlers
 
 import (
+	"fmt"
 	"math/big"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
 	"github.com/F0rzend/simple-go-webserver/app/common"
@@ -19,8 +19,8 @@ type UserResponse struct {
 	Email      string     `json:"email"`
 	BTCBalance *big.Float `json:"btc_balance"`
 	USDBalance *big.Float `json:"usd_balance"`
-	CreatedAt  string     `json:"created_at"`
-	UpdatedAt  string     `json:"updated_at"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
 }
 
 func UserToResponse(user *userentity.User) *UserResponse {
@@ -31,25 +31,27 @@ func UserToResponse(user *userentity.User) *UserResponse {
 		Email:      user.Email.Address,
 		BTCBalance: user.Balance.BTC.ToFloat(),
 		USDBalance: user.Balance.USD.ToFloat(),
-		CreatedAt:  user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:  user.UpdatedAt.Format(time.RFC3339),
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
 	}
 }
 
-func (h *UserHTTPHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) GetUser(w http.ResponseWriter, r *http.Request) error {
 	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("failed to get user id from request: %w", err)
 	}
 
 	user, err := h.service.GetUser(id)
+	if common.IsFlaggedError(err, common.FlagNotFound) {
+		return common.NewNotFoundError("user not found")
+	}
 	if err != nil {
-		common.RenderHTTPError(w, r, err)
-		return
+		return fmt.Errorf("failed to get user: %w", err)
 	}
 
 	render.Status(r, http.StatusOK)
 	render.Respond(w, r, UserToResponse(user))
+
+	return nil
 }

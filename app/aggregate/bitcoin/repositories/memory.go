@@ -10,21 +10,22 @@ type MemoryBTCRepository struct {
 	bitcoin bitcoinentity.BTCPrice
 }
 
-func NewMemoryBTCRepository(initialPrice bitcoinentity.USD) (*MemoryBTCRepository, error) {
-	btcPrice := bitcoinentity.NewBTCPrice(initialPrice, time.Now())
+func NewMemoryBTCRepository() *MemoryBTCRepository {
+	const defaultPrice = 100
+
+	btcPrice, _ := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(defaultPrice), time.Now())
 
 	return &MemoryBTCRepository{
 		bitcoin: btcPrice,
-	}, nil
+	}
 }
 
 func (r *MemoryBTCRepository) GetPrice() bitcoinentity.BTCPrice {
 	return r.bitcoin
 }
 
-func (r *MemoryBTCRepository) SetPrice(price bitcoinentity.USD) error {
-	btcPrice := bitcoinentity.NewBTCPrice(price, time.Now())
+func (r *MemoryBTCRepository) SetPrice(price bitcoinentity.BTCPrice) error {
+	r.bitcoin = price
 
-	r.bitcoin = btcPrice
 	return nil
 }

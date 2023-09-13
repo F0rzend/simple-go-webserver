@@ -1,119 +1,10 @@
 package bitcoinentity
 
 import (
-	"math/big"
 	"testing"
-
-	"github.com/shopspring/decimal"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestNewUSD(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name     string
-		input    float64
-		expected USD
-		err      error
-	}{
-		{
-			name:     "success",
-			input:    1,
-			expected: USD{decimal.NewFromFloat(1)},
-			err:      nil,
-		},
-		{
-			name:     "negative",
-			input:    -1,
-			expected: USD{},
-			err:      ErrNegativeCurrency,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			actual, err := NewUSD(tc.input)
-
-			assert.ErrorIs(t, err, tc.err)
-			assert.Equal(t, tc.expected, actual)
-		})
-	}
-}
-
-func TestUSD_ToFloat(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name     string
-		usd      USD
-		expected *big.Float
-	}{
-		{
-			name:     "zero",
-			usd:      MustNewUSD(0),
-			expected: big.NewFloat(0),
-		},
-		{
-			name:     "cent",
-			usd:      MustNewUSD(0.01),
-			expected: big.NewFloat(0.01),
-		},
-		{
-			name:     "dollar",
-			usd:      MustNewUSD(1),
-			expected: big.NewFloat(1),
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			actual, _ := tc.usd.ToFloat().Float64()
-			expect, _ := tc.expected.Float64()
-
-			assert.Equal(t, expect, actual)
-		})
-	}
-}
-
-func TestUSD_IsZero(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name     string
-		input    USD
-		expected bool
-	}{
-		{
-			name:     "zero",
-			input:    MustNewUSD(0),
-			expected: true,
-		},
-		{
-			name:     "not zero",
-			input:    MustNewUSD(1),
-			expected: false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			actual := tc.input.IsZero()
-
-			assert.Equal(t, tc.expected, actual)
-		})
-	}
-}
 
 func TestUSD_String(t *testing.T) {
 	t.Parallel()
@@ -125,17 +16,17 @@ func TestUSD_String(t *testing.T) {
 	}{
 		{
 			name:     "zero",
-			input:    MustNewUSD(0),
+			input:    NewUSD(0),
 			expected: "$0",
 		},
 		{
 			name:     "cent",
-			input:    MustNewUSD(0.01),
+			input:    NewUSD(0.01),
 			expected: "$0.01",
 		},
 		{
 			name:     "dollar",
-			input:    MustNewUSD(1),
+			input:    NewUSD(1),
 			expected: "$1",
 		},
 	}
@@ -155,9 +46,9 @@ func TestUSD_String(t *testing.T) {
 func TestUSD_Add(t *testing.T) {
 	t.Parallel()
 
-	initial := MustNewUSD(1)
-	toAdd := MustNewUSD(2)
-	expected := MustNewUSD(3)
+	initial := NewUSD(1)
+	toAdd := NewUSD(2)
+	expected := NewUSD(3)
 
 	actual := initial.Add(toAdd)
 
@@ -172,21 +63,18 @@ func TestUSD_Sub(t *testing.T) {
 		initial    USD
 		toSubtract USD
 		expected   USD
-		err        error
 	}{
 		{
 			name:       "success",
-			initial:    MustNewUSD(2),
-			toSubtract: MustNewUSD(1),
-			expected:   MustNewUSD(1),
-			err:        nil,
+			initial:    NewUSD(2),
+			toSubtract: NewUSD(1),
+			expected:   NewUSD(1),
 		},
 		{
 			name:       "subtract more than available",
-			initial:    MustNewUSD(1),
-			toSubtract: MustNewUSD(2),
-			expected:   USD{},
-			err:        ErrSubtractMoreUSDThanHave,
+			initial:    NewUSD(1),
+			toSubtract: NewUSD(2),
+			expected:   NewUSD(-1),
 		},
 	}
 
@@ -195,9 +83,8 @@ func TestUSD_Sub(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual, err := tc.initial.Sub(tc.toSubtract)
+			actual := tc.initial.Sub(tc.toSubtract)
 
-			assert.ErrorIs(t, err, tc.err)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -216,24 +103,24 @@ func TestUSDComparativeTransactions(t *testing.T) {
 	}{
 		{
 			name:          "a less than b",
-			a:             MustNewUSD(1),
-			b:             MustNewUSD(2),
+			a:             NewUSD(1),
+			b:             NewUSD(2),
 			aLessThanB:    true,
 			aEqualToB:     false,
 			aGreaterThanB: false,
 		},
 		{
 			name:          "a equal to b",
-			a:             MustNewUSD(1),
-			b:             MustNewUSD(1),
+			a:             NewUSD(1),
+			b:             NewUSD(1),
 			aLessThanB:    false,
 			aEqualToB:     true,
 			aGreaterThanB: false,
 		},
 		{
 			name:          "a greater than b",
-			a:             MustNewUSD(2),
-			b:             MustNewUSD(1),
+			a:             NewUSD(2),
+			b:             NewUSD(1),
 			aLessThanB:    false,
 			aEqualToB:     false,
 			aGreaterThanB: true,

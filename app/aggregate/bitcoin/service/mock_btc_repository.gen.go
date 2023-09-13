@@ -21,7 +21,7 @@ var _ BTCRepository = &MockBTCRepository{}
 // 			GetPriceFunc: func() bitcoinentity.BTCPrice {
 // 				panic("mock out the GetPrice method")
 // 			},
-// 			SetPriceFunc: func(price bitcoinentity.USD) error {
+// 			SetPriceFunc: func(price bitcoinentity.BTCPrice) error {
 // 				panic("mock out the SetPrice method")
 // 			},
 // 		}
@@ -35,7 +35,7 @@ type MockBTCRepository struct {
 	GetPriceFunc func() bitcoinentity.BTCPrice
 
 	// SetPriceFunc mocks the SetPrice method.
-	SetPriceFunc func(price bitcoinentity.USD) error
+	SetPriceFunc func(price bitcoinentity.BTCPrice) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -45,7 +45,7 @@ type MockBTCRepository struct {
 		// SetPrice holds details about calls to the SetPrice method.
 		SetPrice []struct {
 			// Price is the price argument value.
-			Price bitcoinentity.USD
+			Price bitcoinentity.BTCPrice
 		}
 	}
 	lockGetPrice sync.RWMutex
@@ -79,12 +79,12 @@ func (mock *MockBTCRepository) GetPriceCalls() []struct {
 }
 
 // SetPrice calls SetPriceFunc.
-func (mock *MockBTCRepository) SetPrice(price bitcoinentity.USD) error {
+func (mock *MockBTCRepository) SetPrice(price bitcoinentity.BTCPrice) error {
 	if mock.SetPriceFunc == nil {
 		panic("MockBTCRepository.SetPriceFunc: method is nil but BTCRepository.SetPrice was just called")
 	}
 	callInfo := struct {
-		Price bitcoinentity.USD
+		Price bitcoinentity.BTCPrice
 	}{
 		Price: price,
 	}
@@ -98,10 +98,10 @@ func (mock *MockBTCRepository) SetPrice(price bitcoinentity.USD) error {
 // Check the length with:
 //     len(mockedBTCRepository.SetPriceCalls())
 func (mock *MockBTCRepository) SetPriceCalls() []struct {
-	Price bitcoinentity.USD
+	Price bitcoinentity.BTCPrice
 } {
 	var calls []struct {
-		Price bitcoinentity.USD
+		Price bitcoinentity.BTCPrice
 	}
 	mock.lockSetPrice.RLock()
 	calls = mock.calls.SetPrice

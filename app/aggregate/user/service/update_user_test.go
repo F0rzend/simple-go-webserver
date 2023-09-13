@@ -1,10 +1,9 @@
 package userservice
 
 import (
-	"net/http"
 	"testing"
 
-	userrepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
 
@@ -21,7 +20,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 		case 1:
 			return &userentity.User{}, nil
 		default:
-			return nil, userrepositories.ErrUserNotFound
+			return nil, common.NewFlaggedError("user not found", common.FlagNotFound)
 		}
 	}
 	saveUserFunc := func(user *userentity.User) error {
@@ -39,7 +38,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 		cmd                 command
 		getUserCallsAmount  int
 		saveUserCallsAmount int
-		err                 error
+		checkErr            tests.ErrorChecker
 	}{
 		{
 			name: "user not found",
@@ -50,10 +49,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 0,
-			err: common.NewApplicationError(
-				http.StatusNotFound,
-				"User not found",
-			),
+			checkErr:            tests.AssertErrorFlag(common.FlagNotFound),
 		},
 		{
 			name: "update name",
@@ -64,7 +60,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
-			err:                 nil,
+			checkErr:            assert.NoError,
 		},
 		{
 			name: "invalid email",
@@ -75,10 +71,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 0,
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"You must provide a valid email",
-			),
+			checkErr:            tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "update email",
@@ -89,7 +82,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
-			err:                 nil,
+			checkErr:            assert.NoError,
 		},
 		{
 			name: "update name and email",
@@ -100,7 +93,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
-			err:                 nil,
+			checkErr:            assert.NoError,
 		},
 	}
 
@@ -120,7 +113,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 				tc.cmd.email,
 			)
 
-			assert.Equal(t, tc.err, err)
+			tc.checkErr(t, err)
 			assert.Len(t, userRepository.GetCalls(), tc.getUserCallsAmount)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 		})

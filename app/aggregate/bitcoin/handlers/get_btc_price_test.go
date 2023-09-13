@@ -5,8 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
+	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
@@ -15,21 +20,29 @@ import (
 func TestGetBTCPrice(t *testing.T) {
 	t.Parallel()
 
-	service := &MockBitcoinService{
-		GetBTCPriceFunc: func() bitcoinentity.BTCPrice {
-			btcPrice, _ := bitcoinentity.NewUSD(1)
-			return bitcoinentity.NewBTCPrice(
-				btcPrice,
-				time.Now(),
-			)
+	const expectedStatus = http.StatusOK
+
+	now := time.Now()
+
+	repository := &bitcoinservice.MockBTCRepository{
+		GetPriceFunc: func() bitcoinentity.BTCPrice {
+			price, err := bitcoinentity.NewBTCPrice(bitcoinentity.NewUSD(1), now)
+			require.NoError(t, err)
+			return price
 		},
 	}
-	handler := http.HandlerFunc(
-		NewBitcoinHTTPHandlers(service).GetBTCPrice,
-	)
+	service := bitcoinservice.NewBitcoinService(repository)
+	handler := NewBitcoinHTTPHandlers(service).GetBTCPrice
+	sut := common.ErrorHandler(handler)
 
-	w, r := tests.PrepareHandlerArgs(t, http.MethodGet, "/bitcoin", nil)
-	handler.ServeHTTP(w, r)
-	tests.AssertStatus(t, w, r, http.StatusOK)
-	assert.Len(t, service.GetBTCPriceCalls(), 1)
+	tests.HTTPExpect(t, sut).
+		GET("/bitcoin").
+		Expect().
+		Status(expectedStatus).
+		ContentType("application/json").
+		JSON().Object().Value("btc").Object().
+		ValueEqual("price", "1").
+		ValueEqual("updated_at", now)
+
+	assert.Len(t, repository.GetPriceCalls(), 1)
 }

@@ -4,6 +4,10 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
+	bitcoinentity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
+	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,22 +16,28 @@ func TestSetBTCPrice(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name               string
-		newPrice           float64
-		serviceCallsAmount int
-		expectedStatusCode int
+		name                          string
+		price                         float64
+		expectedStatus                int
+		repositorySetPriceCallsAmount int
 	}{
 		{
-			name:               "success",
-			newPrice:           1.0,
-			serviceCallsAmount: 1,
-			expectedStatusCode: http.StatusNoContent,
+			name:                          "success",
+			price:                         100.0,
+			expectedStatus:                http.StatusNoContent,
+			repositorySetPriceCallsAmount: 1,
 		},
 		{
-			name:               "negative",
-			newPrice:           -1.0,
-			serviceCallsAmount: 0,
-			expectedStatusCode: http.StatusBadRequest,
+			name:                          "empty price",
+			price:                         0.0,
+			expectedStatus:                http.StatusBadRequest,
+			repositorySetPriceCallsAmount: 0,
+		},
+		{
+			name:                          "negative price",
+			price:                         -100.0,
+			expectedStatus:                http.StatusBadRequest,
+			repositorySetPriceCallsAmount: 0,
 		},
 	}
 
@@ -36,25 +46,21 @@ func TestSetBTCPrice(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			service := &MockBitcoinService{
-				SetBTCPriceFunc: func(newPrice float64) error {
-					return nil
-				},
+			repository := &bitcoinservice.MockBTCRepository{
+				SetPriceFunc: func(_ bitcoinentity.BTCPrice) error { return nil },
 			}
+			service := bitcoinservice.NewBitcoinService(repository)
+			handler := NewBitcoinHTTPHandlers(service).SetBTCPrice
+			sut := common.ErrorHandler(handler)
 
-			handler := http.HandlerFunc(
-				NewBitcoinHTTPHandlers(service).SetBTCPrice,
-			)
+			tests.HTTPExpect(t, sut).
+				POST("/bitcoin").
+				WithJSON(SetBTCPriceRequest{Price: tc.price}).
+				Expect().
+				Status(tc.expectedStatus).
+				ContentType("application/json")
 
-			w, r := tests.PrepareHandlerArgs(t,
-				http.MethodPost,
-				"/bitcoin",
-				SetBTCPriceRequest{Price: tc.newPrice},
-			)
-			handler.ServeHTTP(w, r)
-
-			tests.AssertStatus(t, w, r, tc.expectedStatusCode)
-			assert.Len(t, service.SetBTCPriceCalls(), tc.serviceCallsAmount)
+			assert.Len(t, repository.SetPriceCalls(), tc.repositorySetPriceCallsAmount)
 		})
 	}
 }

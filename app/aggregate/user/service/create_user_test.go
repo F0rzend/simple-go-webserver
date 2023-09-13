@@ -1,8 +1,9 @@
 package userservice
 
 import (
-	"net/http"
 	"testing"
+
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
 
@@ -24,7 +25,7 @@ func TestUserService_CreateUser(t *testing.T) {
 		name            string
 		cmd             command
 		saveCallsAmount int
-		err             error
+		checkErr        tests.ErrorChecker
 	}{
 		{
 			name: "success",
@@ -34,7 +35,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				email:    "test@mail.com",
 			},
 			saveCallsAmount: 1,
-			err:             nil,
+			checkErr:        assert.NoError,
 		},
 		{
 			name: "empty name",
@@ -43,10 +44,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				username: "test",
 				email:    "test@mail.com",
 			},
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"Name cannot be empty",
-			),
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "empty username",
@@ -55,10 +53,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				username: "",
 				email:    "test@mail.com",
 			},
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"Username cannot be empty",
-			),
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "invalid email",
@@ -67,10 +62,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				username: "test",
 				email:    "test",
 			},
-			err: common.NewApplicationError(
-				http.StatusBadRequest,
-				"You must provide a valid email",
-			),
+			checkErr: tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 	}
 
@@ -94,7 +86,7 @@ func TestUserService_CreateUser(t *testing.T) {
 				tc.cmd.email,
 			)
 
-			assert.Equal(t, tc.err, err)
+			tc.checkErr(t, err)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveCallsAmount)
 		})
 	}

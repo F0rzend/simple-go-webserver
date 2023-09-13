@@ -1,67 +1,44 @@
 package tests
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/gavv/httpexpect"
 	"github.com/stretchr/testify/assert"
 )
 
-func AssertStatus(
-	t *testing.T,
-	w http.ResponseWriter,
-	r *http.Request,
-	expectedStatus int,
-) {
-	t.Helper()
+type ErrorChecker = func(assert.TestingT, error, ...any) bool
 
-	recorder, ok := w.(*httptest.ResponseRecorder)
-	if !ok {
-		t.Fatal("writer is not *httptest.ResponseRecorder")
-	}
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	actual := recorder.Code
-
-	if actual != expectedStatus {
-		errorMessage := fmt.Sprintf("Expected HTTP status code %d but received %d", expectedStatus, actual)
-		errorMessage += fmt.Sprintf("\n\nURL: %s", r.URL.String())
-
-		if len(body) != 0 {
-			errorMessage += fmt.Sprintf("\nRequest: %s", body)
-		}
-		if recorder.Body.Len() > 0 {
-			errorMessage += fmt.Sprintf("\nResponse: %s", recorder.Body.String())
-		}
-		assert.Fail(t, errorMessage)
-	}
+func HTTPExpect(t *testing.T, handler http.HandlerFunc) *httpexpect.Expect {
+	return httpexpect.WithConfig(httpexpect.Config{
+		RequestFactory: newRequestFactoryWithTestLogger(t),
+		Reporter:       httpexpect.NewAssertReporter(t),
+		Client: &http.Client{
+			Transport: httpexpect.NewBinder(handler),
+		},
+	})
 }
 
-func PrepareHandlerArgs(
-	t *testing.T,
-	method string,
-	path string,
-	body any,
-) (*httptest.ResponseRecorder, *http.Request) {
-	t.Helper()
+type tHelper interface {
+	Helper()
+}
 
-	requestBody, err := json.Marshal(body)
-	if err != nil {
-		t.Fatal(err)
+func AssertErrorFlag(flag common.Flag) ErrorChecker {
+	return func(t assert.TestingT, err error, _ ...any) bool {
+		if h, ok := t.(tHelper); ok {
+			h.Helper()
+		}
+
+		if !assert.Error(t, err) {
+			return false
+		}
+
+		var flagged interface {
+			Flag() common.Flag
+		}
+		assert.ErrorAs(t, err, &flagged)
+		return assert.Equal(t, flag, flagged.Flag())
 	}
-
-	r := httptest.NewRequest(method, path, bytes.NewReader(requestBody))
-	r.Header.Set("Content-Type", "application/json")
-
-	w := httptest.NewRecorder()
-
-	return w, r
 }

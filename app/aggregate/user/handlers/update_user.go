@@ -5,10 +5,8 @@ import (
 	"net/http"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
-
 	"github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/go-chi/render"
 )
 
 type UpdateUserRequest struct {
@@ -16,45 +14,45 @@ type UpdateUserRequest struct {
 	Email *string `json:"email,omitempty"`
 }
 
-var ErrNothingToUpdate = common.NewApplicationError(
-	http.StatusBadRequest,
-	"At least one field must be updated",
-)
-
 func (r UpdateUserRequest) Bind(_ *http.Request) error {
 	if r.Name == nil && r.Email == nil {
-		return ErrNothingToUpdate
+		return common.NewValidationError("nothing to update, please provide name or email")
 	}
 
 	if r.Email != nil {
 		if _, err := userentity.ParseEmail(*r.Email); err != nil {
-			return err
+			return common.NewValidationError("invalid email")
 		}
 	}
 	return nil
 }
 
-func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) error {
 	request := &UpdateUserRequest{}
 
 	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("failed to get user id from request: %w", err)
 	}
 
 	if err := render.Bind(r, request); err != nil {
-		common.RenderHTTPError(w, r, err)
-		return
+		return fmt.Errorf("failed to bind request: %w", err)
 	}
 
-	if err := h.service.UpdateUser(id, request.Name, request.Email); err != nil {
-		common.RenderHTTPError(w, r, err)
-		return
+	err = h.service.UpdateUser(id, request.Name, request.Email)
+	if common.IsFlaggedError(err, common.FlagInvalidArgument) {
+		return common.NewValidationError(err.Error())
+	}
+	if common.IsFlaggedError(err, common.FlagNotFound) {
+		return common.NewNotFoundError(fmt.Sprintf("user with id %d not found", id))
+	}
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
 	}
 
 	render.Status(r, http.StatusNoContent)
 	w.Header().Set("Location", fmt.Sprintf("/users/%d", id))
 	render.Respond(w, r, nil)
+
+	return nil
 }

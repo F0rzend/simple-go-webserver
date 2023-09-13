@@ -4,26 +4,29 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/F0rzend/simple-go-webserver/app/tests"
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/stretchr/testify/assert"
+
+	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
+	userentity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	userservice "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 
 func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 	t.Parallel()
 
-	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
-		return 1, nil
-	}
-	createUserFunc := func(_, _, _ string) (uint64, error) {
-		return 1, nil
+	type response struct {
+		status   int
+		location string
 	}
 
 	testCases := []struct {
-		name                        string
-		request                     CreateUserRequest
-		shouldContainLocationHeader bool
-		createUserCallsAmount       int
-		expectedStatus              int
+		name                string
+		request             CreateUserRequest
+		saveUserCallsAmount int
+		response            response
 	}{
 		{
 			name: "success",
@@ -32,9 +35,11 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test@mail.com",
 			},
-			shouldContainLocationHeader: true,
-			createUserCallsAmount:       1,
-			expectedStatus:              http.StatusCreated,
+			saveUserCallsAmount: 1,
+			response: response{
+				status:   http.StatusCreated,
+				location: "/users/1",
+			},
 		},
 		{
 			name: "empty name",
@@ -43,9 +48,10 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test@mail.com",
 			},
-			shouldContainLocationHeader: false,
-			createUserCallsAmount:       0,
-			expectedStatus:              http.StatusBadRequest,
+			saveUserCallsAmount: 0,
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
 		{
 			name: "empty username",
@@ -54,9 +60,10 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "",
 				Email:    "test@mail.com",
 			},
-			shouldContainLocationHeader: false,
-			createUserCallsAmount:       0,
-			expectedStatus:              http.StatusBadRequest,
+			saveUserCallsAmount: 0,
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
 		{
 			name: "invalid email",
@@ -65,10 +72,18 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 				Username: "test",
 				Email:    "test",
 			},
-			shouldContainLocationHeader: false,
-			createUserCallsAmount:       0,
-			expectedStatus:              http.StatusBadRequest,
+			saveUserCallsAmount: 0,
+			response: response{
+				status: http.StatusBadRequest,
+			},
 		},
+	}
+
+	saveUserFunc := func(_ *userentity.User) error {
+		return nil
+	}
+	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
+		return 1, nil
 	}
 
 	for _, tc := range testCases {
@@ -76,18 +91,23 @@ func TestUserHTTPHandlers_CreateUser(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			service := &MockUserService{CreateUserFunc: createUserFunc}
-
-			handler := http.HandlerFunc(NewUserHTTPHandlers(service, getUserIDFromURL).CreateUser)
-
-			w, r := tests.PrepareHandlerArgs(t, http.MethodPost, "/users/", tc.request)
-			handler.ServeHTTP(w, r)
-
-			tests.AssertStatus(t, w, r, tc.expectedStatus)
-			if tc.shouldContainLocationHeader {
-				assert.Equal(t, "/users/1", w.Header().Get("Location"))
+			userRepository := &userservice.MockUserRepository{
+				SaveFunc: saveUserFunc,
 			}
-			assert.Len(t, service.CreateUserCalls(), tc.createUserCallsAmount)
+			bitcoinRepository := &bitcoinservice.MockBTCRepository{}
+			service := userservice.NewUserService(userRepository, bitcoinRepository)
+			handler := NewUserHTTPHandlers(service, getUserIDFromURL).CreateUser
+			sut := common.ErrorHandler(handler)
+
+			tests.HTTPExpect(t, sut).
+				POST("/").
+				WithJSON(tc.request).
+				Expect().
+				Status(tc.response.status).
+				ContentType("application/json").
+				Header("Location").Equal(tc.response.location)
+
+			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 		})
 	}
 }

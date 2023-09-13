@@ -1,7 +1,7 @@
 package userentity
 
 import (
-	"net/http"
+	"fmt"
 	"net/mail"
 	"time"
 
@@ -19,21 +19,6 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-var (
-	ErrNameEmpty = common.NewApplicationError(
-		http.StatusBadRequest,
-		"Name cannot be empty",
-	)
-	ErrUsernameEmpty = common.NewApplicationError(
-		http.StatusBadRequest,
-		"Username cannot be empty",
-	)
-	ErrInvalidEmail = common.NewApplicationError(
-		http.StatusBadRequest,
-		"You must provide a valid email",
-	)
-)
-
 func NewUser(
 	id uint64,
 	name string,
@@ -45,26 +30,16 @@ func NewUser(
 	updatedAt time.Time,
 ) (*User, error) {
 	if name == "" {
-		return nil, ErrNameEmpty
+		return nil, common.NewFlaggedError("name cannot be empty", common.FlagInvalidArgument)
 	}
 
 	if username == "" {
-		return nil, ErrUsernameEmpty
+		return nil, common.NewFlaggedError("username cannot be empty", common.FlagInvalidArgument)
 	}
 
 	addr, err := ParseEmail(email)
 	if err != nil {
-		return nil, err
-	}
-
-	usdAmount, err := bitcoinentity.NewUSD(usdBalance)
-	if err != nil {
-		return nil, err
-	}
-
-	btcAmount, err := bitcoinentity.NewBTC(btcBalance)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error parsing email: %w", err)
 	}
 
 	return &User{
@@ -72,7 +47,7 @@ func NewUser(
 		Name:      name,
 		Username:  username,
 		Email:     addr,
-		Balance:   NewBalance(usdAmount, btcAmount),
+		Balance:   NewBalance(bitcoinentity.NewUSD(usdBalance), bitcoinentity.NewBTC(btcBalance)),
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
@@ -81,19 +56,23 @@ func NewUser(
 func ParseEmail(email string) (*mail.Address, error) {
 	addr, err := mail.ParseAddress(email)
 	if err != nil {
-		return nil, ErrInvalidEmail
+		return nil, common.NewFlaggedError("you must provide a valid email", common.FlagInvalidArgument)
 	}
 	return addr, nil
 }
 
 func (u *User) ChangeUSDBalance(action Action, amount bitcoinentity.USD) error {
-	switch action {
+	if amount.IsNegative() {
+		return common.NewFlaggedError("amount cannot be negative", common.FlagInvalidArgument)
+	}
+
+	switch action { //nolint:exhaustive
 	case DepositUSDAction:
 		return u.deposit(amount)
 	case WithdrawUSDAction:
 		return u.withdraw(amount)
 	default:
-		return ErrInvalidUSDAction
+		return common.NewFlaggedError("invalid action", common.FlagInvalidArgument)
 	}
 }
 
@@ -105,40 +84,31 @@ func (u *User) deposit(amount bitcoinentity.USD) error {
 
 func (u *User) withdraw(amount bitcoinentity.USD) error {
 	if u.Balance.USD.LessThan(amount) {
-		return ErrInsufficientFunds
+		return common.NewFlaggedError("the user does not have enough usd to withdraw", common.FlagInvalidArgument)
 	}
 
-	updatedUSD, err := u.Balance.USD.Sub(amount)
-	if err != nil {
-		return err
-	}
-	u.Balance.USD = updatedUSD
+	u.Balance.USD = u.Balance.USD.Sub(amount)
 
 	return nil
 }
 
 func (u *User) ChangeBTCBalance(action Action, amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) error {
-	switch action {
+	switch action { //nolint:exhaustive
 	case BuyBTCAction:
 		return u.buyBTC(amount, price)
 	case SellBTCAction:
 		return u.sellBTC(amount, price)
 	default:
-		return ErrInvalidBTCAction
+		return common.NewFlaggedError("invalid action", common.FlagInvalidArgument)
 	}
 }
 
 func (u *User) buyBTC(amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) error {
 	if u.Balance.USD.LessThan(price.GetPrice()) {
-		return ErrInsufficientFunds
+		return common.NewFlaggedError("the user does not have enough usd to buy btc", common.FlagInvalidArgument)
 	}
 
-	updatedUSD, err := u.Balance.USD.Sub(amount.ToUSD(price))
-	if err != nil {
-		return err
-	}
-
-	u.Balance.USD = updatedUSD
+	u.Balance.USD = u.Balance.USD.Sub(amount.ToUSD(price))
 	u.Balance.BTC = u.Balance.BTC.Add(amount)
 
 	return nil
@@ -146,15 +116,10 @@ func (u *User) buyBTC(amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) er
 
 func (u *User) sellBTC(amount bitcoinentity.BTC, price bitcoinentity.BTCPrice) error {
 	if u.Balance.BTC.LessThan(amount) {
-		return ErrInsufficientFunds
+		return common.NewFlaggedError("the user does not have enough btc to sell", common.FlagInvalidArgument)
 	}
 
-	updatedBTC, err := u.Balance.BTC.Sub(amount)
-	if err != nil {
-		return err
-	}
-
-	u.Balance.BTC = updatedBTC
+	u.Balance.BTC = u.Balance.BTC.Sub(amount)
 	u.Balance.USD = u.Balance.USD.Add(amount.ToUSD(price))
 
 	return nil

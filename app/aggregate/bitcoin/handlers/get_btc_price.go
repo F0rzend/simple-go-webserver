@@ -22,9 +22,11 @@ func BTCToResponse(btc bitcoinentity.BTCPrice) BTCResponse {
 	}
 }
 
-func (h *BitcoinHTTPHandlers) GetBTCPrice(w http.ResponseWriter, r *http.Request) {
+func (h *BitcoinHTTPHandlers) GetBTCPrice(w http.ResponseWriter, r *http.Request) error {
 	btc := h.service.GetBTCPrice()
 
 	render.Status(r, http.StatusOK)
 	render.Respond(w, r, map[string]BTCResponse{"btc": BTCToResponse(btc)})
+
+	return nil
 }

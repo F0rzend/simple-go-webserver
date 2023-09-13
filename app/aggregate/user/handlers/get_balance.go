@@ -1,29 +1,30 @@
 package userhandlers
 
 import (
-	"math/big"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog/log"
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
 )
 
-func (h *UserHTTPHandlers) GetUserBalance(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) GetUserBalance(w http.ResponseWriter, r *http.Request) error {
 	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
-		log.Error().Err(err).Send()
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("failed to get user id from request: %w", err)
 	}
 
 	balance, err := h.service.GetUserBalance(id)
+	if common.IsFlaggedError(err, common.FlagNotFound) {
+		return common.NewNotFoundError("user not found")
+	}
 	if err != nil {
-		common.RenderHTTPError(w, r, err)
-		return
+		return fmt.Errorf("failed to get user balance: %w", err)
 	}
 
 	render.Status(r, http.StatusOK)
-	render.Respond(w, r, map[string]*big.Float{"balance": balance.ToFloat()})
+	render.Respond(w, r, map[string]any{"balance": balance.ToFloat()})
+
+	return nil
 }

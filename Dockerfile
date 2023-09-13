@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine as builder
+FROM golang:1.21-alpine as builder
 
 WORKDIR /build
 
@@ -16,4 +16,3 @@ FROM gcr.io/distroless/base:latest
 COPY --from=builder /build/binary /app
 
 CMD ["/app"]
-

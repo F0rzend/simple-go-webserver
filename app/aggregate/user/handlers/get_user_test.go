@@ -1,36 +1,67 @@
 package userhandlers
 
 import (
+	"math/big"
 	"net/http"
-	"net/mail"
 	"testing"
+	"time"
 
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	"github.com/F0rzend/simple-go-webserver/app/common"
 
-	"github.com/F0rzend/simple-go-webserver/app/tests"
 	"github.com/stretchr/testify/assert"
+
+	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
+	userentity "github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
+	userservice "github.com/F0rzend/simple-go-webserver/app/aggregate/user/service"
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 )
 
 func TestUserHTTPHandlers_GetUser(t *testing.T) {
 	t.Parallel()
 
+	now := time.Now()
+	const expectedStatus = http.StatusOK
+
+	getUserFunc := func(id uint64) (*userentity.User, error) {
+		return userentity.NewUser(
+			1,
+			"John",
+			"john",
+			"john@mail.com",
+			0,
+			0,
+			now,
+			now,
+		)
+	}
 	getUserIDFromURL := func(_ *http.Request) (uint64, error) {
 		return 1, nil
 	}
 
-	service := &MockUserService{
-		GetUserFunc: func(_ uint64) (*userentity.User, error) {
-			return &userentity.User{
-				Email: &mail.Address{Address: "test@mail.com"},
-			}, nil
-		},
+	userRepository := &userservice.MockUserRepository{
+		GetFunc: getUserFunc,
 	}
+	bitcoinRepository := &bitcoinservice.MockBTCRepository{}
+	service := userservice.NewUserService(userRepository, bitcoinRepository)
+	handler := NewUserHTTPHandlers(service, getUserIDFromURL).GetUser
+	sut := common.ErrorHandler(handler)
 
-	handler := http.HandlerFunc(NewUserHTTPHandlers(service, getUserIDFromURL).GetUser)
+	tests.HTTPExpect(t, sut).
+		GET("/").
+		Expect().
+		Status(expectedStatus).
+		ContentType("application/json").
+		JSON().Object().Equal(
+		UserResponse{
+			ID:         1,
+			Name:       "John",
+			Username:   "john",
+			Email:      "john@mail.com",
+			BTCBalance: big.NewFloat(0),
+			USDBalance: big.NewFloat(0),
+			CreatedAt:  now,
+			UpdatedAt:  now,
+		})
 
-	w, r := tests.PrepareHandlerArgs(t, http.MethodGet, "/users/1", nil)
-	handler.ServeHTTP(w, r)
-
-	tests.AssertStatus(t, w, r, http.StatusOK)
-	assert.Len(t, service.GetUserCalls(), 1)
+	assert.Len(t, userRepository.GetCalls(), 1)
 }

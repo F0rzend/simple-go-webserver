@@ -1,7 +1,6 @@
 package bitcoinentity
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 
@@ -10,7 +9,6 @@ import (
 
 const (
 	CentInUSD = 100
-
 	USDPrefix = "$"
 )
 
@@ -18,36 +16,16 @@ type USD struct {
 	amount decimal.Decimal
 }
 
-func NewUSD(amount float64) (USD, error) {
-	if amount < 0 {
-		return USD{}, ErrNegativeCurrency
-	}
-	return USD{decimal.NewFromFloat(amount)}, nil
-}
-
-func MustNewUSD(amount float64) USD {
-	usd, err := NewUSD(amount)
-	if err != nil {
-		panic(err)
-	}
-	return usd
+func NewUSD(amount float64) USD {
+	return USD{decimal.NewFromFloat(amount)}
 }
 
 func (usd USD) ToFloat() *big.Float {
 	return usd.amount.BigFloat()
 }
 
-func (usd USD) ToFloat64() float64 {
-	amount, _ := usd.ToFloat().Float64()
-	return amount
-}
-
-func (usd USD) IsZero() bool {
-	return usd.amount.IsZero()
-}
-
 func (usd USD) String() string {
-	if usd.IsZero() {
+	if usd.amount.IsZero() {
 		return fmt.Sprintf("%s0", USDPrefix)
 	}
 
@@ -64,18 +42,16 @@ func (usd USD) Add(toAdd USD) USD {
 	return USD{usd.amount.Add(toAdd.amount)}
 }
 
-var ErrSubtractMoreUSDThanHave = errors.New("can't subtract more usd than available")
-
-func (usd USD) Sub(toSubtract USD) (USD, error) {
-	if toSubtract.amount.GreaterThan(usd.amount) {
-		return USD{}, ErrSubtractMoreUSDThanHave
-	}
-
-	return USD{usd.amount.Sub(toSubtract.amount)}, nil
+func (usd USD) Sub(toSubtract USD) USD {
+	return USD{usd.amount.Sub(toSubtract.amount)}
 }
 
 func (usd USD) LessThan(toCompare USD) bool {
 	return usd.amount.LessThan(toCompare.amount)
+}
+
+func (usd USD) IsNegative() bool {
+	return usd.amount.IsNegative()
 }
 
 func (usd USD) Equal(toCompare USD) bool {

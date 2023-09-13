@@ -304,7 +304,7 @@ paths:
         500:
           description: Error on server side
 
-  /users/{id}/bitcoin:
+  /users/{id}/btc:
     post:
       tags:
         - Finances

@@ -1,10 +1,9 @@
 package userservice
 
 import (
-	"net/http"
 	"testing"
 
-	userrepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
+	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	"github.com/stretchr/testify/assert"
 
@@ -21,26 +20,24 @@ func TestUserService_GetUser(t *testing.T) {
 		case 1:
 			return &userentity.User{}, nil
 		default:
-			return nil, userrepositories.ErrUserNotFound
+			return nil, common.NewFlaggedError("user not found", common.FlagNotFound)
 		}
 	}
 
 	testCases := []struct {
-		name   string
-		userID uint64
-		err    error
+		name     string
+		userID   uint64
+		checkErr tests.ErrorChecker
 	}{
 		{
-			name:   "success",
-			userID: 1,
+			name:     "success",
+			userID:   1,
+			checkErr: assert.NoError,
 		},
 		{
-			name:   "user not found",
-			userID: 0,
-			err: common.NewApplicationError(
-				http.StatusNotFound,
-				"User not found",
-			),
+			name:     "user not found",
+			userID:   0,
+			checkErr: tests.AssertErrorFlag(common.FlagNotFound),
 		},
 	}
 
@@ -56,7 +53,7 @@ func TestUserService_GetUser(t *testing.T) {
 
 			_, err := service.GetUser(tc.userID)
 
-			assert.Equal(t, tc.err, err)
+			tc.checkErr(t, err)
 			assert.Len(t, userRepository.GetCalls(), 1)
 		})
 	}
