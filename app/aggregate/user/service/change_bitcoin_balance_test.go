@@ -1,15 +1,14 @@
 package userservice
 
 import (
-	"net/http"
 	"testing"
 	"time"
+
+	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/F0rzend/simple-go-webserver/app/tests"
-
-	userrepositories "github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 
 	"github.com/stretchr/testify/assert"
 
@@ -37,7 +36,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 	getUserFunc := func(id uint64) (*userentity.User, error) {
 		user, ok := testUsers[id]
 		if !ok {
-			return nil, userrepositories.ErrUserNotFound
+			return nil, common.NewFlaggedError("user not found", common.FlagNotFound)
 		}
 		return user, nil
 	}
@@ -63,7 +62,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 		getUserCallsAmount  int
 		saveUserCallsAmount int
 		getPriceCallsAmount int
-		expectedErrorStatus int
+		checkErr            tests.ErrorChecker
 	}{
 		{
 			name: "invalid action",
@@ -72,7 +71,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			getPriceCallsAmount: 1,
-			expectedErrorStatus: http.StatusBadRequest,
+			checkErr:            tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "user not found",
@@ -80,8 +79,8 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				userID: 42,
 				action: "buy",
 			},
-			getUserCallsAmount:  1,
-			expectedErrorStatus: http.StatusNotFound,
+			getUserCallsAmount: 1,
+			checkErr:           tests.AssertErrorFlag(common.FlagNotFound),
 		},
 		{
 			name: "negative currency",
@@ -91,7 +90,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				amount: -1,
 			},
 			getPriceCallsAmount: 1,
-			expectedErrorStatus: http.StatusBadRequest,
+			checkErr:            tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "user has not enough funds to buy btc",
@@ -101,7 +100,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				amount: 1,
 			},
 			getPriceCallsAmount: 1,
-			expectedErrorStatus: http.StatusBadRequest,
+			checkErr:            tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "user has not enough funds to sell btc",
@@ -111,7 +110,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				amount: 1,
 			},
 			getPriceCallsAmount: 1,
-			expectedErrorStatus: http.StatusBadRequest,
+			checkErr:            tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "user has enough funds to buy btc",
@@ -123,7 +122,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
 			getPriceCallsAmount: 1,
-			expectedErrorStatus: 0,
+			checkErr:            assert.NoError,
 		},
 		{
 			name: "user has enough funds to sell btc",
@@ -135,7 +134,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
 			getPriceCallsAmount: 1,
-			expectedErrorStatus: 0,
+			checkErr:            assert.NoError,
 		},
 	}
 
@@ -155,7 +154,7 @@ func TestUserService_ChangeBitcoinBalance(t *testing.T) {
 				tc.cmd.amount,
 			)
 
-			tests.ExpectApplicationError(t, tc.expectedErrorStatus, err)
+			tc.checkErr(t, err)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 			assert.Len(t, btcPriceGetter.GetPriceCalls(), tc.getPriceCallsAmount)
 		})

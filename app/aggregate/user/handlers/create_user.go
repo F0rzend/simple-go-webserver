@@ -15,47 +15,44 @@ type CreateUserRequest struct {
 	Email    string `json:"email"`
 }
 
-var (
-	ErrInvalidName = common.NewApplicationError(
-		http.StatusBadRequest,
-		"Name cannot be empty",
-	)
-	ErrInvalidUsername = common.NewApplicationError(
-		http.StatusBadRequest,
-		"Username cannot be empty",
-	)
-)
-
 func (r CreateUserRequest) Bind(_ *http.Request) error {
 	if r.Name == "" {
-		return ErrInvalidName
+		return common.NewValidationError("Name cannot be empty")
 	}
 
 	if r.Username == "" {
-		return ErrInvalidUsername
+		return common.NewValidationError("Username cannot be empty")
 	}
 
-	if _, err := userentity.ParseEmail(r.Email); err != nil {
-		return err
+	_, err := userentity.ParseEmail(r.Email)
+	if common.IsFlaggedError(err, common.FlagInvalidArgument) {
+		return common.NewValidationError(err.Error())
 	}
+	if err != nil {
+		return fmt.Errorf("error parsing email: %w", err)
+	}
+
 	return nil
 }
 
-func (h *UserHTTPHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHTTPHandlers) CreateUser(w http.ResponseWriter, r *http.Request) error {
 	request := &CreateUserRequest{}
 
 	if err := render.Bind(r, request); err != nil {
-		common.RenderHTTPError(w, r, err)
-		return
+		return fmt.Errorf("error binding request: %w", err)
 	}
 
 	id, err := h.service.CreateUser(request.Name, request.Username, request.Email)
+	if common.IsFlaggedError(err, common.FlagInvalidArgument) {
+		return common.NewValidationError(err.Error())
+	}
 	if err != nil {
-		common.RenderHTTPError(w, r, err)
-		return
+		return fmt.Errorf("error creating user: %w", err)
 	}
 
 	render.Status(r, http.StatusCreated)
 	w.Header().Set("Location", fmt.Sprintf("/users/%d", id))
 	render.Respond(w, r, nil)
+
+	return nil
 }

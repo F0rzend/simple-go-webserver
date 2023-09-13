@@ -1,14 +1,14 @@
 package userservice
 
 import (
-	"net/http"
 	"testing"
+
+	"github.com/F0rzend/simple-go-webserver/app/common"
 
 	"github.com/F0rzend/simple-go-webserver/app/tests"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
-	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/repositories"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 	getUserFunc := func(id uint64) (*userentity.User, error) {
 		user, ok := testUsers[id]
 		if !ok {
-			return nil, userrepositories.ErrUserNotFound
+			return nil, common.NewFlaggedError("user not found", common.FlagNotFound)
 		}
 		return &user, nil
 	}
@@ -42,7 +42,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 		cmd                 command
 		getUserCallsAmount  int
 		saveUserCallsAmount int
-		expectedErrorStatus int
+		checkErr            tests.ErrorChecker
 	}{
 		{
 			name: "invalid action",
@@ -51,8 +51,8 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				action: "invalid",
 				amount: 1,
 			},
-			getUserCallsAmount:  1,
-			expectedErrorStatus: http.StatusBadRequest,
+			getUserCallsAmount: 1,
+			checkErr:           tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "negative currency",
@@ -62,8 +62,8 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				amount: -1,
 			},
 			getUserCallsAmount:  1,
-			saveUserCallsAmount: 1,
-			expectedErrorStatus: 0,
+			saveUserCallsAmount: 0,
+			checkErr:            tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "user not found",
@@ -72,8 +72,8 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				action: "deposit",
 				amount: 1,
 			},
-			getUserCallsAmount:  1,
-			expectedErrorStatus: http.StatusNotFound,
+			getUserCallsAmount: 1,
+			checkErr:           tests.AssertErrorFlag(common.FlagNotFound),
 		},
 		{
 			name: "user has not enough money to withdraw",
@@ -82,8 +82,8 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				action: "withdraw",
 				amount: 1,
 			},
-			getUserCallsAmount:  1,
-			expectedErrorStatus: http.StatusBadRequest,
+			getUserCallsAmount: 1,
+			checkErr:           tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 		{
 			name: "success withdraw",
@@ -94,6 +94,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
+			checkErr:            assert.NoError,
 		},
 		{
 			name: "success deposit",
@@ -104,6 +105,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 			},
 			getUserCallsAmount:  1,
 			saveUserCallsAmount: 1,
+			checkErr:            assert.NoError,
 		},
 	}
 
@@ -123,7 +125,7 @@ func TestUserService_ChangeUserBalance(t *testing.T) {
 				tc.cmd.amount,
 			)
 
-			tests.ExpectApplicationError(t, tc.expectedErrorStatus, err)
+			tc.checkErr(t, err)
 			assert.Len(t, userRepository.GetCalls(), tc.getUserCallsAmount)
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)
 		})

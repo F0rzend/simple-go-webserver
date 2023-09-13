@@ -50,6 +50,10 @@ func (usd USD) LessThan(toCompare USD) bool {
 	return usd.amount.LessThan(toCompare.amount)
 }
 
+func (usd USD) IsNegative() bool {
+	return usd.amount.IsNegative()
+}
+
 func (usd USD) Equal(toCompare USD) bool {
 	return usd.amount.Equal(toCompare.amount)
 }

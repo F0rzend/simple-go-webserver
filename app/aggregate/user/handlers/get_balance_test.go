@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -49,13 +51,14 @@ func TestUserHTTPHandlers_GetUserBalance(t *testing.T) {
 		GetPriceFunc: getPriceFunc,
 	}
 	service := userservice.NewUserService(userRepository, bitcoinRepository)
-	sut := NewUserHTTPHandlers(service, getUserIDFromURL).GetUserBalance
+	handler := NewUserHTTPHandlers(service, getUserIDFromURL).GetUserBalance
+	sut := common.ErrorHandler(handler)
 
 	tests.HTTPExpect(t, sut).
 		POST("/").
 		Expect().
 		Status(expectedStatus).
-		ContentType("application/json", "utf-8").
+		ContentType("application/json").
 		JSON().Object().ValueEqual("balance", "100")
 
 	assert.Len(t, userRepository.GetCalls(), 1)

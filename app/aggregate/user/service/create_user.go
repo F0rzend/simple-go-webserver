@@ -1,6 +1,7 @@
 package userservice
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/entity"
@@ -26,11 +27,13 @@ func (us *UserService) CreateUser(name, username, email string) (uint64, error) 
 		time.Now(),
 	)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error creating user: %w", err)
 	}
 
-	if err := us.userRepository.Save(user); err != nil {
-		return 0, err
+	err = us.userRepository.Save(user)
+	if err != nil {
+		return 0, fmt.Errorf("error saving user: %w", err)
 	}
+
 	return user.ID, nil
 }

@@ -14,7 +14,7 @@ func ContextWithLogger(ctx context.Context, logger *slog.Logger) context.Context
 func GetLoggerFromContext(ctx context.Context) *slog.Logger {
 	logger, ok := ctx.Value(loggerContextKey{}).(*slog.Logger)
 	if !ok {
-		return &slog.Logger{}
+		return slog.New(discardHandler{})
 	}
 
 	return logger

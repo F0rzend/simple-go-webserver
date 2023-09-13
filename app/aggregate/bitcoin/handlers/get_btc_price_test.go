@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
@@ -30,14 +32,14 @@ func TestGetBTCPrice(t *testing.T) {
 		},
 	}
 	service := bitcoinservice.NewBitcoinService(repository)
-
-	sut := NewBitcoinHTTPHandlers(service).GetBTCPrice
+	handler := NewBitcoinHTTPHandlers(service).GetBTCPrice
+	sut := common.ErrorHandler(handler)
 
 	tests.HTTPExpect(t, sut).
 		GET("/bitcoin").
 		Expect().
 		Status(expectedStatus).
-		ContentType("application/json", "utf-8").
+		ContentType("application/json").
 		JSON().Object().Value("btc").Object().
 		ValueEqual("price", "1").
 		ValueEqual("updated_at", now)

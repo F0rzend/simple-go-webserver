@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/stretchr/testify/assert"
 
 	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
@@ -111,14 +113,15 @@ func TestUserHTTPHandlers_UpdateUser(t *testing.T) {
 			}
 			bitcoinRepository := &bitcoinservice.MockBTCRepository{}
 			service := userservice.NewUserService(userRepository, bitcoinRepository)
-			sut := NewUserHTTPHandlers(service, getUserIDFromURL).UpdateUser
+			handler := NewUserHTTPHandlers(service, getUserIDFromURL).UpdateUser
+			sut := common.ErrorHandler(handler)
 
 			tests.HTTPExpect(t, sut).
 				POST("/").
 				WithJSON(tc.request).
 				Expect().
 				Status(tc.response.status).
-				ContentType("application/json", "utf-8").
+				ContentType("application/json").
 				Header("Location").Equal(tc.response.location)
 
 			assert.Len(t, userRepository.SaveCalls(), tc.saveUserCallsAmount)

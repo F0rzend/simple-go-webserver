@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/F0rzend/simple-go-webserver/pkg/hlog"
-
 	"github.com/go-chi/render"
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
@@ -18,38 +16,38 @@ type ChangeUSDBalanceRequest struct {
 
 func (r ChangeUSDBalanceRequest) Bind(_ *http.Request) error {
 	if r.Action == "" {
-		return ErrEmptyAction
+		return common.NewValidationError("action is required")
 	}
 	if r.Amount == 0 {
-		return ErrZeroAmount
+		return common.NewValidationError("amount is required")
 	}
 
 	return nil
 }
 
-func (h *UserHTTPHandlers) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) {
-	logger := hlog.GetLoggerFromContext(r.Context())
-
+func (h *UserHTTPHandlers) ChangeUSDBalance(w http.ResponseWriter, r *http.Request) error {
 	request := &ChangeUSDBalanceRequest{}
 
 	id, err := h.getUserIDFromRequest(r)
 	if err != nil {
-		logger.Error("failed to get user id from request", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("failed to get user id from request: %w", err)
 	}
 
 	if err := render.Bind(r, request); err != nil {
-		common.RenderHTTPError(w, r, err)
-		return
+		return fmt.Errorf("failed to bind request: %w", err)
 	}
 
-	if err := h.service.ChangeUserBalance(id, request.Action, request.Amount); err != nil {
-		common.RenderHTTPError(w, r, err)
-		return
+	err = h.service.ChangeUserBalance(id, request.Action, request.Amount)
+	if common.IsFlaggedError(err, common.FlagInvalidArgument) {
+		return common.NewValidationError(err.Error())
+	}
+	if err != nil {
+		return fmt.Errorf("failed to change user balance: %w", err)
 	}
 
 	render.Status(r, http.StatusNoContent)
 	w.Header().Set("Location", fmt.Sprintf("/users/%d", id))
 	render.Respond(w, r, nil)
+
+	return nil
 }

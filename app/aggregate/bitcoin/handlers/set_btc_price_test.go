@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	bitcoinentity "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/entity"
 	bitcoinservice "github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 	"github.com/F0rzend/simple-go-webserver/app/tests"
@@ -31,6 +33,12 @@ func TestSetBTCPrice(t *testing.T) {
 			expectedStatus:                http.StatusBadRequest,
 			repositorySetPriceCallsAmount: 0,
 		},
+		{
+			name:                          "negative price",
+			price:                         -100.0,
+			expectedStatus:                http.StatusBadRequest,
+			repositorySetPriceCallsAmount: 0,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -42,15 +50,15 @@ func TestSetBTCPrice(t *testing.T) {
 				SetPriceFunc: func(_ bitcoinentity.BTCPrice) error { return nil },
 			}
 			service := bitcoinservice.NewBitcoinService(repository)
-
-			sut := NewBitcoinHTTPHandlers(service).SetBTCPrice
+			handler := NewBitcoinHTTPHandlers(service).SetBTCPrice
+			sut := common.ErrorHandler(handler)
 
 			tests.HTTPExpect(t, sut).
 				POST("/bitcoin").
 				WithJSON(SetBTCPriceRequest{Price: tc.price}).
 				Expect().
 				Status(tc.expectedStatus).
-				ContentType("application/json", "utf-8")
+				ContentType("application/json")
 
 			assert.Len(t, repository.SetPriceCalls(), tc.repositorySetPriceCallsAmount)
 		})

@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -108,6 +110,9 @@ func TestUserHTTPHandlers_ChangeBTCBalance(t *testing.T) {
 	saveUserFunc := func(_ *userentity.User) error {
 		return nil
 	}
+	idProvider := func(r *http.Request) (uint64, error) {
+		return 1, nil
+	}
 
 	for _, tc := range testCases {
 		tc := tc
@@ -121,17 +126,15 @@ func TestUserHTTPHandlers_ChangeBTCBalance(t *testing.T) {
 			bitcoinRepository := &bitcoinservice.MockBTCRepository{GetPriceFunc: getPriceFunc}
 
 			service := userservice.NewUserService(userRepository, bitcoinRepository)
-
-			sut := NewUserHTTPHandlers(service, func(r *http.Request) (uint64, error) {
-				return 1, nil
-			}).ChangeBTCBalance
+			handler := NewUserHTTPHandlers(service, idProvider).ChangeBTCBalance
+			sut := common.ErrorHandler(handler)
 
 			tests.HTTPExpect(t, sut).
 				POST("/").
 				WithJSON(tc.request).
 				Expect().
 				Status(tc.response.status).
-				ContentType("application/json", "utf-8").
+				ContentType("application/json").
 				Header("Location").Equal(tc.response.location)
 
 			assert.Len(t, userRepository.GetCalls(), tc.calls.getUser)

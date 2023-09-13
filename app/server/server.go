@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/handlers"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/bitcoin/service"
 	"github.com/F0rzend/simple-go-webserver/app/aggregate/user/handlers"
@@ -57,21 +59,21 @@ func (s *Server) GetHTTPHandler(
 	)
 
 	r.Route("/users", func(r chi.Router) {
-		r.Post("/", s.userRoutes.CreateUser)
+		r.Post("/", common.ErrorHandler(s.userRoutes.CreateUser))
 
 		r.Route("/{id}", func(r chi.Router) {
-			r.Get("/", s.userRoutes.GetUser)
-			r.Put("/", s.userRoutes.UpdateUser)
-			r.Get("/balance", s.userRoutes.GetUserBalance)
+			r.Get("/", common.ErrorHandler(s.userRoutes.GetUser))
+			r.Put("/", common.ErrorHandler(s.userRoutes.UpdateUser))
+			r.Get("/balance", common.ErrorHandler(s.userRoutes.GetUserBalance))
 
-			r.Post("/usd", s.userRoutes.ChangeUSDBalance)
-			r.Post("/btc", s.userRoutes.ChangeBTCBalance)
+			r.Post("/usd", common.ErrorHandler(s.userRoutes.ChangeUSDBalance))
+			r.Post("/btc", common.ErrorHandler(s.userRoutes.ChangeBTCBalance))
 		})
 	})
 
 	r.Route("/bitcoin", func(r chi.Router) {
-		r.Get("/", s.bitcoinRoutes.GetBTCPrice)
-		r.Put("/", s.bitcoinRoutes.SetBTCPrice)
+		r.Get("/", common.ErrorHandler(s.bitcoinRoutes.GetBTCPrice))
+		r.Put("/", common.ErrorHandler(s.bitcoinRoutes.SetBTCPrice))
 	})
 
 	return r

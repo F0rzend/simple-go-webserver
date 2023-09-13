@@ -5,36 +5,40 @@ import (
 	"testing"
 
 	"github.com/F0rzend/simple-go-webserver/app/common"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/gavv/httpexpect"
+	"github.com/stretchr/testify/assert"
 )
+
+type ErrorChecker = func(assert.TestingT, error, ...any) bool
 
 func HTTPExpect(t *testing.T, handler http.HandlerFunc) *httpexpect.Expect {
 	return httpexpect.WithConfig(httpexpect.Config{
-		Reporter: httpexpect.NewAssertReporter(t),
+		RequestFactory: newRequestFactoryWithTestLogger(t),
+		Reporter:       httpexpect.NewAssertReporter(t),
 		Client: &http.Client{
 			Transport: httpexpect.NewBinder(handler),
 		},
 	})
 }
 
-func ExpectApplicationError(t *testing.T, expectedStatus int, err error) {
-	t.Helper()
+type tHelper interface {
+	Helper()
+}
 
-	if expectedStatus == 0 {
-		assert.NoError(t, err)
-	} else {
-		require.IsType(t, common.ApplicationError{}, err)
-		err, ok := err.(common.ApplicationError)
-		if !ok {
-			t.Fatalf(
-				"Object expected to be of type %T, but was %T",
-				common.ApplicationError{},
-				err,
-			)
+func AssertErrorFlag(flag common.Flag) ErrorChecker {
+	return func(t assert.TestingT, err error, _ ...any) bool {
+		if h, ok := t.(tHelper); ok {
+			h.Helper()
 		}
-		assert.Equal(t, expectedStatus, err.HTTPStatus)
+
+		if !assert.Error(t, err) {
+			return false
+		}
+
+		var flagged interface {
+			Flag() common.Flag
+		}
+		assert.ErrorAs(t, err, &flagged)
+		return assert.Equal(t, flag, flagged.Flag())
 	}
 }

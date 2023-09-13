@@ -4,6 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/F0rzend/simple-go-webserver/app/common"
+	"github.com/F0rzend/simple-go-webserver/app/tests"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -194,19 +197,19 @@ func TestNewBTCPrice(t *testing.T) {
 		name          string
 		price         USD
 		expectedPrice USD
-		err           error
+		checkErr      tests.ErrorChecker
 	}{
 		{
 			name:          "success",
 			price:         NewUSD(100.0),
 			expectedPrice: NewUSD(100),
-			err:           nil,
+			checkErr:      assert.NoError,
 		},
 		{
 			name:          "negative price",
 			price:         NewUSD(-1.0),
 			expectedPrice: USD{},
-			err:           ErrNegativePrice,
+			checkErr:      tests.AssertErrorFlag(common.FlagInvalidArgument),
 		},
 	}
 
@@ -219,7 +222,7 @@ func TestNewBTCPrice(t *testing.T) {
 
 			price, err := NewBTCPrice(tc.price, now)
 
-			assert.ErrorIs(t, tc.err, err)
+			tc.checkErr(t, err)
 			assert.Equal(t, tc.expectedPrice, price.GetPrice())
 		})
 	}
